@@ -1,9 +1,11 @@
 package danbroid.mopidy.util;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdServiceInfo;
+import android.os.Build;
 
 
 /**
@@ -11,10 +13,10 @@ import android.net.nsd.NsdServiceInfo;
  * Helper class to find Mopidy servers
  */
 
-
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class ServiceDiscoveryHelper {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ServiceDiscoveryHelper.class);
-	private  Listener listener;
+	private Listener listener;
 
 
 	NsdManager nsdManager;
@@ -42,6 +44,7 @@ public class ServiceDiscoveryHelper {
 		@Override
 		public void onDiscoveryStopped(String serviceType) {
 		}
+
 
 		@Override
 		public void onServiceFound(NsdServiceInfo serviceInfo) {

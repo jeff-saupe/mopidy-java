@@ -12,7 +12,8 @@ import org.androidannotations.annotations.ViewById;
 
 import java.util.HashMap;
 
-import danbroid.mopidy.Methods;
+import danbroid.mopidy.Call;
+import danbroid.mopidy.Core;
 import danbroid.mopidy.MopidyConnection;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.model.Ref;
@@ -47,16 +48,15 @@ public class MainActivity extends AppCompatActivity implements ServiceDiscoveryH
 	@Click(R.id.start)
 	void startSocket() {
 		log.debug("startSocket()");
-		conn = new MopidyConnection("192.168.1.2", 6680);
-		conn.start();
+		conn = new MopidyConnection();
+		conn.start("192.168.1.2", 6680);
 
-		conn.browse(null, new Methods.Call.Handler<Ref[]>() {
+		conn.call(Core.Library.browse(null).setHandler(new Call.ResponseHandler<Ref[]>() {
 			@Override
-			public void onResponse(Methods.Call<Ref[]> call) {
+			public void onResponse(Call<Ref[]> call) {
 				log.trace("onResponse(): {}", call.getResult());
-
 			}
-		});
+		}));
 
 
 	}

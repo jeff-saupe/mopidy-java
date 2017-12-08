@@ -9,23 +9,7 @@ import danbroid.mopidy.interfaces.Constants;
  * Created by dan on 8/12/17.
  */
 public abstract class Call<T> {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Call.class);
 	public static final String JSONRPC_VERSION = "2.0";
-
-/*
-
-	public static class Builder<T> {
-		Call<T> call = new Call<T>() {
-			@Override
-			protected T parseResult(JsonElement response) {
-				return null;
-			}
-		};
-		public Builder<T> method(String methodName){
-
-		}
-	}
-*/
 
 
 	private JsonElement response;

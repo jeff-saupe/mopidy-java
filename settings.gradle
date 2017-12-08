@@ -1,1 +1,1 @@
-include ':app', ':mopidy_android'
+include ':app', ':mopidy_android', ':mopidy_java'
