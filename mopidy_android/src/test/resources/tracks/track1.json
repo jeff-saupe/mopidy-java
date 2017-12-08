@@ -1,0 +1,38 @@
+[
+  {
+    "album": {
+      "date": "1967",
+      "musicbrainz_id": "ITS AN ID!",
+      "num_discs": 1,
+      "num_tracks": 10,
+      "__model__": "Album",
+      "artists": [
+        {
+          "__model__": "Artist",
+          "name": "The Beatles",
+          "uri": "local:artist:md5:8aeef1a4c2812ce58f7f31f56c278e7b"
+        }
+      ],
+      "name": "Sgt. Pepper's Lonely Hearts Club Band",
+      "uri": "local:album:md5:20e86175bd50d292bff12881906de152"
+    },
+    "comment": "Before Sgt. Pepper, no one seriously thought of rock music as actual art. That all changed in 1967, though, when John, Paul, George and Ringo (with \"A Little Help\" from their friend, producer George Martin) created an undeniable work of art which remains, after 30-plus years, one of the most influential albums of all time. From Lennon's evocative word/sound pictures (the trippy \"Lucy in the Sky With Diamonds,\" the carnival-like \"Being for the Benefit of Mr. Kite\") and McCartney's music hall-styled \"When I'm 64,\" to Harrison's Eastern-leaning \"Within You Without You,\" and the avant-garde mini-suite, \"A Day in the Life,\" Sgt. Pepper was a milestone for both '60s music and popular culture. --Billy Altman",
+    "__model__": "Track",
+    "name": "Lucy In The Sky With Diamonds",
+    "uri": "local:track:Beatles%2C%20The/Sgt.%20Pepper%27s%20Lonely%20Hearts%20Club%20Band/03%20Lucy%20In%20The%20Sky%20With%20Diamonds.mp3",
+    "date": "1967",
+    "length": 209031,
+    "bitrate": 128,
+    "last_modified": 1246317991000,
+    "track_no": 3,
+    "disc_no": 1,
+    "artists": [
+      {
+        "__model__": "Artist",
+        "name": "The Beatles",
+        "uri": "local:artist:md5:8aeef1a4c2812ce58f7f31f56c278e7b"
+      }
+    ],
+    "genre": "Classic Rock"
+  }
+]

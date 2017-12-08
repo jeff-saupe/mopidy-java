@@ -16,6 +16,15 @@ public interface Constants {
 		String NEW_STATE = "new_state";
 		String PLAYLIST = "playlist";
 		String URI = "uri";
+		String METHOD = "method";
+		String JSONRPC = "jsonrpc";
+		String PARAMS = "params";
+		String ID = "id";
+		String RESULT = "result";
+		String ERROR = "error";
+		String CODE = "code";
+		String MESSAGE = "message";
+		String DATA = "data";
 	}
 
 	interface State {
@@ -23,4 +32,12 @@ public interface Constants {
 		String PLAYING = "playing";
 		String STOPPED = "stopped";
 	}
+
+	interface Method {
+		String GET_VERSION = "core.get_version";
+		String BROWSE = "core.library.browse";
+		String GET_IMAGES = "core.library.get_images";
+		String LOOKUP = "core.library.lookup";
+	}
+
 }

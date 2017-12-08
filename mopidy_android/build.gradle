@@ -3,8 +3,10 @@ apply plugin: 'com.android.library'
 android {
   compileSdkVersion setup.compileSdk
 
+
+
   defaultConfig {
-    minSdkVersion 16
+    minSdkVersion 15
     targetSdkVersion setup.targetSdk
     versionCode 1
     versionName "1.0"
@@ -20,16 +22,31 @@ android {
     }
   }
 
+  testOptions {
+    unitTests.all {
+      // All the usual Gradle options.
+      testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+        outputs.upToDateWhen { false }
+        showStandardStreams = true
+      }
+    }
+  }
 }
 
+
+
 dependencies {
-  api "danbroid.util:slf4j:${deps.utilVersion}"
 
-
+  //implementation "com.android.support:appcompat-v7:${deps.supportLib}"
+  implementation "org.slf4j:slf4j-api:${deps.slf4j}"
   api "com.google.code.gson:gson:${deps.gson}"
   api "com.squareup.okhttp3:okhttp:${deps.okhttp}"
-  implementation "com.android.support:appcompat-v7:${deps.supportLib}"
+
   testImplementation 'junit:junit:4.12'
+  testImplementation "org.slf4j:slf4j-simple:${deps.slf4j}"
+  testImplementation "org.skyscreamer:jsonassert:1.5.0"
+
   androidTestImplementation 'com.android.support.test:runner:1.0.1'
   androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
