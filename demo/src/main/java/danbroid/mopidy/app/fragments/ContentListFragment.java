@@ -1,7 +1,6 @@
 package danbroid.mopidy.app.fragments;
 
 import android.database.ContentObserver;
-import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -10,18 +9,27 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.RequestOptions;
+
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.FragmentArg;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
+import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.content.ContentProvider;
 import danbroid.mopidy.app.interfaces.ContentView;
 import danbroid.mopidy.app.interfaces.MainView;
-import danbroid.mopidy.model.Base;
+import danbroid.mopidy.app.util.GlideApp;
+import danbroid.mopidy.app.util.ImageResolver;
+import danbroid.mopidy.interfaces.CallContext;
+import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
 
 /**
@@ -45,11 +53,18 @@ public class ContentListFragment extends Fragment implements ContentView {
 	@FragmentArg(ARG_URI)
 	String uri;
 
+	@Bean
+	ImageResolver imageResolver;
+
+	@Bean
+	ContentProvider contentProvider;
+
 
 	private RecyclerView.Adapter<MediaItemViewHolder> adapter;
 
-
+	@Override
 	public void refresh() {
+		log.debug("refresh()");
 		MainView mainView = getMainView();
 		if (mainView != null) mainView.browse(uri, this);
 	}
@@ -62,7 +77,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 		ImageView imageView;
 		TextView titleView;
 		TextView descriptionView;
-		private Base item;
+		private Ref ref;
 
 		public MediaItemViewHolder(ViewGroup itemView) {
 			super(itemView);
@@ -70,27 +85,43 @@ public class ContentListFragment extends Fragment implements ContentView {
 			titleView = itemView.findViewById(R.id.title);
 			descriptionView = itemView.findViewById(R.id.description);
 			itemView.setOnClickListener(this);
+			imageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_folder));
+
 		}
 
-		void bind(Base item) {
-			this.item = item;
-			log.trace("bind(): {}", item);
-			if (item instanceof Ref) {
-				Ref ref = (Ref) item;
-				titleView.setText(ref.getName());
-				String description = Uri.decode(ref.getUri());
-				description = description.substring(ContentProvider.URI_CONTENT.length());
-				descriptionView.setText(description);
+		void bind(Ref ref) {
+			log.trace("bind(): {}", ref);
+			this.ref = ref;
+			titleView.setText(ref.getName());
+			String description = ref.getUri();
+			descriptionView.setText(description);
+			Image image = (Image) ref.getExtra();
+			if (image != null) {
+				String imageUri = image.getUri();
+				log.error("LOADING: {}", imageUri);
+				GlideApp.with(ContentListFragment.this)
+						.load(imageUri)
+						.fallback(R.drawable.ic_folder)
+						.transition(DrawableTransitionOptions.withCrossFade())
+						.apply(RequestOptions.bitmapTransform(new RoundedCorners(8)))
+						.into(imageView);
 			}
 		}
 
 		@Override
 		public void onClick(View v) {
-			getMainView().onItemSelected(item);
+			getMainView().onItemSelected(ref);
 		}
+
+
 	}
 
-	private Base[] data = {};
+	@Override
+	public String getUri() {
+		return uri;
+	}
+
+	private Ref[] data = {};
 
 
 	@AfterViews
@@ -126,6 +157,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 		recyclerView.setAdapter(adapter);
 
+		getActivity().setTitle(uri);
 		refresh();
 
 
@@ -142,14 +174,39 @@ public class ContentListFragment extends Fragment implements ContentView {
 	}
 
 	@UiThread
-	public void setContent(Base[] content) {
-		log.debug("setContent(): size: " + content.length);
+	public void setContent(Ref[] content) {
+		setContent(content, true);
+	}
+
+	@UiThread
+	public void setContent(final Ref content[], boolean resolveImages) {
+		log.debug("setContent(): size: {} resolveImages: {}", content.length, resolveImages);
 		this.data = content;
+
+		if (getActivity() == null || !isResumed()) return;
 
 		spinner.setVisibility(data.length > 0 ? View.GONE : View.VISIBLE);
 		recyclerView.setVisibility(data.length > 0 ? View.VISIBLE : View.GONE);
 
+		if (!resolveImages) {
+			for (int i = 0; i < data.length; i++) {
+				Image img = (Image) content[i].getExtra();
+				if (img != null && img != ImageResolver.MISSING_IMAGE) {
+					adapter.notifyItemChanged(i);
+				}
+			}
+			return;
+		}
+
 		adapter.notifyDataSetChanged();
+
+
+		imageResolver.resolveImages(data, new ResponseHandler<Ref[]>() {
+			@Override
+			public void onResponse(CallContext context, Ref[] result) {
+				setContent(result, false);
+			}
+		});
 	}
 
 
@@ -161,16 +218,4 @@ public class ContentListFragment extends Fragment implements ContentView {
 		}
 	};
 
-	@Override
-	public void onStart() {
-		super.onStart();
-		getContext().getContentResolver().registerContentObserver(Uri.parse(uri), false, contentObserver);
-	}
-
-	@Override
-	public void onStop() {
-		super.onStop();
-		getContext().getContentResolver().unregisterContentObserver(contentObserver);
-
-	}
 }

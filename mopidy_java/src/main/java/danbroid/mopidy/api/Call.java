@@ -4,8 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import danbroid.mopidy.CallContext;
 import danbroid.mopidy.ResponseHandler;
+import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.Constants;
 
 /**
@@ -35,6 +35,7 @@ public class Call<T> {
 
 	protected ResponseHandler<T> handler;
 
+
 	public Call(String method) {
 		this(method, (TypeToken<T>) null);
 	}
@@ -52,9 +53,9 @@ public class Call<T> {
 		request.add(Constants.Key.PARAMS, params);
 	}
 
-	public final void processResult(CallContext context, JsonElement response) {
+	public final void processResult(CallContext callContext, JsonElement response) {
 		try {
-			handler.onResponse(context, parseResult(context, response));
+			handler.onResponse(callContext, parseResult(callContext,response));
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			handler.onError(0, e.getMessage(), response);
@@ -74,13 +75,12 @@ public class Call<T> {
 		return request.toString();
 	}
 
-	protected T parseResult(CallContext context, JsonElement response) {
+	protected T parseResult(CallContext callContext,JsonElement response) {
 		if (resultType == null)
 			throw new IllegalArgumentException("resultType not provided. You should override this method");
 
-		return context.getGson().fromJson(response, resultType.getType());
+		return callContext.getGson().fromJson(response, resultType.getType());
 	}
-
 
 
 	public Call<T> setHandler(ResponseHandler<T> handler) {
@@ -102,4 +102,6 @@ public class Call<T> {
 		params.add(name, value);
 		return this;
 	}
+
+
 }

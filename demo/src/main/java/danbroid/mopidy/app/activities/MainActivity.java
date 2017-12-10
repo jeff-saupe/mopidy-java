@@ -1,6 +1,5 @@
 package danbroid.mopidy.app.activities;
 
-import android.net.Uri;
 import android.net.nsd.NsdServiceInfo;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -9,12 +8,12 @@ import android.support.v7.widget.Toolbar;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
-import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.ViewById;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.content.ContentProvider;
@@ -22,11 +21,10 @@ import danbroid.mopidy.app.fragments.ContentListFragment;
 import danbroid.mopidy.app.interfaces.ContentView;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.util.MopidyServerDiscovery;
-import danbroid.mopidy.model.Base;
 import danbroid.mopidy.model.Ref;
 
 @EActivity(R.layout.activity_main)
-public class MainActivity extends AppCompatActivity implements MainView {
+public class MainActivity extends AppCompatActivity implements MainView, MopidyServerDiscovery.Listener {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MainActivity.class);
 
 
@@ -48,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
 			showContent(ContentProvider.URI_SERVERS);
 		}
 
+		serverDiscovery.setListener(this);
 		getSupportFragmentManager().addOnBackStackChangedListener(
 				new FragmentManager.OnBackStackChangedListener() {
 					@Override
@@ -75,8 +74,8 @@ public class MainActivity extends AppCompatActivity implements MainView {
 		serverDiscovery.stop();
 	}
 
-	public Fragment getContent() {
-		return getSupportFragmentManager().findFragmentById(R.id.content_container);
+	public ContentView getContent() {
+		return (ContentView) getSupportFragmentManager().findFragmentById(R.id.content_container);
 	}
 
 	public void setContent(Fragment fragment) {
@@ -88,17 +87,13 @@ public class MainActivity extends AppCompatActivity implements MainView {
 
 
 	@Override
-	public void onItemSelected(Base item) {
-		log.info("onItemSelected(): {}", item);
-		if (item instanceof Ref) {
-			Ref ref = (Ref) item;
+	public void onItemSelected(Ref ref) {
+		log.info("onItemSelected(): {}", ref);
 
-			if (ref.getType().equals(Ref.TYPE_DIRECTORY)) {
-				String uri = ref.getUri();
-				showContent(uri);
-			}
+		if (ref.getType().equals(Ref.TYPE_DIRECTORY)) {
+			String uri = ref.getUri();
+			showContent(uri);
 		}
-
 	}
 
 	@Override
@@ -113,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
 				Ref ref = new Ref();
 				ref.setType(Ref.TYPE_DIRECTORY);
 				ref.setName(serviceInfo.getServiceName());
-				ref.setUri(ContentProvider.URI_SERVER + serviceInfo.getHost().toString() + ":" + serviceInfo.getPort());
+				ref.setUri(ContentProvider.URI_SERVER + serviceInfo.getHost().toString().substring(1) + ":" + serviceInfo.getPort());
 				servers.add(ref);
 			}
 
@@ -154,4 +149,15 @@ public class MainActivity extends AppCompatActivity implements MainView {
 	}
 
 
+	@Override
+	public void onServerListChanged(Map<String, NsdServiceInfo> servers) {
+		ContentView contentView = getContent();
+		if (contentView != null) {
+			log.error("CONTENT VIEW: " + contentView.getUri());
+			if (contentView.getUri().equals(ContentProvider.URI_SERVERS)){
+				contentView.refresh();
+			}
+		}
+
+	}
 }

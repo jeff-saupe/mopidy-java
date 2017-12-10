@@ -1,13 +1,11 @@
 package danbroid.mopidy.app.content;
 
-import android.net.Uri;
-
 import org.androidannotations.annotations.EBean;
 
-import danbroid.mopidy.CallContext;
 import danbroid.mopidy.MopidyConnection;
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.app.interfaces.ContentView;
+import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
 
 /**
@@ -17,9 +15,8 @@ import danbroid.mopidy.model.Ref;
 public class ContentProvider {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContentProvider.class);
 
-	public static final String URI_SERVERS = "content://servers";
-	public static final String URI_SERVER = "content://server";
-	public static final String URI_CONTENT = "content://";
+	public static final String URI_SERVERS = "server://all";
+	public static final String URI_SERVER = "server://";
 
 	String mopidy_host;
 	int mopidy_port;
@@ -31,7 +28,7 @@ public class ContentProvider {
 
 
 		if (uri.startsWith(URI_SERVER)) {
-			uri = uri.substring(URI_SERVER.length() + 1);
+			uri = uri.substring(URI_SERVER.length());
 
 			String parts[] = uri.split(":");
 			String host = parts[0];
@@ -52,32 +49,29 @@ public class ContentProvider {
 			uri = "";
 		}
 
-		if (uri.startsWith(URI_CONTENT)) {
-			uri = uri.substring(URI_CONTENT.length());
-			uri = Uri.decode(uri);
-		}
 
-
-		browseDirectory(uri,view);
+		browseDirectory(uri, view);
 
 
 	}
 
 	private void browseDirectory(String uri, final ContentView view) {
-		log.error("browseDirectory(): {}", uri);
+		log.trace("browseDirectory(): {}", uri);
 
 		if (uri.length() == 0) uri = null;
 
-		conn.call(conn.getCore().getLibrary().browse(uri).setHandler(new ResponseHandler<Ref[]>() {
+
+		conn.getLibrary().browse(uri, new ResponseHandler<Ref[]>() {
 			@Override
-			public void onResponse(CallContext context, Ref[] result) {
-				for (Ref ref : result) {
-					log.error(ref.getUri());
-					ref.setUri(URI_CONTENT+Uri.encode(ref.getUri()));
-				}
-				view.setContent(result);
+			public void onResponse(CallContext context, final Ref[] refs) {
+				view.setContent(refs);
 			}
-		}));
+		});
+
+	}
+
+	public MopidyConnection getConnection() {
+		return conn;
 	}
 
 	public void start() {
@@ -93,4 +87,7 @@ public class ContentProvider {
 			conn = null;
 		}
 	}
+
+
 }
+

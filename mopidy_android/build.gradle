@@ -38,11 +38,12 @@ android {
 
 dependencies {
 
+
   api project(":mopidy_java")
 
   testImplementation 'junit:junit:4.12'
   testImplementation "org.slf4j:slf4j-simple:${deps.slf4j}"
-  testImplementation "org.skyscreamer:jsonassert:1.5.0"
+  //testImplementation "org.skyscreamer:jsonassert:1.5.0"
 
   androidTestImplementation 'com.android.support.test:runner:1.0.1'
   androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'

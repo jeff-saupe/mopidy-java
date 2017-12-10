@@ -22,8 +22,14 @@ import danbroid.mopidy.util.ServiceDiscoveryHelper;
 public class MopidyServerDiscovery implements ServiceDiscoveryHelper.Listener {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyServerDiscovery.class);
 
+	public interface Listener {
+		void onServerListChanged(Map<String, NsdServiceInfo> servers);
+	}
+
 	//List of mopidy server information
 	private final HashMap<String, NsdServiceInfo> serverInfo = new HashMap<>();
+
+
 	ServiceDiscoveryHelper discoveryHelper;
 
 	private final Uri URI = Uri.parse(ContentProvider.URI_SERVERS);
@@ -31,6 +37,11 @@ public class MopidyServerDiscovery implements ServiceDiscoveryHelper.Listener {
 	@RootContext
 	Context context;
 
+	Listener listener;
+
+	public void setListener(Listener listener) {
+		this.listener = listener;
+	}
 
 	@SupposeUiThread
 	public void start() {
@@ -58,7 +69,7 @@ public class MopidyServerDiscovery implements ServiceDiscoveryHelper.Listener {
 		if (!serverInfo.containsKey(serviceInfo.getServiceName())) {
 			log.warn("onServiceAdded(): {}", serviceInfo);
 			serverInfo.put(serviceInfo.getServiceName(), serviceInfo);
-			context.getContentResolver().notifyChange(URI, null);
+			if (listener != null) listener.onServerListChanged(serverInfo);
 		}
 
 	}
@@ -70,7 +81,7 @@ public class MopidyServerDiscovery implements ServiceDiscoveryHelper.Listener {
 		if (serverInfo.containsKey(serviceInfo.getServiceName())) {
 			log.warn("onServiceRemoved(): {}", serviceInfo);
 			serverInfo.remove(serviceInfo.getServiceName());
-			context.getContentResolver().notifyChange(URI, null);
+			if (listener != null) listener.onServerListChanged(serverInfo);
 		}
 
 	}

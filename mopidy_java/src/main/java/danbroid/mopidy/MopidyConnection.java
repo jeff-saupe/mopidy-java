@@ -1,6 +1,8 @@
 package danbroid.mopidy;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -10,8 +12,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import danbroid.mopidy.api.Call;
 import danbroid.mopidy.api.Core;
+import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.Constants;
 import danbroid.mopidy.interfaces.EventListener;
+import danbroid.mopidy.model.Album;
+import danbroid.mopidy.model.Artist;
+import danbroid.mopidy.model.Base;
+import danbroid.mopidy.model.Image;
+import danbroid.mopidy.model.Ref;
+import danbroid.mopidy.model.Track;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
@@ -21,7 +30,7 @@ import okhttp3.WebSocketListener;
  * Wraps the websocket communication with the Mopidy server
  */
 
-public class MopidyConnection {
+public class MopidyConnection extends Core implements CallContext {
 
 	private static final org.slf4j.Logger
 			log = org.slf4j.LoggerFactory.getLogger(MopidyConnection.class);
@@ -33,10 +42,9 @@ public class MopidyConnection {
 	private EventListener eventListener = new EventListenerImpl();
 	private String version;
 
-	private CallContext callContext = new CallContext();
-	private Core core = new Core();
 	private AtomicInteger requestID = new AtomicInteger(0);
 	private HashMap<Integer, Call> calls = new HashMap<>();
+	private Gson gson;
 
 	public void setEventListener(EventListener eventListener) {
 		this.eventListener = eventListener;
@@ -47,9 +55,29 @@ public class MopidyConnection {
 	}
 
 	public MopidyConnection(String url) {
+		super(null);
 		this.url = url;
+		this.gson = getGsonBuilder().create();
 	}
 
+
+	public Gson getGson() {
+		return gson;
+	}
+
+	public GsonBuilder getGsonBuilder() {
+		RuntimeTypeAdapterFactory<Base> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
+				.of(Base.class, "__model__");
+
+		for (Class<Base> clz : new Class[]{Album.class, Artist.class, Image.class, Ref.class, Track.class}) {
+			runtimeTypeAdapterFactory.registerSubtype(clz, clz.getSimpleName());
+		}
+			/*	.registerSubtype(Image.class, "Image")
+				.registerSubtype(Ref.class, "Ref");
+*/
+		return new GsonBuilder()
+				.registerTypeAdapterFactory(runtimeTypeAdapterFactory);
+	}
 
 	public void start() {
 		OkHttpClient client = new OkHttpClient();
@@ -65,25 +93,21 @@ public class MopidyConnection {
 
 		version = null;
 
-		call(core.getVersion().setHandler(new ResponseHandler<String>() {
+		getVersion(new ResponseHandler<String>() {
 			@Override
 			public void onResponse(CallContext context, String result) {
 				MopidyConnection.this.version = result;
 				log.trace("version: {}", version);
 			}
-		}));
-
+		});
 
 	}
 
-
-	public Core getCore() {
-		return core;
-	}
 
 	/**
 	 * Dispatches call to the web socket
 	 */
+	@Override
 	public final void call(Call call) {
 		prepareCall(call);
 		String request = call.toString();
@@ -168,7 +192,7 @@ public class MopidyConnection {
 			return;
 		}
 
-		call.processResult(callContext, result);
+		call.processResult(this, result);
 	}
 
 	protected Call popCall(int id) {
