@@ -27,6 +27,7 @@ dependencies {
   implementation "com.android.support:design:${deps.supportLib}"
 
   implementation "danbroid.util:slf4j:${deps.utilVersion}"
+
   implementation project(":mopidy_android")
 
   testImplementation 'junit:junit:4.12'

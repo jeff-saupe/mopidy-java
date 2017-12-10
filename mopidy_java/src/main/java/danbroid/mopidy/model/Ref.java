@@ -4,6 +4,13 @@ package danbroid.mopidy.model;
  */
 public class Ref extends Base {
 
+	public static final String TYPE_ALBUM = "album";
+	public static final String TYPE_ARTIST = "artist";
+	public static final String TYPE_DIRECTORY = "directory";
+	public static final String TYPE_PLAYLIST = "playlist";
+	public static final String TYPE_TRACK = "track";
+
+
 	private String type;
 	private String name;
 	private String uri;

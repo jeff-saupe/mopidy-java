@@ -6,7 +6,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import danbroid.mopidy.api.Call;
+import danbroid.mopidy.api.Core;
 import danbroid.mopidy.interfaces.Constants;
 import danbroid.mopidy.interfaces.EventListener;
 import okhttp3.OkHttpClient;
@@ -29,13 +32,11 @@ public class MopidyConnection {
 	private JsonParser parser = new JsonParser();
 	private EventListener eventListener = new EventListenerImpl();
 	private String version;
-	private Core methods = new Core();
 
 	private CallContext callContext = new CallContext();
-
-	public Core getMethods() {
-		return methods;
-	}
+	private Core core = new Core();
+	private AtomicInteger requestID = new AtomicInteger(0);
+	private HashMap<Integer, Call> calls = new HashMap<>();
 
 	public void setEventListener(EventListener eventListener) {
 		this.eventListener = eventListener;
@@ -59,20 +60,23 @@ public class MopidyConnection {
 			}
 		});
 
+		version = null;
 
-		call(methods.getVersion().setHandler(new Call.ResponseHandler<String>() {
+		call(core.getVersion().setHandler(new ResponseHandler<String>() {
 			@Override
-			public void onResponse(Call<String> call) {
-				log.trace("mopidy version : " + call.getResult());
-				MopidyConnection.this.version = version;
+			public void onResponse(CallContext context, String result) {
+				MopidyConnection.this.version = result;
+				log.trace("version: {}", version);
 			}
 		}));
+
 
 	}
 
 
-	private int requestID = 1;
-	private HashMap<Integer, Call> calls = new HashMap<>();
+	public Core getCore() {
+		return core;
+	}
 
 	/**
 	 * Dispatches call to the web socket
@@ -85,8 +89,9 @@ public class MopidyConnection {
 	}
 
 	protected void prepareCall(Call call) {
-		call.requestID = requestID++;
-		calls.put(call.requestID, call);
+		int id = requestID.incrementAndGet();
+		call.getRequest().addProperty(Constants.Key.ID, id);
+		calls.put(id, call);
 	}
 
 
@@ -108,7 +113,6 @@ public class MopidyConnection {
 	 * @param text The JSON message
 	 */
 	public void onMessage(String text) {
-		log.trace("onMessage(): {}", text);
 		try {
 			JsonElement e = parser.parse(text);
 			if (e.isJsonObject()) {
@@ -116,10 +120,11 @@ public class MopidyConnection {
 
 				if (o.has(Constants.Key.ERROR)) {
 					o = o.getAsJsonObject(Constants.Key.ERROR);
+					int id = o.get(Constants.Key.ID).getAsInt();
 					String message = o.get(Constants.Key.MESSAGE).getAsString();
 					int code = o.get(Constants.Key.CODE).getAsInt();
 					JsonElement data = o.get(Constants.Key.DATA);
-					onError(message, code, data);
+					onError(id, message, code, data);
 					return;
 				}
 
@@ -140,8 +145,16 @@ public class MopidyConnection {
 		}
 	}
 
-	protected void onError(String message, int code, JsonElement data) {
-		log.error("onError() code: " + code + " {} data: {}", message, data);
+	protected void onError(int id, String message, int code, JsonElement data) {
+		Call call = popCall(id);
+
+		if (call == null) {
+			log.error("no call found for request: " + id);
+			return;
+		}
+
+		call.onError(code, message, data);
+
 	}
 
 	protected void processResponse(int id, JsonElement result) {

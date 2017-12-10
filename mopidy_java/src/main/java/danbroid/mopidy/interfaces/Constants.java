@@ -25,6 +25,7 @@ public interface Constants {
 		String CODE = "code";
 		String MESSAGE = "message";
 		String DATA = "data";
+		String URIS = "uris";
 	}
 
 	interface State {
@@ -38,6 +39,7 @@ public interface Constants {
 		String BROWSE = "core.library.browse";
 		String GET_IMAGES = "core.library.get_images";
 		String LOOKUP = "core.library.lookup";
+		String GET_URI_SCHEMES = "core.get_uri_schemes";
 	}
 
 }
