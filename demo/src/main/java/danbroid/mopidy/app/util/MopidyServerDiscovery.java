@@ -1,6 +1,7 @@
 package danbroid.mopidy.app.util;
 
 import android.content.Context;
+import android.net.Uri;
 import android.net.nsd.NsdServiceInfo;
 
 import org.androidannotations.annotations.EBean;
@@ -8,11 +9,10 @@ import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.SupposeUiThread;
 import org.androidannotations.annotations.UiThread;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import danbroid.mopidy.app.activities.MainActivity;
+import danbroid.mopidy.app.content.ContentProvider;
 import danbroid.mopidy.util.ServiceDiscoveryHelper;
 
 /**
@@ -26,11 +26,11 @@ public class MopidyServerDiscovery implements ServiceDiscoveryHelper.Listener {
 	private final HashMap<String, NsdServiceInfo> serverInfo = new HashMap<>();
 	ServiceDiscoveryHelper discoveryHelper;
 
+	private final Uri URI = Uri.parse(ContentProvider.URI_SERVERS);
 
 	@RootContext
 	Context context;
 
-	private ArrayList<ServiceDiscoveryHelper.Listener> listeners = new ArrayList<>();
 
 	@SupposeUiThread
 	public void start() {
@@ -47,17 +47,6 @@ public class MopidyServerDiscovery implements ServiceDiscoveryHelper.Listener {
 	}
 
 
-	@SupposeUiThread
-	public void addListener(ServiceDiscoveryHelper.Listener listener) {
-		if (!listeners.contains(listener)) listeners.add(listener);
-	}
-
-
-	@SupposeUiThread
-	public void removeListener(ServiceDiscoveryHelper.Listener listener) {
-		if (listeners.contains(listener)) listeners.remove(listener);
-	}
-
 	/**
 	 * Add the service info to our list of available mopidy servers
 	 *
@@ -69,9 +58,7 @@ public class MopidyServerDiscovery implements ServiceDiscoveryHelper.Listener {
 		if (!serverInfo.containsKey(serviceInfo.getServiceName())) {
 			log.warn("onServiceAdded(): {}", serviceInfo);
 			serverInfo.put(serviceInfo.getServiceName(), serviceInfo);
-			for (int i = 0; i < listeners.size(); i++) {
-				listeners.get(i).onServiceAdded(serviceInfo);
-			}
+			context.getContentResolver().notifyChange(URI, null);
 		}
 
 	}
@@ -83,9 +70,7 @@ public class MopidyServerDiscovery implements ServiceDiscoveryHelper.Listener {
 		if (serverInfo.containsKey(serviceInfo.getServiceName())) {
 			log.warn("onServiceRemoved(): {}", serviceInfo);
 			serverInfo.remove(serviceInfo.getServiceName());
-			for (int i = 0; i < listeners.size(); i++) {
-				listeners.get(i).onServiceRemoved(serviceInfo);
-			}
+			context.getContentResolver().notifyChange(URI, null);
 		}
 
 	}

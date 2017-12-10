@@ -5,9 +5,6 @@ import danbroid.mopidy.model.Base;
 /**
  * Created by dan on 10/12/17.
  */
-public interface MainView {
-	void onItemSelected(Base item);
-
-	void browse(String uri, ContentView contentView);
-
+public interface ContentView {
+	void setContent(Base content[]);
 }

@@ -1,6 +1,7 @@
 package danbroid.mopidy.app.fragments;
 
-import android.net.nsd.NsdServiceInfo;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -10,25 +11,23 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.FragmentArg;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
 import danbroid.mopidy.app.R;
-import danbroid.mopidy.app.content.ContentProvider;
+import danbroid.mopidy.app.interfaces.ContentView;
 import danbroid.mopidy.app.interfaces.MainView;
-import danbroid.mopidy.app.util.MopidyServerDiscovery;
 import danbroid.mopidy.model.Base;
 import danbroid.mopidy.model.Ref;
-import danbroid.mopidy.util.ServiceDiscoveryHelper;
 
 /**
  * Created by dan on 10/12/17.
  */
 @EFragment(R.layout.content_list)
-public class ContentListFragment extends Fragment implements ServiceDiscoveryHelper.Listener {
+public class ContentListFragment extends Fragment implements ContentView {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContentListFragment.class);
 
 	private static final String ARG_URI = "uri";
@@ -45,26 +44,17 @@ public class ContentListFragment extends Fragment implements ServiceDiscoveryHel
 	@FragmentArg(ARG_URI)
 	String uri;
 
-	@Bean
-	ContentProvider contentProvider;
-
-	@Bean
-	MopidyServerDiscovery serverDiscovery;
 
 	private RecyclerView.Adapter<MediaItemViewHolder> adapter;
 
-	@Override
-	public void onServiceAdded(NsdServiceInfo serviceInfo) {
-		refresh();
-	}
 
 	public void refresh() {
-		contentProvider.browse(uri, this);
+		MainView mainView = getMainView();
+		if (mainView != null) mainView.browse(uri, this);
 	}
 
-	@Override
-	public void onServiceRemoved(NsdServiceInfo serviceInfo) {
-		refresh();
+	public MainView getMainView() {
+		return (MainView) getActivity();
 	}
 
 	class MediaItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -93,7 +83,7 @@ public class ContentListFragment extends Fragment implements ServiceDiscoveryHel
 
 		@Override
 		public void onClick(View v) {
-			((MainView) getActivity()).onItemSelected(item);
+			getMainView().onItemSelected(item);
 		}
 	}
 
@@ -133,8 +123,8 @@ public class ContentListFragment extends Fragment implements ServiceDiscoveryHel
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 		recyclerView.setAdapter(adapter);
 
+		refresh();
 
-		contentProvider.browse(uri, this);
 
 	}
 
@@ -148,7 +138,7 @@ public class ContentListFragment extends Fragment implements ServiceDiscoveryHel
 		log.debug("fabClicked()");
 	}
 
-
+	@UiThread
 	public void setContent(Base[] content) {
 		log.debug("setContent(): size: " + content.length);
 		this.data = content;
@@ -159,19 +149,25 @@ public class ContentListFragment extends Fragment implements ServiceDiscoveryHel
 		adapter.notifyDataSetChanged();
 	}
 
-	@Override
-	public void onResume() {
-		super.onResume();
-		if (ContentProvider.URI_SERVERS.equals(uri)) {
-			serverDiscovery.addListener(this);
+
+	private final ContentObserver contentObserver = new ContentObserver(null) {
+		@Override
+		public void onChange(boolean selfChange) {
+			log.error("contentObserver.onChange()!");
+			refresh();
 		}
+	};
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		getContext().getContentResolver().registerContentObserver(Uri.parse(uri), false, contentObserver);
 	}
 
 	@Override
-	public void onPause() {
-		super.onPause();
-		if (ContentProvider.URI_SERVERS.equals(uri)) {
-			serverDiscovery.removeListener(this);
-		}
+	public void onStop() {
+		super.onStop();
+		getContext().getContentResolver().unregisterContentObserver(contentObserver);
+
 	}
 }

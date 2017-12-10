@@ -42,13 +42,16 @@ public class MopidyConnection {
 		this.eventListener = eventListener;
 	}
 
-
-	public void start(String host, int port) {
-		start("ws://" + host + ":" + port + "/mopidy/ws");
+	public MopidyConnection(String host, int port) {
+		this("ws://" + host + ":" + port + "/mopidy/ws");
 	}
 
-	public void start(String url) {
+	public MopidyConnection(String url) {
 		this.url = url;
+	}
+
+
+	public void start() {
 		OkHttpClient client = new OkHttpClient();
 		log.trace("start(): connecting to: {}", url);
 		Request request = new Request.Builder().url(url).build();
