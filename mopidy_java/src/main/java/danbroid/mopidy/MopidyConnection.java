@@ -157,7 +157,6 @@ public class MopidyConnection {
 		}
 
 		call.onError(code, message, data);
-
 	}
 
 	protected void processResponse(int id, JsonElement result) {
@@ -169,9 +168,7 @@ public class MopidyConnection {
 			return;
 		}
 
-
 		call.processResult(callContext, result);
-
 	}
 
 	protected Call popCall(int id) {

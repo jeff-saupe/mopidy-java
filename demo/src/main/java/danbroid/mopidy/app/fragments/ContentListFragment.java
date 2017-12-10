@@ -18,6 +18,7 @@ import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
 import danbroid.mopidy.app.R;
+import danbroid.mopidy.app.content.ContentProvider;
 import danbroid.mopidy.app.interfaces.ContentView;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.model.Base;
@@ -77,7 +78,9 @@ public class ContentListFragment extends Fragment implements ContentView {
 			if (item instanceof Ref) {
 				Ref ref = (Ref) item;
 				titleView.setText(ref.getName());
-				descriptionView.setText(ref.getType() + " " + ref.getUri());
+				String description = Uri.decode(ref.getUri());
+				description = description.substring(ContentProvider.URI_CONTENT.length());
+				descriptionView.setText(description);
 			}
 		}
 

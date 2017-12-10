@@ -9,7 +9,9 @@ import android.support.v7.widget.Toolbar;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.ViewById;
 
 import java.util.ArrayList;
@@ -45,6 +47,15 @@ public class MainActivity extends AppCompatActivity implements MainView {
 		if (getContent() == null) {
 			showContent(ContentProvider.URI_SERVERS);
 		}
+
+		getSupportFragmentManager().addOnBackStackChangedListener(
+				new FragmentManager.OnBackStackChangedListener() {
+					@Override
+					public void onBackStackChanged() {
+						getSupportActionBar()
+								.setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 1);
+					}
+				});
 	}
 
 	public void showContent(String uri) {
@@ -116,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
 	}
 
 
+	@OptionsItem(android.R.id.home)
 	@Override
 	public void onBackPressed() {
 		FragmentManager fm = getSupportFragmentManager();
@@ -124,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
 			super.onBackPressed();
 			return;
 		}
-		Uri.parse("");
+
 
 		finish();
 	}
