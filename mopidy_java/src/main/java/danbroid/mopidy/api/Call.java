@@ -55,7 +55,7 @@ public class Call<T> {
 
 	public final void processResult(CallContext callContext, JsonElement response) {
 		try {
-			handler.onResponse(callContext, parseResult(callContext,response));
+			handler.onResponse(callContext, parseResult(callContext, response));
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			handler.onError(0, e.getMessage(), response);
@@ -75,7 +75,7 @@ public class Call<T> {
 		return request.toString();
 	}
 
-	protected T parseResult(CallContext callContext,JsonElement response) {
+	protected T parseResult(CallContext callContext, JsonElement response) {
 		if (resultType == null)
 			throw new IllegalArgumentException("resultType not provided. You should override this method");
 
@@ -89,6 +89,11 @@ public class Call<T> {
 	}
 
 	public Call<T> addParam(String name, String value) {
+		params.addProperty(name, value);
+		return this;
+	}
+
+	public Call<T> addParam(String name, Boolean value) {
 		params.addProperty(name, value);
 		return this;
 	}

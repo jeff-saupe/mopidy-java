@@ -16,20 +16,19 @@ import danbroid.mopidy.model.Track;
  */
 public class Library extends Api {
 
-	private static final String METHOD_PREFIX = "core.library.";
 
 	protected Library(Api parent) {
-		super(parent);
+		super(parent, "library.");
 	}
 
 	public void browse(final String uri, ResponseHandler<Ref[]> handler) {
-		call(new Call<>(METHOD_PREFIX + "browse", Ref[].class)
+		call(new Call<>(methodPrefix + "browse", Ref[].class)
 				.addParam(Constants.Key.URI, uri)
 				.setHandler(handler));
 	}
 
 	public void lookup(String uris, ResponseHandler<Track[]> handler) {
-		call(new Call<>(METHOD_PREFIX + "lookup", Track[].class)
+		call(new Call<>(methodPrefix + "lookup", Track[].class)
 				.addParam(Constants.Key.URIS, uris)
 				.setHandler(handler));
 	}
@@ -41,7 +40,7 @@ public class Library extends Api {
 		}
 
 		call(
-				new Call(METHOD_PREFIX + "get_images", new TypeToken<Map<String, Image[]>>() {
+				new Call(methodPrefix + "get_images", new TypeToken<Map<String, Image[]>>() {
 				}).addParam(Constants.Key.URIS, uriArray)
 						.setHandler(handler));
 	}

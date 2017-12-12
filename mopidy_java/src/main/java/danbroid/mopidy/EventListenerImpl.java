@@ -3,6 +3,7 @@ package danbroid.mopidy;
 import com.google.gson.JsonObject;
 
 import danbroid.mopidy.interfaces.EventListener;
+import danbroid.mopidy.interfaces.PlaybackState;
 
 /**
  * see: core/listener.py
@@ -48,10 +49,11 @@ public class EventListenerImpl implements EventListener {
 		log.trace("onTrackPlaybackEnded(): position: {} track:{}", time_position, tl_track);
 	}
 
-	public void onPlaybackStateChanged(String oldState, String newState) {
+
+	@Override
+	public void onPlaybackStateChanged(PlaybackState oldState, PlaybackState newState) {
 		log.trace("onPlaybackStateChanged(): {} -> {}", oldState, newState);
 	}
-
 
 	public void onTracklistChanged() {
 		log.trace("onTracklistChanged() ");

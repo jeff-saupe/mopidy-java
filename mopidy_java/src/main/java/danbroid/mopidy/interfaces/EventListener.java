@@ -25,7 +25,7 @@ public interface EventListener {
 
 	void onTrackPlaybackEnded(JsonObject tl_track, long time_position);
 
-	void onPlaybackStateChanged(String oldState, String newState);
+	void onPlaybackStateChanged(PlaybackState oldState, PlaybackState newState);
 
 	void onTracklistChanged();
 

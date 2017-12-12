@@ -5,13 +5,24 @@ package danbroid.mopidy.api;
  */
 public class Api {
 
-	private Api parent;
+	private final Api parent;
+	protected final String methodPrefix;
 
-	protected Api(Api parent) {
+	protected Api(Api parent, String methodPrefix) {
 		this.parent = parent;
+		this.methodPrefix = parent.methodPrefix + methodPrefix;
+	}
+
+	protected Api(String methodPrefix) {
+		this.parent = null;
+		this.methodPrefix = methodPrefix;
 	}
 
 	protected void call(Call call) {
 		parent.call(call);
+	}
+
+	protected String getMethodPrefix() {
+		return methodPrefix;
 	}
 }

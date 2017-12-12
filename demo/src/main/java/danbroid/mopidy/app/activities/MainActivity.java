@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
+import danbroid.mopidy.ResponseHandler;
+import danbroid.mopidy.api.History;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.content.ContentProvider;
 import danbroid.mopidy.app.fragments.ContentListFragment;
@@ -39,6 +41,7 @@ import danbroid.mopidy.app.interfaces.MainPrefs_;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.ui.AddServerDialog_;
 import danbroid.mopidy.app.util.MopidyServerDiscovery;
+import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
 
 @OptionsMenu(R.menu.menu_main)
@@ -402,6 +405,15 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 	@OptionsItem(R.id.action_test1)
 	void test1() {
 		showFullControls();
+
+		contentProvider.getConnection().getHistory().getHistory(new ResponseHandler<History.HistoryItem[]>() {
+			@Override
+			public void onResponse(CallContext context, History.HistoryItem[] result) {
+				for (History.HistoryItem item : result) {
+					log.debug("item: timestamp:{} track:{}", item.getTimestamp(),item.getTrack());
+				}
+			}
+		});
 	}
 
 	@OptionsItem(R.id.action_test2)

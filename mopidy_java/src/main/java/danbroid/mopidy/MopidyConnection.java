@@ -15,11 +15,13 @@ import danbroid.mopidy.api.Core;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.Constants;
 import danbroid.mopidy.interfaces.EventListener;
+import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.model.Album;
 import danbroid.mopidy.model.Artist;
 import danbroid.mopidy.model.Base;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
+import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -55,7 +57,7 @@ public class MopidyConnection extends Core implements CallContext {
 	}
 
 	public MopidyConnection(String url) {
-		super(null);
+		super();
 		this.url = url;
 		this.gson = getGsonBuilder().create();
 	}
@@ -69,7 +71,7 @@ public class MopidyConnection extends Core implements CallContext {
 		RuntimeTypeAdapterFactory<Base> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
 				.of(Base.class, "__model__");
 
-		for (Class<Base> clz : new Class[]{Album.class, Artist.class, Image.class, Ref.class, Track.class}) {
+		for (Class<Base> clz : new Class[]{Album.class, Artist.class, Image.class, Ref.class, Track.class, TlTrack.class}) {
 			runtimeTypeAdapterFactory.registerSubtype(clz, clz.getSimpleName());
 		}
 			/*	.registerSubtype(Image.class, "Image")
@@ -195,8 +197,12 @@ public class MopidyConnection extends Core implements CallContext {
 		call.processResult(this, result);
 	}
 
-	protected Call popCall(int id) {
-		return calls.remove(id);
+	protected synchronized Call popCall(int id) {
+		Call call = calls.remove(id);
+		if (calls.isEmpty()) {
+			notify();
+		}
+		return call;
 	}
 
 	/**
@@ -228,8 +234,8 @@ public class MopidyConnection extends Core implements CallContext {
 				break;
 			case "playback_state_changed":
 				eventListener.onPlaybackStateChanged(
-						o.get(Constants.Key.OLD_STATE).getAsString(),
-						o.get(Constants.Key.NEW_STATE).getAsString());
+						PlaybackState.fromString(o.get(Constants.Key.OLD_STATE).getAsString()),
+						PlaybackState.fromString(o.get(Constants.Key.NEW_STATE).getAsString()));
 				break;
 			case "tracklist_changed":
 				eventListener.onTracklistChanged();
@@ -263,6 +269,18 @@ public class MopidyConnection extends Core implements CallContext {
 				return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Returns the size in bytes of all messages enqueued to be transmitted to the server. This
+	 * doesn't include framing overhead. It also doesn't include any bytes buffered by the operating
+	 * system or network intermediaries. This method returns 0 if no messages are waiting
+	 * in the queue. If may return a nonzero value after the web socket has been canceled; this
+	 * indicates that enqueued messages were not transmitted.
+	 */
+	public long getQueueSize() {
+		if (socket == null) return 0;
+		return socket.queueSize();
 	}
 
 

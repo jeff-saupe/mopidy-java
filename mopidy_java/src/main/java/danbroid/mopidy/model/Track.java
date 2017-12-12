@@ -69,6 +69,17 @@ public class Track extends Base {
 
 	private Long last_modified;
 
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Track[");
+		sb.append("name=" + name);
+		sb.append(" uri=" + uri);
+		sb.append("]");
+		return sb.toString();
+	}
+
 	public String getName() {
 		return name;
 	}

@@ -28,18 +28,5 @@ public interface Constants {
 		String URIS = "uris";
 	}
 
-	interface State {
-		String PAUSED = "paused";
-		String PLAYING = "playing";
-		String STOPPED = "stopped";
-	}
-
-	interface Method {
-		String GET_VERSION = "core.get_version";
-		String BROWSE = "core.library.browse";
-		String GET_IMAGES = "core.library.get_images";
-		String LOOKUP = "core.library.lookup";
-		String GET_URI_SCHEMES = "core.get_uri_schemes";
-	}
 
 }
