@@ -22,7 +22,6 @@ dependencies {
   annotationProcessor "org.androidannotations:androidannotations:${deps.annotations}"
   annotationProcessor "com.github.bumptech.glide:compiler:${deps.glide}"
 
-
   implementation "org.androidannotations:androidannotations-api:${deps.annotations}"
 
   implementation "com.android.support:appcompat-v7:${deps.supportLib}"

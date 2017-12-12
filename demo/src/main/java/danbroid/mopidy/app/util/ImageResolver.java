@@ -60,7 +60,7 @@ public class ImageResolver {
 	private void resolveImages(Ref[] refs, Map<String, Image[]> result, ResponseHandler<Ref[]> handler) {
 		for (String uri : result.keySet()) {
 			Image images[] = result.get(uri);
-			CACHE.put(uri, images[0]);
+			CACHE.put(uri, images.length == 0 ? MISSING_IMAGE : images[0]);
 		}
 		for (Ref ref : refs) {
 			if (ref.getType().equals(Ref.TYPE_TRACK)) {

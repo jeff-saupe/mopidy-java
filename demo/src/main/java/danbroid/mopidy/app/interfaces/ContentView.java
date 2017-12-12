@@ -10,4 +10,6 @@ public interface ContentView {
 	String getUri();
 
 	void refresh();
+
+
 }

@@ -15,7 +15,6 @@ import com.bumptech.glide.request.RequestOptions;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
-import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.FragmentArg;
 import org.androidannotations.annotations.UiThread;
@@ -47,8 +46,6 @@ public class ContentListFragment extends Fragment implements ContentView {
 	@ViewById(R.id.spinner)
 	View spinner;
 
-	@ViewById(R.id.fab)
-	View fab;
 
 	@FragmentArg(ARG_URI)
 	String uri;
@@ -73,7 +70,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 		return (MainView) getActivity();
 	}
 
-	class MediaItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+	class MediaItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 		ImageView imageView;
 		TextView titleView;
 		TextView descriptionView;
@@ -86,7 +83,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 			descriptionView = itemView.findViewById(R.id.description);
 			itemView.setOnClickListener(this);
 			imageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_folder));
-
+			itemView.setOnLongClickListener(this);
 		}
 
 		void bind(Ref ref) {
@@ -98,7 +95,6 @@ public class ContentListFragment extends Fragment implements ContentView {
 			Image image = (Image) ref.getExtra();
 			if (image != null) {
 				String imageUri = image.getUri();
-				log.error("LOADING: {}", imageUri);
 				GlideApp.with(ContentListFragment.this)
 						.load(imageUri)
 						.fallback(R.drawable.ic_folder)
@@ -113,13 +109,18 @@ public class ContentListFragment extends Fragment implements ContentView {
 			getMainView().onItemSelected(ref);
 		}
 
-
+		@Override
+		public boolean onLongClick(View v) {
+			getMainView().onItemLongClicked(ref,v);
+			return true;
+		}
 	}
 
 	@Override
 	public String getUri() {
-		return uri;
+		return getArguments().getString(ARG_URI);
 	}
+
 
 	private Ref[] data = {};
 
@@ -127,7 +128,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 	@AfterViews
 	void init() {
 		log.debug("init() :{}", uri);
-		fab.setVisibility(View.GONE);
+
 
 		adapter = new RecyclerView.Adapter<MediaItemViewHolder>() {
 			@Override
@@ -168,10 +169,6 @@ public class ContentListFragment extends Fragment implements ContentView {
 		return ContentListFragment_.builder().arg(ARG_URI, uri).build();
 	}
 
-	@Click(R.id.fab)
-	void fabClicked() {
-		log.debug("fabClicked()");
-	}
 
 	@UiThread
 	public void setContent(Ref[] content) {
@@ -213,7 +210,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 	private final ContentObserver contentObserver = new ContentObserver(null) {
 		@Override
 		public void onChange(boolean selfChange) {
-			log.error("contentObserver.onChange()!");
+			log.trace("contentObserver.onChange()!");
 			refresh();
 		}
 	};

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+  <ImageView
+      android:id="@+id/chevron_down"
+      android:layout_width="38dp"
+      android:layout_height="38dp"
+      android:layout_alignParentRight="true"
+      android:paddingRight="4dp"
+      android:scaleType="fitXY"
+      android:src="@drawable/ic_chevron_down"
+      android:tint="?attr/colorAccent"/>
+
+
+  <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentTop="true"
+      android:text="TEst"/>
+
+  <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentBottom="true"
+      android:text="Bottom"/>
+
+
+</RelativeLayout>
