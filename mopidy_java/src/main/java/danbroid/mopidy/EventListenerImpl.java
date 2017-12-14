@@ -12,7 +12,6 @@ import danbroid.mopidy.interfaces.PlaybackState;
 public class EventListenerImpl implements EventListener {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EventListenerImpl.class);
 
-
 	public void onOptionsChanged() {
 		log.trace("onOptionsChanged()");
 	}
@@ -48,7 +47,6 @@ public class EventListenerImpl implements EventListener {
 	public void onTrackPlaybackEnded(JsonObject tl_track, long time_position) {
 		log.trace("onTrackPlaybackEnded(): position: {} track:{}", time_position, tl_track);
 	}
-
 
 	@Override
 	public void onPlaybackStateChanged(PlaybackState oldState, PlaybackState newState) {

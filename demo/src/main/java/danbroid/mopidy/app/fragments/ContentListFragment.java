@@ -1,6 +1,7 @@
 package danbroid.mopidy.app.fragments;
 
 import android.database.ContentObserver;
+import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -48,7 +49,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 
 
 	@FragmentArg(ARG_URI)
-	String uri;
+	Uri uri;
 
 	@Bean
 	ImageResolver imageResolver;
@@ -63,7 +64,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 	public void refresh() {
 		log.debug("refresh()");
 		MainView mainView = getMainView();
-		if (mainView != null) mainView.browse(uri, this);
+		if (mainView != null) mainView.browse(uri,this);
 	}
 
 	public MainView getMainView() {
@@ -87,7 +88,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 		}
 
 		void bind(Ref ref) {
-			log.trace("bind(): {}", ref);
+			//log.trace("bind(): name:{}", ref.getName());
 			this.ref = ref;
 			titleView.setText(ref.getName());
 			String description = ref.getUri();
@@ -111,14 +112,14 @@ public class ContentListFragment extends Fragment implements ContentView {
 
 		@Override
 		public boolean onLongClick(View v) {
-			getMainView().onItemLongClicked(ref,v);
+			getMainView().onItemLongClicked(ref, v);
 			return true;
 		}
 	}
 
 	@Override
-	public String getUri() {
-		return getArguments().getString(ARG_URI);
+	public Uri getUri() {
+		return getArguments().getParcelable(ARG_URI);
 	}
 
 
@@ -158,14 +159,14 @@ public class ContentListFragment extends Fragment implements ContentView {
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 		recyclerView.setAdapter(adapter);
 
-		getActivity().setTitle(uri);
+		getActivity().setTitle(uri.toString());
 		refresh();
 
 
 	}
 
 
-	public static ContentListFragment newInstance(String uri) {
+	public static ContentListFragment newInstance(Uri uri) {
 		return ContentListFragment_.builder().arg(ARG_URI, uri).build();
 	}
 

@@ -1,5 +1,6 @@
 package danbroid.mopidy.app.activities;
 
+import android.net.Uri;
 import android.net.nsd.NsdServiceInfo;
 import android.support.annotation.DrawableRes;
 import android.support.design.widget.CoordinatorLayout;
@@ -8,7 +9,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,15 +23,16 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.api.History;
+import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.content.ContentProvider;
 import danbroid.mopidy.app.fragments.ContentListFragment;
@@ -41,12 +42,16 @@ import danbroid.mopidy.app.interfaces.MainPrefs_;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.ui.AddServerDialog_;
 import danbroid.mopidy.app.util.MopidyServerDiscovery;
+import danbroid.mopidy.app.util.MopidyUris;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
+import danbroid.mopidy.model.TlTrack;
+import danbroid.mopidy.model.Track;
+import danbroid.mopidy.util.UIResponseHandler;
 
 @OptionsMenu(R.menu.menu_main)
 @EActivity(R.layout.activity_main)
-public class MainActivity extends AppCompatActivity implements MainView, MopidyServerDiscovery.Listener, FragmentManager.OnBackStackChangedListener {
+public class MainActivity extends PlaybackActivity implements MainView, MopidyServerDiscovery.Listener, FragmentManager.OnBackStackChangedListener {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MainActivity.class);
 
 
@@ -57,10 +62,14 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 	ContentProvider contentProvider;
 
 	@Bean
+	MopidyConnection conn;
+
+	@Bean
 	MopidyServerDiscovery serverDiscovery;
 
 	@Pref
 	MainPrefs_ prefs;
+
 
 	@AfterViews
 	void init() {
@@ -68,30 +77,48 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 		setSupportActionBar(toolbar);
 
 		if (getContent() == null) {
-			showContent(ContentProvider.URI_SERVERS);
+			showContent(MopidyUris.URI_ROOT);
 		}
 
 		serverDiscovery.setListener(this);
+
 		getSupportFragmentManager().addOnBackStackChangedListener(this);
 
 
 		hideFullControls();
-		hideBottomControls();
+		showBottomControls(true);
+
 	}
 
-	public void showContent(String uri) {
+
+	@UiThread
+	@Override
+	public void onTracklistChanged() {
+		conn.getTrackList().getLength(new UIResponseHandler<Integer>() {
+			@Override
+			public void onUIResponse(CallContext context, Integer length) {
+				Toast.makeText(getBaseContext(), "Tracklist length: " + length, Toast.LENGTH_SHORT).show();
+				if (length == 0)
+					hideBottomControls();
+				else
+					showBottomControls(true);
+			}
+		});
+	}
+
+	public void showContent(Uri uri) {
 		log.trace("showContent(): {}", uri);
 		setContent(ContentListFragment.newInstance(uri));
 	}
 
 	@Override
-	protected void onResume() {
+	public void onResume() {
 		super.onResume();
 		serverDiscovery.start();
 	}
 
 	@Override
-	protected void onPause() {
+	public void onPause() {
 		super.onPause();
 		serverDiscovery.stop();
 	}
@@ -104,7 +131,6 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 	public void setContent(ContentView content) {
 		log.trace("setContent() uri:{}", content.getUri());
 
-
 		getSupportFragmentManager().beginTransaction()
 				.setCustomAnimations(
 						R.animator.slide_in_from_right, R.animator.slide_out_to_left,
@@ -112,8 +138,6 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 				.replace(R.id.content_container, (Fragment) content)
 				.addToBackStack(null)
 				.commit();
-
-
 	}
 
 	public void showFAB(@DrawableRes int icon) {
@@ -127,16 +151,16 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 
 	@Click(R.id.fab)
 	void onFabClicked() {
-		String uri = getContent().getUri();
-		switch (uri) {
-			case ContentProvider.URI_SERVERS:
-				addServer();
+		Uri uri = getContent().getUri();
+
+		switch (MopidyUris.match(uri)) {
+			case MopidyUris.MATCH_SERVERS:
+				showAddServerDialog();
 				break;
 		}
 	}
 
-	public void addServer() {
-		log.debug("addServer()");
+	public void showAddServerDialog() {
 		AddServerDialog_.getInstance_(this).show(this);
 	}
 
@@ -144,23 +168,93 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 	public void onItemSelected(Ref ref) {
 		log.info("onItemSelected(): {}", ref);
 
-		if (ref.getType().equals(Ref.TYPE_DIRECTORY)) {
-			String uri = ref.getUri();
-			showContent(uri);
+
+		switch (ref.getType()) {
+			case Ref.TYPE_DIRECTORY:
+				showContent(Uri.parse(ref.getUri()));
+				break;
+			case Ref.TYPE_TRACK:
+				playTrack(ref);
+				break;
+			default:
+				log.error("Unhandled ref: {}", ref);
+				break;
 		}
+
+
+	}
+
+	public void playTrack(Ref ref) {
+		log.info("playTrack(): {}", ref);
+		Uri uri = Uri.parse(ref.getUri());
+		switch (MopidyUris.match(uri)) {
+			case MopidyUris.MATCH_TRACKLIST_ITEM:
+				int tlid = Integer.parseInt(uri.getLastPathSegment());
+				playTrack(tlid);
+
+				break;
+			default:
+				playTrack(ref.getUri());
+				break;
+		}
+	}
+
+	public void playTrack(final String uri) {
+		log.trace("playTrack(): {}", uri);
+		conn.getTrackList().getTracks(new ResponseHandler<Track[]>() {
+			@Override
+			public void onResponse(CallContext context, Track[] result) {
+				for (Track track : result) {
+					log.trace("tracklist track: {}", track);
+					if (track.getUri().equals(uri)) {
+						log.error("found track in tracklist: {}", track);
+						return;
+					}
+				}
+				log.trace("{} not found in tracklist", uri);
+				addAndPlay(uri);
+			}
+		});
+	}
+
+	@UiThread
+	public void addAndPlay(String uri) {
+		log.debug("addAndPlay(): {}", uri);
+		conn.getTrackList().add(uri, new ResponseHandler<TlTrack[]>() {
+			@Override
+			public void onResponse(CallContext context, TlTrack[] result) {
+				for (TlTrack track : result) {
+					log.error("added tltrack: {}", track);
+				}
+			}
+		});
+	}
+
+	@UiThread
+	public void playTrack(int tlid) {
+		log.trace("playTrack(): tlid: {}", tlid);
+		conn.getPlayback()
+				.play(tlid, null, new ResponseHandler<Void>() {
+					@Override
+					public void onResponse(CallContext context, Void result) {
+					}
+				});
 	}
 
 	@Override
 	public void onItemLongClicked(final Ref ref, View v) {
+		log.debug("onItemLongClicked(): {} uri:{}", ref.getName(), ref.getUri());
+		final String address = Uri.decode(Uri.parse(ref.getUri()).getLastPathSegment());
 		PopupMenu popupMenu = new PopupMenu(this, v);
 		popupMenu.getMenu().add("Remove: " + ref.getName())
 				.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 					@Override
 					public boolean onMenuItemClick(MenuItem item) {
 						Set<String> servers = prefs.servers().get();
-						String host = ref.getUri().substring(ContentProvider.URI_SERVER.length());
-						if (servers.contains(host)) {
-							servers.remove(host);
+
+
+						if (servers.contains(address)) {
+							servers.remove(address);
 							prefs.edit().servers().put(servers).apply();
 							getContent().refresh();
 						}
@@ -171,41 +265,7 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 	}
 
 	@Override
-	public void browse(String uri, ContentView contentView) {
-		log.debug("browse(): {}", uri);
-
-		if (ContentProvider.URI_SERVERS.equals(uri)) {
-
-			ArrayList<Ref> servers = new ArrayList<>();
-
-			for (NsdServiceInfo serviceInfo : serverDiscovery.getServerInfo().values()) {
-				Ref ref = new Ref();
-				ref.setType(Ref.TYPE_DIRECTORY);
-				ref.setName(serviceInfo.getServiceName());
-				ref.setUri(ContentProvider.URI_SERVER + serviceInfo.getHost().toString().substring(1) + ":" + serviceInfo.getPort());
-				servers.add(ref);
-
-
-			}
-			for (String s : prefs.servers().get()) {
-				log.warn("SERVER: " + s);
-				String parts[] = s.split(":");
-				if (parts.length == 2) {
-
-					Ref ref = new Ref();
-					ref.setType(Ref.TYPE_DIRECTORY);
-					ref.setName(s);
-					ref.setUri(ContentProvider.URI_SERVER + s);
-					servers.add(ref);
-
-				}
-			}
-			contentView.setContent(servers.toArray(new Ref[]{}));
-
-			return;
-		}
-
-
+	public void browse(Uri uri, ContentView contentView) {
 		contentProvider.browse(uri, contentView);
 	}
 
@@ -218,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 		FragmentManager fm = getSupportFragmentManager();
 
 		Fragment fragment = fm.findFragmentById(R.id.full_controls);
+
 		if (fm.findFragmentById(R.id.full_controls) != null) {
 			hideFullControls();
 			return;
@@ -237,16 +298,11 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 		Toast.makeText(this, "Press back again to exit.", Toast.LENGTH_SHORT).show();
 	}
 
-	@Override
-	protected void onStart() {
-		super.onStart();
-		contentProvider.start();
-	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		contentProvider.stop();
+		conn.stop();
 	}
 
 
@@ -254,9 +310,9 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 	public void onServerListChanged(Map<String, NsdServiceInfo> servers) {
 		ContentView contentView = getContent();
 		if (contentView != null) {
-			if (contentView.getUri().equals(ContentProvider.URI_SERVERS)) {
+		/*TODO 	if (contentView.getUri().equals(ContentProvider.URI_SERVERS)) {
 				contentView.refresh();
-			}
+			}*/
 		}
 	}
 
@@ -406,11 +462,11 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 	void test1() {
 		showFullControls();
 
-		contentProvider.getConnection().getHistory().getHistory(new ResponseHandler<History.HistoryItem[]>() {
+		conn.getHistory().getHistory(new ResponseHandler<History.HistoryItem[]>() {
 			@Override
 			public void onResponse(CallContext context, History.HistoryItem[] result) {
 				for (History.HistoryItem item : result) {
-					log.debug("item: timestamp:{} track:{}", item.getTimestamp(),item.getTrack());
+					log.debug("item: timestamp:{} track:{}", item.getTimestamp(), item.getTrack());
 				}
 			}
 		});
@@ -437,16 +493,11 @@ public class MainActivity extends AppCompatActivity implements MainView, MopidyS
 				.setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 1);
 		ContentView contentView = getContent();
 		if (contentView == null) return;
-
-		switch (contentView.getUri()) {
-			case ContentProvider.URI_SERVERS:
+		switch (MopidyUris.match(contentView.getUri())) {
+			case MopidyUris.MATCH_SERVERS:
 				showFAB(R.drawable.ic_add);
 				break;
-			default:
-				hideFAB();
-				break;
 		}
-
 	}
 
 

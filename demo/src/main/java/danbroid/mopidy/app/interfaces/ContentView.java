@@ -1,5 +1,7 @@
 package danbroid.mopidy.app.interfaces;
 
+import android.net.Uri;
+
 import danbroid.mopidy.model.Ref;
 
 /**
@@ -7,7 +9,8 @@ import danbroid.mopidy.model.Ref;
  */
 public interface ContentView {
 	void setContent(Ref content[]);
-	String getUri();
+
+	Uri getUri();
 
 	void refresh();
 

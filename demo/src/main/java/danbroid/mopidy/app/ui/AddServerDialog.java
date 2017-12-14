@@ -39,9 +39,12 @@ public class AddServerDialog {
 	@Pref
 	MainPrefs_ prefs;
 
-	public void show(MainView mainView) {
+	public void show(final MainView mainView) {
 		log.trace("show()");
 
+		for (String s : prefs.servers().get()) {
+			log.error("SERVER: {}", s);
+		}
 
 		this.mainView = mainView;
 		this.dialog = new AlertDialog.Builder(context)
@@ -90,7 +93,6 @@ public class AddServerDialog {
 		int port = Integer.parseInt(portText.getText().toString());
 		dialog.cancel();
 		String addr = hostname + ":" + port;
-		log.info("adding server {}", addr);
 		Set<String> servers = prefs.servers().get();
 		if (!servers.contains(addr)) {
 			servers.add(addr);

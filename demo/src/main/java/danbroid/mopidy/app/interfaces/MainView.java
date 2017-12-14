@@ -1,6 +1,6 @@
 package danbroid.mopidy.app.interfaces;
 
-import android.support.annotation.DrawableRes;
+import android.net.Uri;
 import android.view.View;
 
 import danbroid.mopidy.model.Ref;
@@ -11,9 +11,18 @@ import danbroid.mopidy.model.Ref;
 public interface MainView {
 	void onItemSelected(Ref ref);
 
-	void browse(String uri, ContentView contentView);
+	void browse(Uri uri, ContentView contentView);
 
 	ContentView getContent();
 
 	void onItemLongClicked(Ref ref, View v);
+
+	void showBottomControls(boolean animate);
+
+	void hideBottomControls();
+
+	void showFullControls();
+
+	void hideFullControls();
+
 }

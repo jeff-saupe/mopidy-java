@@ -55,15 +55,21 @@ public class Call<T> {
 
 	public final void processResult(CallContext callContext, JsonElement response) {
 		try {
-			handler.onResponse(callContext, parseResult(callContext, response));
+			T result = parseResult(callContext, response);
+			if (handler != null)
+				handler.onResponse(callContext, result);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			handler.onError(0, e.getMessage(), response);
+			if (handler != null)
+				handler.onError(0, e.getMessage(), response);
 		}
 	}
 
 	public void onError(int code, String message, JsonElement data) {
-		handler.onError(code, message, data);
+		if (handler != null)
+			handler.onError(code, message, data);
+		else
+			log.error("code: " + code + " message: " + message + " data: " + data);
 	}
 
 	public JsonObject getRequest() {

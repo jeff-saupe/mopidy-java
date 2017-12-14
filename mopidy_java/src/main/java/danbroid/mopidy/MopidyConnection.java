@@ -1,8 +1,6 @@
 package danbroid.mopidy;
 
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,13 +14,6 @@ import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.Constants;
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
-import danbroid.mopidy.model.Album;
-import danbroid.mopidy.model.Artist;
-import danbroid.mopidy.model.Base;
-import danbroid.mopidy.model.Image;
-import danbroid.mopidy.model.Ref;
-import danbroid.mopidy.model.TlTrack;
-import danbroid.mopidy.model.Track;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
@@ -46,42 +37,34 @@ public class MopidyConnection extends Core implements CallContext {
 
 	private AtomicInteger requestID = new AtomicInteger(0);
 	private HashMap<Integer, Call> calls = new HashMap<>();
-	private Gson gson;
 
 	public void setEventListener(EventListener eventListener) {
 		this.eventListener = eventListener;
 	}
 
-	public MopidyConnection(String host, int port) {
-		this("ws://" + host + ":" + port + "/mopidy/ws");
-	}
 
-	public MopidyConnection(String url) {
-		super();
+	public void setUrl(String url) {
+		log.trace("setUrl(): {}", url);
 		this.url = url;
-		this.gson = getGsonBuilder().create();
 	}
 
-
-	public Gson getGson() {
-		return gson;
+	public void start(String url) {
+		log.error("start(): {}", url);
+		setUrl(url);
+		start();
 	}
 
-	public GsonBuilder getGsonBuilder() {
-		RuntimeTypeAdapterFactory<Base> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
-				.of(Base.class, "__model__");
-
-		for (Class<Base> clz : new Class[]{Album.class, Artist.class, Image.class, Ref.class, Track.class, TlTrack.class}) {
-			runtimeTypeAdapterFactory.registerSubtype(clz, clz.getSimpleName());
-		}
-			/*	.registerSubtype(Image.class, "Image")
-				.registerSubtype(Ref.class, "Ref");
-*/
-		return new GsonBuilder()
-				.registerTypeAdapterFactory(runtimeTypeAdapterFactory);
+	public void start(String host, int port) {
+		start("ws://" + host + ":" + port + "/mopidy/ws");
 	}
+
 
 	public void start() {
+		log.error("start() url: {}", url);
+		if (url == null) return;
+
+		stop();
+
 		OkHttpClient client = new OkHttpClient();
 		log.trace("start(): connecting to: {}", url);
 		Request request = new Request.Builder().url(url).build();
@@ -92,6 +75,7 @@ public class MopidyConnection extends Core implements CallContext {
 				MopidyConnection.this.onMessage(text);
 			}
 		});
+
 
 		version = null;
 
@@ -111,6 +95,8 @@ public class MopidyConnection extends Core implements CallContext {
 	 */
 	@Override
 	public final void call(Call call) {
+		if (socket == null) start();
+		if (socket == null) return;
 		prepareCall(call);
 		String request = call.toString();
 		log.trace("call(): request<{}>", request);
@@ -128,8 +114,8 @@ public class MopidyConnection extends Core implements CallContext {
 	 * Shutsdown the socket.
 	 */
 	public void stop() {
-		log.debug("stop(): {}", url);
 		if (socket != null) {
+			log.debug("stop(): {}", url);
 			socket.close(1000, "Finished");
 			socket = null;
 			calls.clear();
@@ -279,9 +265,11 @@ public class MopidyConnection extends Core implements CallContext {
 	 * indicates that enqueued messages were not transmitted.
 	 */
 	public long getQueueSize() {
-		if (socket == null) return 0;
-		return socket.queueSize();
+		return socket == null ? 0 : socket.queueSize();
 	}
 
 
+	public boolean isStarted() {
+		return socket != null;
+	}
 }

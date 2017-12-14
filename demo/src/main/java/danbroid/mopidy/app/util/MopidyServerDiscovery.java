@@ -32,7 +32,6 @@ public class MopidyServerDiscovery implements ServiceDiscoveryHelper.Listener {
 
 	ServiceDiscoveryHelper discoveryHelper;
 
-	private final Uri URI = Uri.parse(ContentProvider.URI_SERVERS);
 
 	@RootContext
 	Context context;

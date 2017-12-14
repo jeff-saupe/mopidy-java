@@ -51,7 +51,7 @@ public class Track extends Base {
 
 	//The track release date (YYYY or YYYY-MM-DD)
 	private String date;
-	private Artist artists[];
+	private Artist artists[] = {};
 	private Album album;
 	private Artist composers[];
 	private String genre;

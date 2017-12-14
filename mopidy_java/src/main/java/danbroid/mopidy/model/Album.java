@@ -4,7 +4,7 @@ package danbroid.mopidy.model;
  * Created by dan on 8/12/17.
  */
 public class Album extends Base {
-	private Image images[];
+	private String images[];
 	private String name;
 	private Artist artists[];
 	private String date;
@@ -13,11 +13,11 @@ public class Album extends Base {
 	private Integer num_discs;
 	private String musicbrainz_id;
 
-	public Image[] getImages() {
+	public String[] getImages() {
 		return images;
 	}
 
-	public void setImages(Image[] images) {
+	public void setImages(String[] images) {
 		this.images = images;
 	}
 
@@ -53,19 +53,19 @@ public class Album extends Base {
 		this.uri = uri;
 	}
 
-	public Integer getNum_tracks() {
+	public Integer getNumTracks() {
 		return num_tracks;
 	}
 
-	public void setNum_tracks(Integer num_tracks) {
+	public void setNumTracks(Integer num_tracks) {
 		this.num_tracks = num_tracks;
 	}
 
-	public Integer getNum_discs() {
+	public Integer getNumDiscs() {
 		return num_discs;
 	}
 
-	public void setNum_discs(Integer num_discs) {
+	public void setNumDiscs(Integer num_discs) {
 		this.num_discs = num_discs;
 	}
 

@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import danbroid.mopidy.ResponseHandler;
-import danbroid.mopidy.app.content.ContentProvider;
+import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
@@ -22,7 +22,7 @@ public class ImageResolver {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ImageResolver.class);
 
 	@Bean
-	ContentProvider contentProvider;
+	MopidyConnection conn;
 
 	public static final Image MISSING_IMAGE = new Image();
 	private Map<String, Image> CACHE = new HashMap<>();
@@ -46,7 +46,7 @@ public class ImageResolver {
 			return;
 		}
 
-		contentProvider.getConnection().getLibrary().getImages(
+		conn.getLibrary().getImages(
 				imageUris.toArray(new String[]{}),
 				new ResponseHandler<Map<String, Image[]>>() {
 					@Override
