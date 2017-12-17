@@ -116,13 +116,13 @@ public class ContentProvider {
 		String host = parts[0];
 		int port = Integer.parseInt(parts[1]);
 
-		if (mopidy_host == null || !host.equals(mopidy_host) || mopidy_port != port) {
-			log.info("connecting to {}:{}", host, port);
-			this.mopidy_host = host;
-			this.mopidy_port = port;
 
-			conn.start(mopidy_host, mopidy_port);
-		}
+		log.info("connecting to {}:{}", host, port);
+		this.mopidy_host = host;
+		this.mopidy_port = port;
+
+		conn.start(mopidy_host, mopidy_port);
+
 
 		browseTopDirectory(contentView);
 	}

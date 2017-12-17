@@ -46,7 +46,6 @@ import danbroid.mopidy.app.util.MopidyUris;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
-import danbroid.mopidy.model.Track;
 import danbroid.mopidy.util.UIResponseHandler;
 
 @OptionsMenu(R.menu.menu_main)
@@ -194,28 +193,11 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 
 				break;
 			default:
-				playTrack(ref.getUri());
+				addAndPlay(ref.getUri());
 				break;
 		}
 	}
 
-	public void playTrack(final String uri) {
-		log.trace("playTrack(): {}", uri);
-		conn.getTrackList().getTracks(new ResponseHandler<Track[]>() {
-			@Override
-			public void onResponse(CallContext context, Track[] result) {
-				for (Track track : result) {
-					log.trace("tracklist track: {}", track);
-					if (track.getUri().equals(uri)) {
-						log.error("found track in tracklist: {}", track);
-						return;
-					}
-				}
-				log.trace("{} not found in tracklist", uri);
-				addAndPlay(uri);
-			}
-		});
-	}
 
 	@UiThread
 	public void addAndPlay(String uri) {
@@ -223,8 +205,8 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 		conn.getTrackList().add(uri, new ResponseHandler<TlTrack[]>() {
 			@Override
 			public void onResponse(CallContext context, TlTrack[] result) {
-				for (TlTrack track : result) {
-					log.error("added tltrack: {}", track);
+				if (result.length > 0) {
+					playTrack(result[0].getTlid());
 				}
 			}
 		});

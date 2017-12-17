@@ -1,5 +1,6 @@
 package danbroid.mopidy.app.fragments;
 
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -41,11 +42,17 @@ public class BottomControlsFragment extends PlaybackFragment {
 	@ViewById(R.id.pause_button)
 	ImageView pauseButton;
 
+	@ViewById(R.id.chevron_up)
+	View chevronUp;
+
 
 	@AfterViews
 	void init() {
 		descriptionText.setSelected(true);
-
+		titleText.setText("");
+		descriptionText.setText("");
+		pauseButton.setVisibility(View.INVISIBLE);
+		chevronUp.setVisibility(View.INVISIBLE);
 		conn.getPlayback().getCurrentTlTrack(new UIResponseHandler<TlTrack>() {
 			@Override
 			protected void onUIResponse(CallContext context, TlTrack result) {
@@ -80,6 +87,16 @@ public class BottomControlsFragment extends PlaybackFragment {
 
 	public void displayTrack(TlTrack tlTrack) {
 		log.debug("displayTrack(): {}", tlTrack);
+		if (tlTrack == null) {
+			titleText.setText("");
+			descriptionText.setText("");
+			pauseButton.setVisibility(View.INVISIBLE);
+			chevronUp.setVisibility(View.INVISIBLE);
+			return;
+		}
+
+		pauseButton.setVisibility(View.VISIBLE);
+		chevronUp.setVisibility(View.VISIBLE);
 		Track track = tlTrack.getTrack();
 		titleText.setText(track.getName());
 		String description = null;
