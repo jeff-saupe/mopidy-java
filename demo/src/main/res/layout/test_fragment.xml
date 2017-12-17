@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     >
 
   <ImageView
@@ -17,10 +18,11 @@
 
 
   <Button
+      android:id="@+id/test1"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_alignParentTop="true"
-      android:text="TEst"/>
+      android:text="Test1"/>
 
   <Button
       android:layout_width="wrap_content"

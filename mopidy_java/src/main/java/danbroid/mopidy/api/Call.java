@@ -33,18 +33,16 @@ public class Call<T> {
 	 */
 	private JsonObject params;
 
-	protected ResponseHandler<T> handler;
 
+	/**
+	 * When this call was dispatched
+	 */
+	private long timestamp;
+
+	protected ResponseHandler<T> handler;
+	private int id;
 
 	public Call(String method) {
-		this(method, (TypeToken<T>) null);
-	}
-
-	public Call(String method, Class<T> resultClass) {
-		this(method, TypeToken.get(resultClass));
-	}
-
-	public Call(String method, TypeToken<T> resultType) {
 		this.resultType = resultType;
 		request = new JsonObject();
 		request.addProperty(Constants.Key.METHOD, method);
@@ -52,6 +50,16 @@ public class Call<T> {
 		params = new JsonObject();
 		request.add(Constants.Key.PARAMS, params);
 	}
+
+	public Call<T> setResultType(TypeToken<T> resultType) {
+		this.resultType = resultType;
+		return this;
+	}
+
+	public Call<T> setResultType(Class<T> resultType) {
+		return setResultType(TypeToken.get(resultType));
+	}
+
 
 	public final void processResult(CallContext callContext, JsonElement response) {
 		try {
@@ -82,9 +90,8 @@ public class Call<T> {
 	}
 
 	protected T parseResult(CallContext callContext, JsonElement response) {
-		if (resultType == null)
-			throw new IllegalArgumentException("resultType not provided. You should override this method");
-
+		if (resultType == null || resultType.getRawType().isAssignableFrom(Void.class))
+			return null;
 		return callContext.getGson().fromJson(response, resultType.getType());
 	}
 
@@ -115,4 +122,20 @@ public class Call<T> {
 	}
 
 
+	public void setTimestamp(long timestamp) {
+		this.timestamp = timestamp;
+	}
+
+	public long getTimestamp() {
+		return timestamp;
+	}
+
+	public void setID(int id) {
+		getRequest().addProperty(Constants.Key.ID, id);
+		this.id = id;
+	}
+
+	public int getID() {
+		return id;
+	}
 }

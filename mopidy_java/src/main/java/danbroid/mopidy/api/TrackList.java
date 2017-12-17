@@ -18,17 +18,20 @@ public class TrackList extends Api {
 
 	//"""Get tracklist as list of :class:`mopidy.models.TlTrack`."""
 	public void getTlTrackList(ResponseHandler<TlTrack[]> handler) {
-		call(new Call(methodPrefix + "get_tl_tracks", TlTrack[].class).setHandler(handler));
+		call(new Call<TlTrack[]>(methodPrefix + "get_tl_tracks")
+				.setResultType(TlTrack[].class).setHandler(handler));
 	}
 
 	//"""Get tracklist as list of :class:`mopidy.models.Track`."""
 	public void getTracks(ResponseHandler<Track[]> handler) {
-		call(new Call(methodPrefix + "get_tracks", Track[].class).setHandler(handler));
+		call(new Call<Track[]>(methodPrefix + "get_tracks")
+				.setResultType(Track[].class).setHandler(handler));
 	}
 
 	//Get The length of the tracklist
 	public void getLength(ResponseHandler<Integer> handler) {
-		call(new Call(methodPrefix + "get_length", Integer.class).setHandler(handler));
+		call(new Call<Integer>(methodPrefix + "get_length")
+				.setResultType(Integer.class).setHandler(handler));
 	}
 
 	/*
@@ -37,7 +40,8 @@ public class TrackList extends Api {
 	  Is not reset before Mopidy is restarted.
 	 */
 	public void getVersion(ResponseHandler<Integer> handler) {
-		call(new Call(methodPrefix + "get_version", Integer.class).setHandler(handler));
+		call(new Call<Integer>(methodPrefix + "get_version")
+				.setResultType(Integer.class).setHandler(handler));
 	}
 
 	/*
@@ -48,7 +52,8 @@ public class TrackList extends Api {
             Tracks are not removed from the tracklist.
 	 */
 	public void getConsume(ResponseHandler<Boolean> handler) {
-		call(new Call(methodPrefix + "get_consume", Boolean.class).setHandler(handler));
+		call(new Call<Boolean>(methodPrefix + "get_consume")
+				.setResultType(Boolean.class).setHandler(handler));
 	}
 
 	/*
@@ -60,7 +65,7 @@ public class TrackList extends Api {
             Tracks are not removed from the tracklist.
 	 */
 	public void setConsume(boolean consume, ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "set_consume", Void.class)
+		call(new Call(methodPrefix + "set_consume")
 				.addParam("value", consume)
 				.setHandler(handler));
 
@@ -74,7 +79,8 @@ public class TrackList extends Api {
             Tracks are played in the order of the tracklist.
 	 */
 	public void getRandom(ResponseHandler<Boolean> handler) {
-		call(new Call(methodPrefix + "get_random", Boolean.class).setHandler(handler));
+		call(new Call<Boolean>(methodPrefix + "get_random")
+				.setResultType(Boolean.class).setHandler(handler));
 	}
 
 	/*
@@ -86,7 +92,7 @@ public class TrackList extends Api {
             Tracks are played in the order of the tracklist.
 	 */
 	public void setRandom(boolean random, ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "set_random", Void.class)
+		call(new Call(methodPrefix + "set_random")
 				.addParam("value", random)
 				.setHandler(handler));
 
@@ -101,7 +107,7 @@ public class TrackList extends Api {
             The tracklist is played once.
 	 */
 	public void getRepeat(ResponseHandler<Boolean> handler) {
-		call(new Call(methodPrefix + "get_repeat", Boolean.class).setHandler(handler));
+		call(new Call<Boolean>(methodPrefix + "get_repeat").setResultType(Boolean.class).setHandler(handler));
 	}
 
 	/*
@@ -115,7 +121,7 @@ public class TrackList extends Api {
             The tracklist is played once.
 	 */
 	public void setRepeat(boolean repeat, ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "set_repeat", Void.class)
+		call(new Call(methodPrefix + "set_repeat")
 				.addParam("value", repeat)
 				.setHandler(handler));
 
@@ -130,7 +136,8 @@ public class TrackList extends Api {
             Playback continues after current song.
 	 */
 	public void getSingle(ResponseHandler<Boolean> handler) {
-		call(new Call(methodPrefix + "get_single", Boolean.class).setHandler(handler));
+		call(new Call<Boolean>(methodPrefix + "get_single")
+				.setResultType(Boolean.class).setHandler(handler));
 	}
 
 	/*
@@ -142,7 +149,7 @@ public class TrackList extends Api {
             Playback continues after current song.
 	 */
 	public void setSingle(boolean single, ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "set_single", Void.class)
+		call(new Call(methodPrefix + "set_single")
 				.addParam("value", single)
 				.setHandler(handler));
 	}
@@ -176,7 +183,7 @@ public class TrackList extends Api {
 	 */
 
 	public void add(String uri, ResponseHandler<TlTrack[]> handler) {
-		call(new Call(methodPrefix + "add", TlTrack[].class)
+		call(new Call<TlTrack[]>(methodPrefix + "add").setResultType(TlTrack[].class)
 				.addParam("uri", uri)
 				.addParam("uris", (JsonElement) null)
 				.addParam("tracks", (JsonElement) null)

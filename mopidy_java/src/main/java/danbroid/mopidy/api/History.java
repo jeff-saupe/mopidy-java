@@ -22,8 +22,9 @@ public class History extends Api {
 
 	//Get the number of tracks in the history.
 	public void getLength(ResponseHandler<Integer> handler) {
-		call(new Call(methodPrefix + "get_length", Integer.class)
-				.setHandler(handler));
+		call(new Call<Integer>(methodPrefix + "get_length")
+				.setHandler(handler)
+				.setResultType(Integer.class));
 	}
 
 
@@ -53,7 +54,7 @@ public class History extends Api {
 	//Get the history
 	public void getHistory(final ResponseHandler<HistoryItem[]> handler) {
 		final LinkedList<HistoryItem> items = new LinkedList<>();
-		call(new Call<HistoryItem[]>(methodPrefix + "get_history", HistoryItem[].class) {
+		call(new Call<HistoryItem[]>(methodPrefix + "get_history") {
 			@Override
 			protected HistoryItem[] parseResult(CallContext callContext, JsonElement response) {
 				LinkedList<HistoryItem> result = new LinkedList<>();
@@ -67,6 +68,6 @@ public class History extends Api {
 				}
 				return result.toArray(new HistoryItem[]{});
 			}
-		}.setHandler(handler));
+		}.setHandler(handler).setResultType(HistoryItem[].class));
 	}
 }

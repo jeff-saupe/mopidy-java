@@ -45,7 +45,7 @@ public class ContentProvider {
 	MopidyServerDiscovery serverDiscovery;
 
 	public void browse(Uri uri, ContentView contentView) {
-		log.error("browse(): {}", uri);
+		log.trace("browse(): {}", uri);
 
 		switch (MopidyUris.match(uri)) {
 
@@ -139,14 +139,6 @@ public class ContentProvider {
 		ref.setUri(MopidyUris.URI_SERVERS.toString());
 		content.add(ref);
 
-		if (conn.isStarted()) {
-			ref = new Ref();
-			ref.setType(Ref.TYPE_DIRECTORY);
-			ref.setName("Tracklist");
-			ref.setUri(MopidyUris.URI_TRACKLIST.toString());
-			content.add(ref);
-		}
-
 		contentView.setContent(content.toArray(new Ref[]{}));
 	}
 
@@ -191,7 +183,6 @@ public class ContentProvider {
 				tracklist.setName("Tracklist");
 				tracklist.setUri(MopidyUris.URI_TRACKLIST.toString());
 				refs[refs.length - 1] = tracklist;
-
 				view.setContent(refs);
 			}
 		});

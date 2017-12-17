@@ -3,12 +3,10 @@ package danbroid.mopidy.app.activities;
 import android.net.Uri;
 import android.net.nsd.NsdServiceInfo;
 import android.support.annotation.DrawableRes;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import danbroid.mopidy.ResponseHandler;
-import danbroid.mopidy.api.History;
 import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.content.ContentProvider;
@@ -46,7 +43,6 @@ import danbroid.mopidy.app.util.MopidyUris;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
-import danbroid.mopidy.util.UIResponseHandler;
 
 @OptionsMenu(R.menu.menu_main)
 @EActivity(R.layout.activity_main)
@@ -73,6 +69,7 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 	@AfterViews
 	void init() {
 		log.info("init()");
+
 		setSupportActionBar(toolbar);
 
 		if (getContent() == null) {
@@ -85,25 +82,11 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 
 
 		hideFullControls();
-		showBottomControls(true);
+
+		conn.getVersion(null);
 
 	}
 
-
-	@UiThread
-	@Override
-	public void onTracklistChanged() {
-		conn.getTrackList().getLength(new UIResponseHandler<Integer>() {
-			@Override
-			public void onUIResponse(CallContext context, Integer length) {
-				Toast.makeText(getBaseContext(), "Tracklist length: " + length, Toast.LENGTH_SHORT).show();
-				if (length == 0)
-					hideBottomControls();
-				else
-					showBottomControls(true);
-			}
-		});
-	}
 
 	public void showContent(Uri uri) {
 		log.trace("showContent(): {}", uri);
@@ -277,7 +260,7 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 			return;
 		}
 		lastTimeBackPressed = time;
-		Toast.makeText(this, "Press back again to exit.", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, getString(R.string.msg_press_back_to_exit), Toast.LENGTH_SHORT).show();
 	}
 
 
@@ -301,76 +284,12 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 	@ViewById(R.id.fab)
 	FloatingActionButton fab;
 
-	public void showBottomControls(boolean animate) {
-		log.trace("showBottomControls(): animate: {}", animate);
-		final View bottomControls = findViewById(R.id.bottom_controls);
 
-		if (bottomControls == null) {
-			log.warn("showBottomControls() no controls found");
-			return;
-		}
-
-		if (bottomControls.getVisibility() != View.VISIBLE) {
-
-			if (!animate) {
-				bottomControls.setVisibility(View.VISIBLE);
-				View content = findViewById(R.id.content_container);
-				if (content != null)
-					ViewCompat.setPaddingRelative(content, 0, 0, 0, bottomControls.getHeight());
-				return;
-			}
-			//shall slide it up from the bottom
-			Animation slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
-
-			slideUp.setAnimationListener(new Animation.AnimationListener() {
-				@Override
-				public void onAnimationStart(Animation animation) {
-				}
-
-				@Override
-				public void onAnimationEnd(Animation animation) {
-					//need to reset the padding on the main content to allow space for the bottom controls
-					View content = findViewById(R.id.content_container);
-					if (content != null) {
-						ViewCompat.setPaddingRelative(content, 0, 0, 0, bottomControls.getHeight());
-					}
-
-					((CoordinatorLayout.LayoutParams) fab.getLayoutParams()).bottomMargin =
-							getResources().getDimensionPixelSize(R.dimen.fab_margin) + bottomControls.getHeight();
-
-
-				}
-
-				@Override
-				public void onAnimationRepeat(Animation animation) {
-				}
-			});
-
-			bottomControls.setAnimation(slideUp);
-			bottomControls.setVisibility(View.VISIBLE);
-			bottomControls.animate();
-		}
+	@Override
+	public void onConnect() {
+		getSupportActionBar().setSubtitle(conn.getUrl());
 	}
 
-	public void hideBottomControls() {
-		log.trace("hideBottomControls()");
-		View bottomControls = findViewById(R.id.bottom_controls);
-		if (bottomControls == null) {
-			log.warn("hideBottomControls() controls not found");
-			return;
-		}
-		int height = bottomControls.getHeight();
-		bottomControls.setVisibility(View.GONE);
-		View content = findViewById(R.id.content_container);
-		if (content != null)
-			ViewCompat.setPaddingRelative(content, 0, 0, 0, -height);
-
-
-		((CoordinatorLayout.LayoutParams) fab.getLayoutParams()).bottomMargin = getResources().getDimensionPixelSize(R.dimen.fab_margin);
-	}
-
-
-	@Click(R.id.chevron_up)
 	public void showFullControls() {
 		log.debug("showFullControls()");
 
@@ -440,34 +359,6 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 
 	}
 
-	@OptionsItem(R.id.action_test1)
-	void test1() {
-		showFullControls();
-
-		conn.getHistory().getHistory(new ResponseHandler<History.HistoryItem[]>() {
-			@Override
-			public void onResponse(CallContext context, History.HistoryItem[] result) {
-				for (History.HistoryItem item : result) {
-					log.debug("item: timestamp:{} track:{}", item.getTimestamp(), item.getTrack());
-				}
-			}
-		});
-	}
-
-	@OptionsItem(R.id.action_test2)
-	void test2() {
-		hideFullControls();
-	}
-
-	@OptionsItem(R.id.action_test3)
-	void test3() {
-		showBottomControls(true);
-	}
-
-	@OptionsItem(R.id.action_test4)
-	void test4() {
-		hideBottomControls();
-	}
 
 	@Override
 	public void onBackStackChanged() {
@@ -478,6 +369,9 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 		switch (MopidyUris.match(contentView.getUri())) {
 			case MopidyUris.MATCH_SERVERS:
 				showFAB(R.drawable.ic_add);
+				break;
+			default:
+				hideFAB();
 				break;
 		}
 	}

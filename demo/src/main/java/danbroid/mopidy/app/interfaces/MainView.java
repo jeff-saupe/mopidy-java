@@ -17,10 +17,6 @@ public interface MainView {
 
 	void onItemLongClicked(Ref ref, View v);
 
-	void showBottomControls(boolean animate);
-
-	void hideBottomControls();
-
 	void showFullControls();
 
 	void hideFullControls();

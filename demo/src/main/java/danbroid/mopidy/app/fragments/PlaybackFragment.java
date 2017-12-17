@@ -1,12 +1,18 @@
 package danbroid.mopidy.app.fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.gson.JsonObject;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
+import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.app.activities.Playback;
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
@@ -18,6 +24,16 @@ import danbroid.mopidy.interfaces.PlaybackState;
 @EBean
 public abstract class PlaybackFragment extends Fragment implements EventListener {
 
+	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			onConnect();
+		}
+	};
+
+	public void onConnect() {
+	}
+
 	@Bean
 	protected Playback playback;
 
@@ -25,12 +41,16 @@ public abstract class PlaybackFragment extends Fragment implements EventListener
 	public void onResume() {
 		super.onResume();
 		playback.addListener(this);
+		LocalBroadcastManager.getInstance(getContext())
+				.registerReceiver(broadcastReceiver, new IntentFilter(MopidyConnection.INTENT_SERVER_CONNECTED));
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
 		playback.removeListener(this);
+		LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(broadcastReceiver);
+
 	}
 
 

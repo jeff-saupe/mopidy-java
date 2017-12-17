@@ -8,6 +8,7 @@ import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.UiThread;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.interfaces.EventListener;
@@ -23,12 +24,13 @@ public class Playback implements EventListener {
 	@Bean
 	MopidyConnection conn;
 
+
 	@AfterInject
 	void init() {
 		conn.setEventListener(this);
 	}
 
-	private HashSet<EventListener> listeners = new HashSet<>();
+	private Set<EventListener> listeners = new HashSet<>();
 
 	public synchronized void addListener(EventListener listener) {
 		if (!listeners.contains(listener)) listeners.add(listener);
@@ -131,7 +133,6 @@ public class Playback implements EventListener {
 
 	@UiThread
 	@Override
-
 	public void onTracklistChanged() {
 		log.trace("onTracklistChanged() ");
 		for (EventListener listener : listeners) {

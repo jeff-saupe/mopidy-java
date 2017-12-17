@@ -22,14 +22,16 @@ public class Library extends Api {
 	}
 
 	public void browse(final String uri, ResponseHandler<Ref[]> handler) {
-		call(new Call<>(methodPrefix + "browse", Ref[].class)
+		call(new Call<Ref[]>(methodPrefix + "browse")
 				.addParam(Constants.Key.URI, uri)
+				.setResultType(Ref[].class)
 				.setHandler(handler));
 	}
 
 	public void lookup(String uris, ResponseHandler<Track[]> handler) {
-		call(new Call<>(methodPrefix + "lookup", Track[].class)
+		call(new Call<Track[]>(methodPrefix + "lookup")
 				.addParam(Constants.Key.URIS, uris)
+				.setResultType(Track[].class)
 				.setHandler(handler));
 	}
 
@@ -40,8 +42,10 @@ public class Library extends Api {
 		}
 
 		call(
-				new Call(methodPrefix + "get_images", new TypeToken<Map<String, Image[]>>() {
-				}).addParam(Constants.Key.URIS, uriArray)
+				new Call<Map<String, Image[]>>(methodPrefix + "get_images")
+						.setResultType(new TypeToken<Map<String, Image[]>>() {
+						})
+						.addParam(Constants.Key.URIS, uriArray)
 						.setHandler(handler));
 	}
 

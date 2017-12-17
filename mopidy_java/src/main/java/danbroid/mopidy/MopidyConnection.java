@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import danbroid.mopidy.api.Call;
@@ -27,6 +28,7 @@ public class MopidyConnection extends Core implements CallContext {
 
 	private static final org.slf4j.Logger
 			log = org.slf4j.LoggerFactory.getLogger(MopidyConnection.class);
+	public static final int ERROR_TIMEOUT = -20;
 
 	private String url;
 
@@ -34,6 +36,10 @@ public class MopidyConnection extends Core implements CallContext {
 	private JsonParser parser = new JsonParser();
 	private EventListener eventListener = new EventListenerImpl();
 	private String version;
+
+	public static final long DEFAULT_CALL_TIMEOUT = 3000;
+	private long timeout = DEFAULT_CALL_TIMEOUT;
+
 
 	private AtomicInteger requestID = new AtomicInteger(0);
 	private HashMap<Integer, Call> calls = new HashMap<>();
@@ -48,8 +54,12 @@ public class MopidyConnection extends Core implements CallContext {
 		this.url = url;
 	}
 
+	public String getUrl() {
+		return url;
+	}
+
 	public void start(String url) {
-		log.error("start(): {}", url);
+		log.info("start(): {}", url);
 		setUrl(url);
 		start();
 	}
@@ -60,14 +70,15 @@ public class MopidyConnection extends Core implements CallContext {
 
 
 	public void start() {
-		log.error("start() url: {}", url);
+		log.info("start() url: {}", url);
 		if (url == null) return;
 
 		stop();
 
-		OkHttpClient client = new OkHttpClient();
-		log.trace("start(): connecting to: {}", url);
+		OkHttpClient client = new OkHttpClient.Builder()
+				.readTimeout(5, TimeUnit.SECONDS).connectTimeout(5, TimeUnit.SECONDS).build();
 		Request request = new Request.Builder().url(url).build();
+
 
 		this.socket = client.newWebSocket(request, new WebSocketListener() {
 			@Override
@@ -84,29 +95,51 @@ public class MopidyConnection extends Core implements CallContext {
 			public void onResponse(CallContext context, String result) {
 				MopidyConnection.this.version = result;
 				log.trace("version: {}", version);
+				onConnect();
 			}
 		});
-
 	}
 
+	protected void onConnect() {
+		log.info("onConnect()");
+	}
 
 	/**
 	 * Dispatches call to the web socket
+	 * This trivially calls sendCall so override this method
+	 * to deal with threading
 	 */
 	@Override
-	public final void call(Call call) {
+	public void call(Call call) {
+		sendCall(call);
+	}
+
+	protected void sendCall(Call call) {
 		if (socket == null) start();
 		if (socket == null) return;
-		prepareCall(call);
+
+		int id = requestID.incrementAndGet();
+		call.setID(id);
+		call.setTimestamp(System.currentTimeMillis());
+		calls.put(id, call);
+
 		String request = call.toString();
 		log.trace("call(): request<{}>", request);
 		socket.send(request);
 	}
 
-	protected void prepareCall(Call call) {
-		int id = requestID.incrementAndGet();
-		call.getRequest().addProperty(Constants.Key.ID, id);
-		calls.put(id, call);
+	/**
+	 * Call timeout errors on all calls that havent been processed after CALL_TIMEOUT
+	 */
+	protected void expireCalls() {
+		if (!calls.isEmpty()) {
+			log.trace("expireCalls(): " + getCallQueueSize());
+			for (Call call : calls.values().toArray(new Call[]{})) {
+				if (System.currentTimeMillis() - call.getTimestamp() > timeout) {
+					onError(call.getID(), "Call timeout", ERROR_TIMEOUT, call.getRequest());
+				}
+			}
+		}
 	}
 
 
@@ -123,11 +156,18 @@ public class MopidyConnection extends Core implements CallContext {
 	}
 
 	/**
-	 * A message has been received
+	 * A message has been received.
+	 * This trivially calls processMessage so override this method
+	 * to deal with threading
 	 *
 	 * @param text The JSON message
 	 */
 	public void onMessage(String text) {
+		processMessage(text);
+	}
+
+	protected void processMessage(String text) {
+		log.trace("processMessage(): {}", text);
 		try {
 			JsonElement e = parser.parse(text);
 			if (e.isJsonObject()) {
@@ -161,6 +201,7 @@ public class MopidyConnection extends Core implements CallContext {
 	}
 
 	protected void onError(int id, String message, int code, JsonElement data) {
+
 		Call call = popCall(id);
 
 		if (call == null) {
@@ -183,11 +224,8 @@ public class MopidyConnection extends Core implements CallContext {
 		call.processResult(this, result);
 	}
 
-	protected synchronized Call popCall(int id) {
+	protected Call popCall(int id) {
 		Call call = calls.remove(id);
-		if (calls.isEmpty()) {
-			notify();
-		}
 		return call;
 	}
 
@@ -271,5 +309,17 @@ public class MopidyConnection extends Core implements CallContext {
 
 	public boolean isStarted() {
 		return socket != null;
+	}
+
+	public long getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
+	}
+
+	public int getCallQueueSize() {
+		return calls.size();
 	}
 }

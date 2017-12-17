@@ -18,14 +18,16 @@ public class Playback extends Api {
 	}
 
 	public void getCurrentTlTrack(ResponseHandler<TlTrack> handler) {
-		call(new Call(methodPrefix + "get_current_tl_track", TlTrack.class).setHandler(handler));
+		call(new Call<TlTrack>(methodPrefix + "get_current_tl_track")
+				.setResultType(TlTrack.class).setHandler(handler));
 	}
 
 	/**
 	 * @param handler receives the current tlid or null
 	 */
 	public void getCurrentTLID(ResponseHandler<Integer> handler) {
-		call(new Call(methodPrefix + "get_current_tlid", Integer.class).setHandler(handler));
+		call(new Call<Integer>(methodPrefix + "get_current_tlid")
+				.setResultType(Integer.class).setHandler(handler));
 	}
 
 
@@ -33,25 +35,27 @@ public class Playback extends Api {
 	 * @param handler receives the current Track or null
 	 */
 	public void getCurrentTrack(ResponseHandler<Track> handler) {
-		call(new Call(methodPrefix + "get_current_track", Track.class).setHandler(handler));
+		call(new Call<Track>(methodPrefix + "get_current_track")
+				.setResultType(Track.class).setHandler(handler));
 	}
 
 	public void getState(ResponseHandler<PlaybackState> handler) {
-		call(new Call<PlaybackState>(methodPrefix + "get_state", PlaybackState.class) {
+		call(new Call<PlaybackState>(methodPrefix + "get_state") {
 			@Override
 			protected PlaybackState parseResult(CallContext callContext, JsonElement response) {
 				return PlaybackState.valueOf(response.getAsString().toUpperCase());
 			}
-		}.setHandler(handler));
+		}.setHandler(handler)
+				.setResultType(PlaybackState.class));
 
 	}
 
 	public void getStreamTitle(ResponseHandler<String> handler) {
-		call(new Call(methodPrefix + "get_stream_title", String.class).setHandler(handler));
+		call(new Call<String>(methodPrefix + "get_stream_title").setHandler(handler).setResultType(String.class));
 	}
 
 	public void getTimePosition(ResponseHandler<Long> handler) {
-		call(new Call(methodPrefix + "get_time_position", Long.class).setHandler(handler));
+		call(new Call<Long>(methodPrefix + "get_time_position").setHandler(handler).setResultType(Long.class));
 	}
 
 	/*
@@ -61,7 +65,7 @@ The current playback state will be kept. If it was playing, playing
 will continue. If it was paused, it will still be paused, etc.
 	 */
 	public void next(ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "next", Void.class).setHandler(handler));
+		call(new Call(methodPrefix + "next").setHandler(handler));
 	}
 
 	/**
@@ -70,7 +74,7 @@ will continue. If it was paused, it will still be paused, etc.
 	 * @param handler
 	 */
 	public void pause(ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "pause", Void.class).setHandler(handler));
+		call(new Call(methodPrefix + "pause").setHandler(handler));
 	}
 
 	/**
@@ -97,7 +101,7 @@ will continue. If it was paused, it will still be paused, etc.
 		if (tlTrack != null)
 			jsonTrack = getGson().toJsonTree(tlTrack);
 
-		call(new Call<Void>(methodPrefix + "play", Void.class)
+		call(new Call<Void>(methodPrefix + "play")
 				.addParam("tlid", tlid)
 				.addParam("tl_track", jsonTrack)
 				.setHandler(handler));

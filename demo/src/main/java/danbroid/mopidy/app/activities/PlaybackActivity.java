@@ -1,5 +1,10 @@
 package danbroid.mopidy.app.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 
 import com.google.gson.JsonObject;
@@ -7,6 +12,7 @@ import com.google.gson.JsonObject;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 
+import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
 
@@ -14,21 +20,34 @@ import danbroid.mopidy.interfaces.PlaybackState;
  * Created by dan on 14/12/17.
  */
 @EActivity
-public class PlaybackActivity extends AppCompatActivity implements EventListener {
+public abstract class PlaybackActivity extends AppCompatActivity implements EventListener {
 
 	@Bean
 	protected Playback playback;
+
+	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			onConnect();
+		}
+	};
+
+	public void onConnect() {
+	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
 		playback.addListener(this);
+		LocalBroadcastManager.getInstance(this)
+				.registerReceiver(broadcastReceiver, new IntentFilter(MopidyConnection.INTENT_SERVER_CONNECTED));
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
 		playback.removeListener(this);
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
 	}
 
 

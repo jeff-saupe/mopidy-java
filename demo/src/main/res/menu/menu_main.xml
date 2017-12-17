@@ -8,28 +8,4 @@
       android:title="@string/action_settings"
       app:showAsAction="never"/>
 
-  <item
-      android:id="@+id/action_test1"
-
-      android:title="Test1"
-      app:showAsAction="never"/>
-
-  <item
-      android:id="@+id/action_test2"
-
-      android:title="Test2"
-      app:showAsAction="never"/>
-
-
-  <item
-      android:id="@+id/action_test3"
-
-      android:title="Test3"
-      app:showAsAction="never"/>
-
-  <item
-      android:id="@+id/action_test4"
-
-      android:title="Test4"
-      app:showAsAction="never"/>
 </menu>
