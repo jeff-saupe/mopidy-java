@@ -117,18 +117,18 @@ public class BottomControlsFragment extends PlaybackFragment {
 	@Override
 	public void onConnect() {
 		log.info("onConnect()");
-		Toast.makeText(getContext(),"Connected",Toast.LENGTH_SHORT).show();
+		Toast.makeText(getContext(), "Connected", Toast.LENGTH_SHORT).show();
 
 		conn.getPlayback().getCurrentTlTrack(new UIResponseHandler<TlTrack>() {
 			@Override
-			protected void onUIResponse(CallContext context, TlTrack result) {
+			public void onUIResponse(CallContext context, TlTrack result) {
 				displayTrack(result);
 			}
 		});
 
 		conn.getPlayback().getState(new UIResponseHandler<PlaybackState>() {
 			@Override
-			protected void onUIResponse(CallContext context, PlaybackState result) {
+			public void onUIResponse(CallContext context, PlaybackState result) {
 				onPlaybackStateChanged(null, result);
 			}
 		});

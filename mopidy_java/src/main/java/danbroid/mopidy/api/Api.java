@@ -8,6 +8,7 @@ import danbroid.mopidy.model.Album;
 import danbroid.mopidy.model.Artist;
 import danbroid.mopidy.model.Base;
 import danbroid.mopidy.model.Image;
+import danbroid.mopidy.model.Playlist;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
@@ -43,7 +44,8 @@ public class Api {
 		RuntimeTypeAdapterFactory<Base> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
 				.of(Base.class, "__model__");
 
-		for (Class<Base> clz : new Class[]{Album.class, Artist.class, Image.class, Ref.class, Track.class, TlTrack.class}) {
+		for (Class<Base> clz : new Class[]{Album.class, Artist.class, Image.class, Ref.class, Track.class,
+				TlTrack.class, Playlist.class}) {
 			runtimeTypeAdapterFactory.registerSubtype(clz, clz.getSimpleName());
 		}
 			/*	.registerSubtype(Image.class, "Image")

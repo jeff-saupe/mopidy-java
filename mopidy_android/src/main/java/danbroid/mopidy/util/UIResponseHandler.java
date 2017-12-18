@@ -23,6 +23,6 @@ public abstract class UIResponseHandler<T> extends ResponseHandler<T> {
 		});
 	}
 
-	protected abstract void onUIResponse(CallContext context, T result);
+	 public abstract void onUIResponse(CallContext context, T result);
 
 }

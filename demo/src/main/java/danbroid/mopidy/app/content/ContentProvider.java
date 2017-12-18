@@ -56,6 +56,7 @@ public class ContentProvider {
 			case MopidyUris.MATCH_SERVERS:
 				browseServers(contentView);
 				break;
+
 			case MopidyUris.MATCH_MOPIDY_URI:
 				log.error("MATCHED MOPIDY URI"); //TODO implement
 				break;
@@ -64,6 +65,13 @@ public class ContentProvider {
 				browseServer(uri, contentView);
 				break;
 
+			case MopidyUris.MATCH_PLAYLISTS:
+				browsePlaylists(uri, contentView);
+				break;
+
+			case MopidyUris.MATCH_PLAYLIST:
+				browsePlaylist(Uri.parse(Uri.decode(uri.getLastPathSegment())), contentView);
+				break;
 
 			case MopidyUris.MATCH_TRACKLIST:
 				browseTracklist(contentView);
@@ -75,19 +83,29 @@ public class ContentProvider {
 
 				break;
 		}
-/*
-		if (URI_ROOT.equals(uri)) {
-			browseRoot(contentView);
-		} else if (URI_SERVERS.equals(uri)) {
-			browseServers(contentView);
-		} else if (uri.startsWith(URI_SERVER)) {
-			browseServer(uri, contentView);
-		} else {
-			browseDirectory(uri, contentView);
-		}
-*/
+	}
 
+	public void browsePlaylists(Uri uri, final ContentView contentView) {
+		log.trace("browsePlaylists(): {}", uri);
+		conn.getPlaylists().asList(new ResponseHandler<Ref[]>() {
+			@Override
+			public void onResponse(CallContext context, Ref[] result) {
+				for (Ref ref : result) {
+					ref.setUri(MopidyUris.uriPlaylist(ref.getUri()).toString());
+				}
+				contentView.setContent(result);
+			}
+		});
+	}
 
+	public void browsePlaylist(Uri uri, final ContentView contentView) {
+		log.trace("browsePlaylist(): {}", uri);
+		conn.getPlaylists().getItems(uri.toString(), new ResponseHandler<Ref[]>() {
+			@Override
+			public void onResponse(CallContext context, Ref[] result) {
+				contentView.setContent(result);
+			}
+		});
 	}
 
 	public void browseTracklist(final ContentView contentView) {
@@ -177,12 +195,20 @@ public class ContentProvider {
 		conn.getLibrary().browse(null, new ResponseHandler<Ref[]>() {
 			@Override
 			public void onResponse(CallContext context, Ref[] refs) {
-				refs = Arrays.copyOf(refs, refs.length + 1);
+				refs = Arrays.copyOf(refs, refs.length + 2);
+
 				Ref tracklist = new Ref();
 				tracklist.setType(Ref.TYPE_DIRECTORY);
 				tracklist.setName("Tracklist");
 				tracklist.setUri(MopidyUris.URI_TRACKLIST.toString());
-				refs[refs.length - 1] = tracklist;
+				refs[refs.length - 2] = tracklist;
+
+				Ref playlist = new Ref();
+				playlist.setType(Ref.TYPE_DIRECTORY);
+				playlist.setName("Playlists");
+				playlist.setUri(MopidyUris.URI_PLAYLISTS.toString());
+				refs[refs.length - 1] = playlist;
+
 				view.setContent(refs);
 			}
 		});

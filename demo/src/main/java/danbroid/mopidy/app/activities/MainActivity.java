@@ -80,11 +80,7 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 
 		getSupportFragmentManager().addOnBackStackChangedListener(this);
 
-
 		hideFullControls();
-
-		conn.getVersion(null);
-
 	}
 
 
@@ -152,12 +148,15 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 
 
 		switch (ref.getType()) {
+			case Ref.TYPE_PLAYLIST:
 			case Ref.TYPE_DIRECTORY:
 				showContent(Uri.parse(ref.getUri()));
 				break;
+
 			case Ref.TYPE_TRACK:
 				playTrack(ref);
 				break;
+
 			default:
 				log.error("Unhandled ref: {}", ref);
 				break;

@@ -64,7 +64,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 	public void refresh() {
 		log.debug("refresh()");
 		MainView mainView = getMainView();
-		if (mainView != null) mainView.browse(uri,this);
+		if (mainView != null) mainView.browse(uri, this);
 	}
 
 	public MainView getMainView() {
@@ -177,7 +177,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 	}
 
 	@UiThread
-	public void setContent(final Ref content[], boolean resolveImages) {
+	public void setContent(final Ref content[], final boolean resolveImages) {
 		log.debug("setContent(): size: {} resolveImages: {}", content.length, resolveImages);
 		this.data = content;
 
@@ -202,6 +202,10 @@ public class ContentListFragment extends Fragment implements ContentView {
 		imageResolver.resolveImages(data, new ResponseHandler<Ref[]>() {
 			@Override
 			public void onResponse(CallContext context, Ref[] result) {
+				if (result == null) {
+					log.error("result is null");
+					return;
+				}
 				setContent(result, false);
 			}
 		});

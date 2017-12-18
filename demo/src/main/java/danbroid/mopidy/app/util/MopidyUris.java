@@ -16,6 +16,8 @@ public class MopidyUris {
 	public static final Uri URI_SERVERS = Uri.withAppendedPath(URI_ROOT, "servers");
 
 	public static final Uri URI_TRACKLIST = Uri.withAppendedPath(URI_ROOT, "tracklist");
+	public static final Uri URI_PLAYLISTS = Uri.withAppendedPath(URI_ROOT, "playlists");
+
 
 	private static final UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
@@ -25,11 +27,16 @@ public class MopidyUris {
 	public static final int MATCH_MOPIDY_URI = 4;
 	public static final int MATCH_TRACKLIST = 5;
 	public static final int MATCH_TRACKLIST_ITEM = 6;
-
+	public static final int MATCH_PLAYLISTS = 7;
+	public static final int MATCH_PLAYLIST = 8;
 
 	static {
 		URI_MATCHER.addURI(AUTHORITY, null, MATCH_ROOT);
 		URI_MATCHER.addURI(AUTHORITY, "/servers", MATCH_SERVERS);
+		URI_MATCHER.addURI(AUTHORITY, "/playlists", MATCH_PLAYLISTS);
+		URI_MATCHER.addURI(AUTHORITY, "/playlists/*", MATCH_PLAYLIST);
+
+
 		URI_MATCHER.addURI(AUTHORITY, "/tracklist", MATCH_TRACKLIST);
 		URI_MATCHER.addURI(AUTHORITY, "/tracklist/*", MATCH_TRACKLIST_ITEM);
 
@@ -56,4 +63,9 @@ public class MopidyUris {
 	public static Uri uriTracklistItem(int tlid) {
 		return Uri.withAppendedPath(URI_TRACKLIST, "" + tlid);
 	}
+
+	public static Uri uriPlaylist(String uri) {
+		return URI_PLAYLISTS.buildUpon().appendPath(Uri.encode(uri)).build();
+	}
 }
+

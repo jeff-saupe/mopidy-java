@@ -30,8 +30,8 @@ public class Api {
 			String host = props.getString("host");
 			int port = Integer.parseInt(props.getString("port"));
 			log.debug("connecting to {}:{}", host, port);
-			conn = new MopidyConnection(host, port);
-			conn.start();
+			conn = new MopidyConnection();
+			conn.start(host,port);
 		}
 	}
 
@@ -281,9 +281,9 @@ public class Api {
 
 	@Test
 	public void trackListAdd(){
-		conn.getTrackList().add("rnz:news", new ResponseHandler<TlTrack>() {
+		conn.getTrackList().add("rnz:news", new ResponseHandler<TlTrack[]>() {
 			@Override
-			public void onResponse(CallContext context, TlTrack result) {
+			public void onResponse(CallContext context, TlTrack result[]) {
 				log.info("");
 			}
 		});
