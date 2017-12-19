@@ -13,7 +13,7 @@
 
 
   <ImageView
-      android:id="@+id/pause_button"
+      android:id="@+id/play_pause"
       android:layout_width="48dp"
       android:layout_height="48dp"
       android:layout_alignParentLeft="true"
@@ -38,7 +38,7 @@
       android:layout_height="wrap_content"
       android:layout_centerVertical="true"
       android:layout_toLeftOf="@+id/chevron_up"
-      android:layout_toRightOf="@id/pause_button"
+      android:layout_toRightOf="@id/play_pause"
       android:orientation="vertical">
 
     <TextView

@@ -7,5 +7,12 @@
 
       android:title="@string/action_settings"
       app:showAsAction="never"/>
-
+  <!--  <item
+        android:id="@+id/test1"
+        android:title="Test1"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/test2"
+        android:title="Test2"
+        app:showAsAction="never"/>-->
 </menu>

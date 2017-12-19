@@ -1,7 +1,6 @@
 package danbroid.mopidy.app.util;
 
 import android.content.Context;
-import android.net.Uri;
 import android.net.nsd.NsdServiceInfo;
 
 import org.androidannotations.annotations.EBean;
@@ -12,7 +11,6 @@ import org.androidannotations.annotations.UiThread;
 import java.util.HashMap;
 import java.util.Map;
 
-import danbroid.mopidy.app.content.ContentProvider;
 import danbroid.mopidy.util.ServiceDiscoveryHelper;
 
 /**

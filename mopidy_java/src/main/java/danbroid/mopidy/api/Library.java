@@ -1,11 +1,13 @@
 package danbroid.mopidy.api;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.Map;
 
 import danbroid.mopidy.ResponseHandler;
+import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.Constants;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
@@ -27,6 +29,7 @@ public class Library extends Api {
 				.setResultType(Ref[].class)
 				.setHandler(handler));
 	}
+
 
 	public void lookup(String uris, ResponseHandler<Track[]> handler) {
 		call(new Call<Track[]>(methodPrefix + "lookup")

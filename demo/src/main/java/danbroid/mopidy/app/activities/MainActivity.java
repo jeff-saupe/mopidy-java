@@ -2,17 +2,16 @@ package danbroid.mopidy.app.activities;
 
 import android.net.Uri;
 import android.net.nsd.NsdServiceInfo;
+import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import org.androidannotations.annotations.AfterViews;
@@ -26,14 +25,12 @@ import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
 import java.util.Map;
-import java.util.Set;
 
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.app.R;
-import danbroid.mopidy.app.content.ContentProvider;
 import danbroid.mopidy.app.fragments.ContentListFragment;
-import danbroid.mopidy.app.fragments.TestFragment_;
+import danbroid.mopidy.app.fragments.FullScreenControlsFragment;
 import danbroid.mopidy.app.interfaces.ContentView;
 import danbroid.mopidy.app.interfaces.MainPrefs_;
 import danbroid.mopidy.app.interfaces.MainView;
@@ -49,12 +46,8 @@ import danbroid.mopidy.model.TlTrack;
 public class MainActivity extends PlaybackActivity implements MainView, MopidyServerDiscovery.Listener, FragmentManager.OnBackStackChangedListener {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MainActivity.class);
 
-
 	@ViewById(R.id.toolbar)
 	Toolbar toolbar;
-
-	@Bean
-	ContentProvider contentProvider;
 
 	@Bean
 	MopidyConnection conn;
@@ -142,9 +135,8 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 		AddServerDialog_.getInstance_(this).show(this);
 	}
 
-	@Override
-	public void onItemSelected(Ref ref) {
-		log.info("onItemSelected(): {}", ref);
+	public void onRefClicked(Ref ref) {
+		log.info("onRefClicked(): {}", ref);
 
 
 		switch (ref.getType()) {
@@ -184,7 +176,7 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 	@UiThread
 	public void addAndPlay(String uri) {
 		log.debug("addAndPlay(): {}", uri);
-		conn.getTrackList().add(uri, new ResponseHandler<TlTrack[]>() {
+		conn.getTrackList().add(uri, null, new ResponseHandler<TlTrack[]>() {
 			@Override
 			public void onResponse(CallContext context, TlTrack[] result) {
 				if (result.length > 0) {
@@ -203,34 +195,6 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 					public void onResponse(CallContext context, Void result) {
 					}
 				});
-	}
-
-	@Override
-	public void onItemLongClicked(final Ref ref, View v) {
-		log.debug("onItemLongClicked(): {} uri:{}", ref.getName(), ref.getUri());
-		final String address = Uri.decode(Uri.parse(ref.getUri()).getLastPathSegment());
-		PopupMenu popupMenu = new PopupMenu(this, v);
-		popupMenu.getMenu().add("Remove: " + ref.getName())
-				.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-					@Override
-					public boolean onMenuItemClick(MenuItem item) {
-						Set<String> servers = prefs.servers().get();
-
-
-						if (servers.contains(address)) {
-							servers.remove(address);
-							prefs.edit().servers().put(servers).apply();
-							getContent().refresh();
-						}
-						return true;
-					}
-				});
-		popupMenu.show();
-	}
-
-	@Override
-	public void browse(Uri uri, ContentView contentView) {
-		contentProvider.browse(uri, contentView);
 	}
 
 
@@ -274,7 +238,7 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 	public void onServerListChanged(Map<String, NsdServiceInfo> servers) {
 		ContentView contentView = getContent();
 		if (contentView != null) {
-		/*TODO 	if (contentView.getUri().equals(ContentProvider.URI_SERVERS)) {
+		/*TODO 	if (contentView.getUri().equals(ContentController.URI_SERVERS)) {
 				contentView.refresh();
 			}*/
 		}
@@ -309,13 +273,10 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 			public void onAnimationRepeat(Animation animation) {
 			}
 		});
+
 		FragmentManager fm = getSupportFragmentManager();
-
-
 		FragmentTransaction ft = fm.beginTransaction();
-		ft.replace(R.id.full_controls, TestFragment_.builder().build()).commit();
-
-
+		ft.replace(R.id.full_controls, FullScreenControlsFragment.newInstance()).commit();
 		view.setAnimation(anim);
 		view.animate();
 	}
@@ -351,10 +312,10 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 		fullControls.setAnimation(anim);
 		fullControls.animate();
 
-/*TODO		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			getWindow().setStatusBarColor(getResources().getColor(R.color.primary_dark));
-			getWindow().setNavigationBarColor(getResources().getColor(R.color.primary_dark));
-		}*/
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+			getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
+		}
 
 	}
 

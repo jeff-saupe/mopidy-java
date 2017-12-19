@@ -1,13 +1,14 @@
 package danbroid.mopidy.app.fragments;
 
-import android.database.ContentObserver;
 import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
@@ -20,14 +21,19 @@ import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.FragmentArg;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.sharedpreferences.Pref;
+
+import java.util.Set;
 
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.app.R;
-import danbroid.mopidy.app.content.ContentProvider;
+import danbroid.mopidy.app.content.ContentController;
 import danbroid.mopidy.app.interfaces.ContentView;
+import danbroid.mopidy.app.interfaces.MainPrefs_;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.util.GlideApp;
 import danbroid.mopidy.app.util.ImageResolver;
+import danbroid.mopidy.app.util.MopidyUris;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
@@ -47,6 +53,8 @@ public class ContentListFragment extends Fragment implements ContentView {
 	@ViewById(R.id.spinner)
 	View spinner;
 
+	@Pref
+	MainPrefs_ prefs;
 
 	@FragmentArg(ARG_URI)
 	Uri uri;
@@ -55,21 +63,24 @@ public class ContentListFragment extends Fragment implements ContentView {
 	ImageResolver imageResolver;
 
 	@Bean
-	ContentProvider contentProvider;
+	ContentController controller;
+
+
 
 
 	private RecyclerView.Adapter<MediaItemViewHolder> adapter;
 
 	@Override
 	public void refresh() {
+		if (getActivity() == null || !isResumed()) return;
 		log.debug("refresh()");
-		MainView mainView = getMainView();
-		if (mainView != null) mainView.browse(uri, this);
+		controller.browse(uri, this);
 	}
 
 	public MainView getMainView() {
 		return (MainView) getActivity();
 	}
+
 
 	class MediaItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 		ImageView imageView;
@@ -107,12 +118,12 @@ public class ContentListFragment extends Fragment implements ContentView {
 
 		@Override
 		public void onClick(View v) {
-			getMainView().onItemSelected(ref);
+			getMainView().onRefClicked(ref);
 		}
 
 		@Override
 		public boolean onLongClick(View v) {
-			getMainView().onItemLongClicked(ref, v);
+			onItemLongClicked(ref, v);
 			return true;
 		}
 	}
@@ -160,7 +171,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 		recyclerView.setAdapter(adapter);
 
 		getActivity().setTitle(uri.toString());
-		refresh();
+		controller.browse(uri, this);
 
 
 	}
@@ -212,12 +223,53 @@ public class ContentListFragment extends Fragment implements ContentView {
 	}
 
 
-	private final ContentObserver contentObserver = new ContentObserver(null) {
-		@Override
-		public void onChange(boolean selfChange) {
-			log.trace("contentObserver.onChange()!");
-			refresh();
+	public void onItemLongClicked(final Ref ref, View v) {
+		log.debug("onItemLongClicked(): ref: {}", ref);
+
+		int uriMatch = MopidyUris.match(Uri.parse(ref.getUri()));
+
+
+		final String address = Uri.decode(Uri.parse(ref.getUri()).getLastPathSegment());
+		PopupMenu popupMenu = new PopupMenu(getContext(), v);
+
+		if (uriMatch == MopidyUris.MATCH_SERVER) {
+			popupMenu.getMenu().add(getString(R.string.msg_remove_server, ref.getName()))
+					.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+						@Override
+						public boolean onMenuItemClick(MenuItem item) {
+							Set<String> servers = prefs.servers().get();
+							if (servers.contains(address)) {
+								servers.remove(address);
+								prefs.edit().servers().put(servers).apply();
+								refresh();
+							}
+							return true;
+						}
+					});
+
+		} else {
+			popupMenu.getMenu().add(getString(R.string.msg_replace_in_playlist))
+					.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+						@Override
+						public boolean onMenuItemClick(MenuItem item) {
+							controller.replaceInPlaylist(ref);
+							return true;
+						}
+					});
+
+			popupMenu.getMenu().add(getString(R.string.msg_add_to_playlist))
+					.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+						@Override
+						public boolean onMenuItemClick(MenuItem item) {
+
+							return true;
+						}
+					});
+
 		}
-	};
+
+		popupMenu.show();
+	}
+
 
 }

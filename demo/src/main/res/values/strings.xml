@@ -3,4 +3,7 @@
   <string name="action_settings">Settings</string>
   <string name="msg_please_wait">Please Wait...</string>
   <string name="msg_press_back_to_exit">Press back again to exit.</string>
+  <string name="msg_remove_server">Remove %1$s</string>
+  <string name="msg_replace_in_playlist">Replace in playlist</string>
+  <string name="msg_add_to_playlist">Add to playlist</string>
 </resources>

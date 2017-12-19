@@ -182,13 +182,17 @@ public class TrackList extends Api {
         :rtype: list of :class:`mopidy.models.TlTrack`
 	 */
 
-	public void add(String uri, ResponseHandler<TlTrack[]> handler) {
+	public void add(String uri, JsonElement uris, ResponseHandler<TlTrack[]> handler) {
 		call(new Call<TlTrack[]>(methodPrefix + "add").setResultType(TlTrack[].class)
 				.addParam("uri", uri)
-				.addParam("uris", (JsonElement) null)
+				.addParam("uris", uris)
 				.addParam("tracks", (JsonElement) null)
 				.addParam("at_position", (JsonElement) null)
 				.setHandler(handler));
+	}
+
+	public void clear(ResponseHandler<Void> handler) {
+		call(new Call<Void>(methodPrefix + "clear").setHandler(handler));
 	}
 }
 

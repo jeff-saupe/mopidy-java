@@ -33,7 +33,14 @@ public class Playback implements EventListener {
 	private Set<EventListener> listeners = new HashSet<>();
 
 	public synchronized void addListener(EventListener listener) {
-		if (!listeners.contains(listener)) listeners.add(listener);
+		if (!listeners.contains(listener)) {
+			listeners.add(listener);
+			initListener(listener);
+		}
+	}
+
+	private void initListener(EventListener listener) {
+		listener.onPlaybackStateChanged(null, state);
 	}
 
 	public synchronized void removeListener(EventListener listener) {
@@ -117,6 +124,7 @@ public class Playback implements EventListener {
 	@Override
 	public void onTrackPlaybackStarted(JsonObject tl_track) {
 		log.trace("onTrackPlaybackStarted(): track:{}", tl_track);
+
 		for (EventListener listener : listeners) {
 			listener.onTrackPlaybackStarted(tl_track);
 		}
@@ -170,4 +178,19 @@ public class Playback implements EventListener {
 		}
 	}
 
+	public MopidyConnection getConnection() {
+		return conn;
+	}
+
+	public void togglePlay() {
+		if (isPaused()) {
+			conn.getPlayback().play();
+		} else {
+			conn.getPlayback().pause();
+		}
+	}
+
+	public boolean isPaused() {
+		return PlaybackState.PAUSED.equals(state);
+	}
 }

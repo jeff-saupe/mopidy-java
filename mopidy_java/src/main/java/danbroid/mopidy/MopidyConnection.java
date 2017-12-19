@@ -75,6 +75,7 @@ public class MopidyConnection extends Core implements CallContext {
 
 		stop();
 
+
 		OkHttpClient client = new OkHttpClient.Builder()
 				.readTimeout(5, TimeUnit.SECONDS).connectTimeout(5, TimeUnit.SECONDS).build();
 		Request request = new Request.Builder().url(url).build();

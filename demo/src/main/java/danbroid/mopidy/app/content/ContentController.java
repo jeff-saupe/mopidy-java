@@ -3,14 +3,18 @@ package danbroid.mopidy.app.content;
 import android.net.Uri;
 import android.net.nsd.NsdServiceInfo;
 
+import com.google.gson.JsonElement;
+
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.app.MopidyConnection;
@@ -21,13 +25,14 @@ import danbroid.mopidy.app.util.MopidyUris;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
+import danbroid.mopidy.util.UIResponseHandler;
 
 /**
  * Created by dan on 10/12/17.
  */
 @EBean(scope = EBean.Scope.Singleton)
-public class ContentProvider {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContentProvider.class);
+public class ContentController {
+	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContentController.class);
 
 
 	String mopidy_host;
@@ -45,7 +50,7 @@ public class ContentProvider {
 	MopidyServerDiscovery serverDiscovery;
 
 	public void browse(Uri uri, ContentView contentView) {
-		log.trace("browse(): {}", uri);
+		log.error("browse(): {}", uri);
 
 		switch (MopidyUris.match(uri)) {
 
@@ -190,7 +195,7 @@ public class ContentProvider {
 	}
 
 	private void browseTopDirectory(final ContentView view) {
-		log.error("browseTopDirectory()");
+		log.trace("browseTopDirectory()");
 
 		conn.getLibrary().browse(null, new ResponseHandler<Ref[]>() {
 			@Override
@@ -212,22 +217,63 @@ public class ContentProvider {
 				view.setContent(refs);
 			}
 		});
-
 	}
 
-
 	private void browseDirectory(String uri, final ContentView view) {
-		log.error("browseDirectory(): {}", uri);
-
+		log.trace("browseDirectory(): {}", uri);
 		conn.getLibrary().browse(uri, new ResponseHandler<Ref[]>() {
 			@Override
 			public void onResponse(CallContext context, final Ref[] refs) {
 				view.setContent(refs);
 			}
 		});
-
 	}
 
+
+	public void replaceInPlaylist(final Ref ref) {
+		log.debug("replaceInPlaylist(): {}", ref);
+		conn.getTrackList().clear(new UIResponseHandler<Void>() {
+			@Override
+			public void onUIResponse(CallContext context, Void result) {
+				addToPlaylist(ref);
+			}
+		});
+	}
+
+	public void addToPlaylist(Ref ref) {
+		log.debug("addToPlaylist(): {}", ref);
+		addTracks(ref, new HashSet<String>());
+	}
+
+	private void addTracks(Ref dirRef, final Set<String> dirs) {
+		conn.getLibrary().browse(dirRef.getUri(), new ResponseHandler<Ref[]>() {
+			@Override
+			public void onResponse(CallContext context, Ref[] result) {
+				LinkedList<String> tracks = new LinkedList<>();
+				for (Ref ref : result) {
+					switch (ref.getType()) {
+						case Ref.TYPE_TRACK:
+							tracks.add(ref.getUri());
+							break;
+						case Ref.TYPE_DIRECTORY:
+							if (!dirs.contains(ref.getUri())) {
+								dirs.add(ref.getUri());
+								addTracks(ref, dirs);
+							}
+							break;
+						default:
+							log.warn("Unhandled ref: {}", ref);
+							break;
+					}
+				}
+				if (!tracks.isEmpty()) {
+					JsonElement uris = conn.getGson().toJsonTree(tracks);
+					if (uris != null)
+						conn.getTrackList().add(null, uris, null);
+				}
+			}
+		});
+	}
 
 }
 
