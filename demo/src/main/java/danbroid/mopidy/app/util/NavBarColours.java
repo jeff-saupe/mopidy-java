@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
+import android.view.Surface;
 import android.view.Window;
 
 /**
@@ -32,9 +33,12 @@ public class NavBarColours {
 			int pixel = 0;
 			float red, green, blue;
 
-			int pixels[] = new int[w * offset];
+			int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+			boolean landscape = rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270;
 
-			bitmap.getPixels(pixels, 0, w, 0, 0, w, offset);
+
+			int pixels[]  = getBitmapPixels(bitmap, 0, 0, w, offset);
+
 
 			red = green = blue = 0;
 
@@ -53,7 +57,11 @@ public class NavBarColours {
 			pixel = Color.rgb((int) red, (int) green, (int) blue);
 			window.setStatusBarColor(pixel);
 
-			bitmap.getPixels(pixels, 0, w, 0, h - offset, w, offset);
+			if (landscape) {
+				pixels = getBitmapPixels(bitmap, h - offset, 0, offset, h);
+			} else {
+				bitmap.getPixels(pixels, 0, w, 0, h - offset, w, offset);
+			}
 
 
 			red = green = blue = 0;
@@ -78,4 +86,15 @@ public class NavBarColours {
 		}
 	}
 
+	public static int[] getBitmapPixels(Bitmap bitmap, int x, int y, int width, int height) {
+		int[] pixels = new int[bitmap.getWidth() * bitmap.getHeight()];
+		bitmap.getPixels(pixels, 0, bitmap.getWidth(), x, y,
+				width, height);
+		final int[] subsetPixels = new int[width * height];
+		for (int row = 0; row < height; row++) {
+			System.arraycopy(pixels, (row * bitmap.getWidth()),
+					subsetPixels, row * width, width);
+		}
+		return subsetPixels;
+	}
 }

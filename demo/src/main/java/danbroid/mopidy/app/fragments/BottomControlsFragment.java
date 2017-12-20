@@ -92,9 +92,8 @@ public class BottomControlsFragment extends PlaybackFragment {
 	}
 
 	public void displayTrack(TlTrack tlTrack) {
-
 		super.displayTrack(tlTrack);
-		log.debug("displayTrack(): {}", tlTrack);
+
 		if (tlTrack == null) {
 			getView().setVisibility(View.INVISIBLE);
 			titleText.setText("");
@@ -109,15 +108,16 @@ public class BottomControlsFragment extends PlaybackFragment {
 		playButton.setVisibility(View.VISIBLE);
 		chevronUp.setVisibility(View.VISIBLE);
 		titleText.setText(track.getName());
-		String description = null;
+		String description = "";
 
 		if (track.getArtists().length > 0) {
 			description = track.getArtists()[0].getName();
 		}
 
 		if (track.getAlbum() != null) {
-			description += " - " + track.getAlbum().getName();
+			description += (description.isEmpty() ? "" : " - ") + track.getAlbum().getName();
 		}
+
 		descriptionText.setText(description);
 
 	}

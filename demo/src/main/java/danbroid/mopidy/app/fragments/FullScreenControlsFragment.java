@@ -55,8 +55,9 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 
 	@Override
 	protected void displayTrack(TlTrack tlTrack) {
-		log.trace("displayTrack() {} ", tlTrack.getTrack());
 		super.displayTrack(tlTrack);
+
+		if (tlTrack == null) return;
 
 		Track track = tlTrack.getTrack();
 		String album = null, artist = null, title = null;
@@ -94,6 +95,7 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 	}
 
 	public void setImage(String url) {
+
 		GlideApp.with(this).asBitmap().load(url).into(new SimpleTarget<Bitmap>() {
 			@Override
 			public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {

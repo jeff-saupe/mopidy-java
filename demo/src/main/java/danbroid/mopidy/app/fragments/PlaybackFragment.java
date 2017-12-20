@@ -38,6 +38,7 @@ import danbroid.mopidy.util.UIResponseHandler;
 public abstract class PlaybackFragment extends Fragment implements EventListener {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PlaybackFragment.class);
 
+
 	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -93,7 +94,7 @@ public abstract class PlaybackFragment extends Fragment implements EventListener
 	}
 
 	protected void displayTrack(TlTrack tlTrack) {
-		log.error("displayTrack(): {}", tlTrack);
+		log.debug("displayTrack(): {}", tlTrack);
 		if (tlTrack == null) return;
 
 		if (seekBarContainer != null) {
@@ -165,11 +166,10 @@ public abstract class PlaybackFragment extends Fragment implements EventListener
 	}
 
 	protected void displayPosition(long position) {
-		if (seekBarStartText != null)
-			seekBarStartText.setText(DateUtils.formatElapsedTime(position / 1000));
+		if (seekBar == null) return;
 
-		if (seekBar != null)
-			seekBar.setProgress((int) position);
+		seekBarStartText.setText(DateUtils.formatElapsedTime(position / 1000));
+		seekBar.setProgress((int) position);
 	}
 
 	@Override
@@ -199,9 +199,11 @@ public abstract class PlaybackFragment extends Fragment implements EventListener
 	public void onTrackPlaybackEnded(JsonObject tl_track, long time_position) {
 	}
 
+
 	@Override
 	public void onPlaybackStateChanged(PlaybackState oldState, PlaybackState newState) {
 	}
+
 
 	@Override
 	public void onTracklistChanged() {

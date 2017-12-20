@@ -10,6 +10,7 @@ import danbroid.mopidy.model.Track;
 
 /**
  * Created by dan on 13/12/17.
+ * Finished implementation from playback.py
  */
 public class Playback extends Api {
 
@@ -47,6 +48,29 @@ public class Playback extends Api {
 			}
 		}.setHandler(handler)
 				.setResultType(PlaybackState.class));
+
+	}
+
+	/*
+	Set the playback state.
+
+Must be :attr:`PLAYING`, :attr:`PAUSED`, or :attr:`STOPPED`.
+
+Possible states and transitions:
+
+	.. digraph:: state_transitions
+
+				"STOPPED" -> "PLAYING" [ label="play" ]
+	"STOPPED" -> "PAUSED" [ label="pause" ]
+	"PLAYING" -> "STOPPED" [ label="stop" ]
+	"PLAYING" -> "PAUSED" [ label="pause" ]
+	"PLAYING" -> "PLAYING" [ label="play" ]
+	"PAUSED" -> "PLAYING" [ label="resume" ]
+	"PAUSED" -> "STOPPED" [ label="stop" ]
+*/
+	public void setState(PlaybackState state, ResponseHandler<Void> handler) {
+		call(new Call<Void>(methodPrefix + "set_state")
+				.addParam("new_state", state.toString()).setHandler(handler));
 
 	}
 
@@ -111,5 +135,40 @@ will continue. If it was paused, it will still be paused, etc.
 		play(null, null, null);
 	}
 
+	/*
+	Change to the previous track.
+
+        The current playback state will be kept. If it was playing, playing
+        will continue. If it was paused, it will still be paused, etc.
+
+	 */
+	public void previous(ResponseHandler<Void> handler) {
+		call(new Call(methodPrefix + "previous").setHandler(handler));
+	}
+
+
+	//If paused, resume playing the current track
+	public void resume(ResponseHandler<Void> handler) {
+		call(new Call(methodPrefix + "resume").setHandler(handler));
+	}
+
+	/*
+			 Seeks to time position given in milliseconds.
+
+					:param time_position: time position in milliseconds
+					:type time_position: int
+					:rtype: :class:`True` if successful, else :class:`False`
+	 */
+	public void seek(long time_position, ResponseHandler<Boolean> handler) {
+		call(new Call<Boolean>(methodPrefix + "seek")
+				.addParam("time_position", time_position)
+				.setHandler(handler));
+	}
+
+
+	//stop playing
+	public void stop(ResponseHandler<Void> handler) {
+		call(new Call(methodPrefix + "stop").setHandler(handler));
+	}
 
 }

@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?android:windowBackground"
+                android:background="@color/colorPrimaryDark"
                 android:clickable="true">
 
   <FrameLayout
@@ -48,7 +48,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:text="The Best Music EVAH1111 THE BEST"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title.Inverse"
         />
 
 
@@ -59,7 +59,7 @@
         android:ellipsize="marquee"
         android:singleLine="true"
         android:text="John Doe and Band and band and band and band and BAND"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle.Inverse"
         />
     <!--
         <TextView
