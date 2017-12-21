@@ -1,6 +1,7 @@
 package danbroid.mopidy.app.fragments;
 
 import android.support.v4.view.GestureDetectorCompat;
+import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -108,15 +109,24 @@ public class BottomControlsFragment extends PlaybackFragment {
 		playButton.setVisibility(View.VISIBLE);
 		chevronUp.setVisibility(View.VISIBLE);
 		titleText.setText(track.getName());
-		String description = "";
+		String description = null;
+		String artist = null;
+		String album = null;
 
-		if (track.getArtists().length > 0) {
-			description = track.getArtists()[0].getName();
-		}
+
+		if (track.getArtists() != null && track.getArtists().length > 0)
+			artist = track.getArtists()[0].getName();
+
 
 		if (track.getAlbum() != null) {
-			description += (description.isEmpty() ? "" : " - ") + track.getAlbum().getName();
+			album = track.getAlbum().getName();
 		}
+
+		if (artist != null) description = artist;
+		if (album != null)
+			description = description == null ? album : artist + " - " + album;
+
+		
 
 		descriptionText.setText(description);
 

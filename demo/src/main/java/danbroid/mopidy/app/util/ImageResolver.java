@@ -11,8 +11,10 @@ import java.util.Map;
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.interfaces.CallContext;
+import danbroid.mopidy.lastfm.LastFMCall;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
+import danbroid.mopidy.util.UIResponseHandler;
 
 /**
  * Created by dan on 11/12/17.
@@ -21,6 +23,9 @@ import danbroid.mopidy.model.Ref;
 public class ImageResolver {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ImageResolver.class);
 
+	static {
+		LastFMCall.API_KEY = "00ed568fa493d39e290ae42713b9094f";
+	}
 	@Bean
 	MopidyConnection conn;
 
@@ -48,9 +53,9 @@ public class ImageResolver {
 
 		conn.getLibrary().getImages(
 				imageUris.toArray(new String[]{})).call(
-				new ResponseHandler<Map<String, Image[]>>() {
+				new UIResponseHandler<Map<String, Image[]>>() {
 					@Override
-					public void onResponse(CallContext context, Map<String, Image[]> result) {
+					public void onUIResponse(CallContext context, Map<String, Image[]> result) {
 						resolveImages(refs, result, handler);
 					}
 				}
@@ -62,9 +67,15 @@ public class ImageResolver {
 			Image images[] = result.get(uri);
 			CACHE.put(uri, images.length == 0 ? MISSING_IMAGE : images[0]);
 		}
+
 		for (Ref ref : refs) {
 			if (ref.getType().equals(Ref.TYPE_TRACK)) {
-				ref.setExtra(CACHE.containsKey(ref.getUri()) ? CACHE.get(ref.getUri()) : MISSING_IMAGE);
+				if (CACHE.containsKey(ref.getUri())) {
+					ref.setExtra(CACHE.get(ref.getUri()));
+				} else {
+					ref.setExtra(MISSING_IMAGE);
+					log.trace("cant find image for: {}", ref.getUri());
+				}
 			}
 		}
 		handler.onResponse(null, refs);
