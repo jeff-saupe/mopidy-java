@@ -135,6 +135,9 @@ public class ContentController {
 	private void browseServer(Uri uri, ContentView contentView) {
 		log.debug("browseServer(): {}", uri);
 
+
+		prefs.edit().lastServerURL().put(uri.toString()).apply();
+
 		String parts[] = Uri.decode(uri.getLastPathSegment()).split(":");
 		String host = parts[0];
 		int port = Integer.parseInt(parts[1]);
@@ -206,13 +209,13 @@ public class ContentController {
 				tracklist.setType(Ref.TYPE_DIRECTORY);
 				tracklist.setName("Tracklist");
 				tracklist.setUri(MopidyUris.URI_TRACKLIST.toString());
-				refs[refs.length - 2] = tracklist;
+				refs[refs.length - 1] = tracklist;
 
 				Ref playlist = new Ref();
 				playlist.setType(Ref.TYPE_DIRECTORY);
 				playlist.setName("Playlists");
 				playlist.setUri(MopidyUris.URI_PLAYLISTS.toString());
-				refs[refs.length - 1] = playlist;
+				refs[refs.length - 2] = playlist;
 
 				view.setContent(refs);
 			}

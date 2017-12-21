@@ -18,5 +18,6 @@ public interface MainPrefs {
 
 	String lastConnectionURL();
 
+	String lastServerURL();
 
 }

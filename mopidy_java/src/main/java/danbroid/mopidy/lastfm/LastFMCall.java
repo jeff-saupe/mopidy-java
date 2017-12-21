@@ -53,8 +53,9 @@ public class LastFMCall implements Callback {
 		return builder;
 	}
 
-	public void callAsync() {
+	public LastFMCall callAsync() {
 		buildCall().enqueue(this);
+		return this;
 	}
 
 	public Response call() throws IOException {

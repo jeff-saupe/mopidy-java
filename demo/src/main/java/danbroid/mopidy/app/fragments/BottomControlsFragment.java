@@ -126,7 +126,7 @@ public class BottomControlsFragment extends PlaybackFragment {
 		if (album != null)
 			description = description == null ? album : artist + " - " + album;
 
-		
+
 
 		descriptionText.setText(description);
 

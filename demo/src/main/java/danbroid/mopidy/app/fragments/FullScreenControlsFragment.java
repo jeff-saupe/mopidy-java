@@ -13,12 +13,16 @@ import com.bumptech.glide.request.transition.Transition;
 
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.util.FlingDetector;
 import danbroid.mopidy.app.util.GlideApp;
 import danbroid.mopidy.app.util.NavBarColours;
+import danbroid.mopidy.lastfm.Album;
+import danbroid.mopidy.lastfm.AlbumSearch;
+import danbroid.mopidy.lastfm.Response;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 import jp.wasabeef.blurry.Blurry;
@@ -70,7 +74,7 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 			album = track.getAlbum().getName();
 			String images[] = track.getAlbum().getImages();
 			if (images != null && images.length > 0)
-				setImage(images[0]);
+				displayImage(images[0]);
 		}
 
 		if (track.getArtists() != null) {
@@ -82,7 +86,22 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 		if (album != null) description += album + " ";
 		if (artist != null) description += artist;
 		line2.setText(description);
+
+		if (artist != null || album != null) {
+			log.trace("performing album search: album: {} artist: {}",album,artist);
+			new AlbumSearch() {
+				@Override
+				protected void onResponse(Response response) {
+					if (response.album != null) {
+						String image = response.album.getImage(Album.ImageSize.DEFAULT);
+						displayImage(image);
+					}
+				}
+			}.artist(artist).album(album).callAsync();
+		}
+
 	}
+
 
 	@Click(R.id.chevron_down)
 	public void close() {
@@ -94,8 +113,11 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 		return FullScreenControlsFragment_.builder().build();
 	}
 
-	public void setImage(String url) {
-
+	@UiThread
+	public void displayImage(String url) {
+		log.trace("displayImage(): {}", url);
+		if (image == null) return;
+		if (getActivity() == null || !isResumed()) return;
 		GlideApp.with(this).asBitmap().load(url).into(new SimpleTarget<Bitmap>() {
 			@Override
 			public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {

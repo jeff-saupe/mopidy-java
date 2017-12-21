@@ -65,15 +65,26 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 
 		setSupportActionBar(toolbar);
 
-		if (getContent() == null) {
-			showContent(MopidyUris.URI_ROOT);
-		}
 
 		serverDiscovery.setListener(this);
 
 		getSupportFragmentManager().addOnBackStackChangedListener(this);
 
 		hideFullControls();
+		if (getContent() == null) {
+			String lastServerURL = prefs.lastServerURL().getOr(null);
+			if (lastServerURL != null) {
+				showContent(Uri.parse(lastServerURL));
+			} else {
+				actionHome();
+			}
+		}
+	}
+
+
+	@OptionsItem(R.id.action_home)
+	public void actionHome() {
+		showContent(MopidyUris.URI_SERVERS);
 	}
 
 
@@ -323,6 +334,7 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 				.setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 1);
 		ContentView contentView = getContent();
 		if (contentView == null) return;
+
 		switch (MopidyUris.match(contentView.getUri())) {
 			case MopidyUris.MATCH_SERVERS:
 				showFAB(R.drawable.ic_add);

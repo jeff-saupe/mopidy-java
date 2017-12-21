@@ -2,8 +2,11 @@ package danbroid.mopidy.app.fragments;
 
 import android.net.Uri;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,8 +67,6 @@ public class ContentListFragment extends Fragment implements ContentView {
 
 	@Bean
 	ContentController controller;
-
-
 
 
 	private RecyclerView.Adapter<MediaItemViewHolder> adapter;
@@ -141,6 +142,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 	void init() {
 		log.debug("init() :{}", uri);
 
+		setHasOptionsMenu(true);
 
 		adapter = new RecyclerView.Adapter<MediaItemViewHolder>() {
 			@Override
@@ -176,6 +178,16 @@ public class ContentListFragment extends Fragment implements ContentView {
 
 	}
 
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+		if (!MopidyUris.URI_SERVERS.equals(uri)){
+			MenuItem item = menu.add(0,R.id.action_home,0,R.string.action_home);
+			item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+			item.setIcon(R.drawable.ic_home);
+		}
+
+	}
 
 	public static ContentListFragment newInstance(Uri uri) {
 		return ContentListFragment_.builder().arg(ARG_URI, uri).build();

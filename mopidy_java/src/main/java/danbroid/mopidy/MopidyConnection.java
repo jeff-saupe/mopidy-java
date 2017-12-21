@@ -109,6 +109,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	}
 
 	protected void sendCall(Call call) {
+		if (url == null) return;
 		if (transport == null) start();
 
 
