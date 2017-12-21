@@ -78,7 +78,7 @@ public abstract class PlaybackFragment extends Fragment implements EventListener
 	protected void initPlaybackState() {
 		log.trace("initPlaybackState()");
 
-		getConnection().getPlayback().getCurrentTlTrack(new UIResponseHandler<TlTrack>() {
+		getConnection().getPlayback().getCurrentTlTrack().call(new UIResponseHandler<TlTrack>() {
 			@Override
 			public void onUIResponse(CallContext context, TlTrack result) {
 				displayTrack(result);

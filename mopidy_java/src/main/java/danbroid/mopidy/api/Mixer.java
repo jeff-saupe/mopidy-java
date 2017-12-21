@@ -13,33 +13,26 @@ public class Mixer extends Api {
 		super(parent, "mixer.");
 	}
 
-	public void getMute(ResponseHandler<Boolean> handler) {
-		call(new Call<Boolean>(methodPrefix + "get_mute")
-				.setResultType(Boolean.class)
-				.setHandler(handler));
+	public Call<Boolean> getMute() {
+		return createCall("get_mute", Boolean.class);
 	}
 
-	public void setMute(boolean mute, ResponseHandler<Boolean> successHandler) {
-		call(new Call<Boolean>(methodPrefix + "set_mute")
-				.addParam("mute", mute)
-				.setResultType(Boolean.class)
-				.setHandler(successHandler));
+	public Call<Boolean> setMute(boolean mute, ResponseHandler<Boolean> successHandler) {
+		return createCall("set_mute", Boolean.class)
+				.addParam("mute", mute);
 	}
 
 	//Integer in range [0..100] or :class:`None` if unknown.
-	public void getVolume(ResponseHandler<Integer> handler) {
-		call(new Call<Integer>(methodPrefix + "get_volume").setHandler(handler)
-				.setResultType(Integer.class));
+	public Call<Integer> getVolume() {
+		return createCall("get_volume", Integer.class);
 	}
 
 	/**
-	 * @param volume  integer [1..100] the volume to set
-	 * @param handler accepts true if successful
+	 * @param volume integer [1..100] the volume to set
 	 */
-	public void setVolume(int volume, ResponseHandler<Boolean> handler) {
-		call(new Call<Boolean>(methodPrefix + "set_volume")
-				.setResultType(Boolean.class)
-				.addParam("volume", volume)
-				.setHandler(handler));
+	public Call<Boolean> setVolume(int volume) {
+		return createCall("set_volume", Boolean.class)
+				.addParam("volume", volume);
+
 	}
 }

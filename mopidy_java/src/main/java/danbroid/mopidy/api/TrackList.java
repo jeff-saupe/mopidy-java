@@ -17,21 +17,18 @@ public class TrackList extends Api {
 	}
 
 	//"""Get tracklist as list of :class:`mopidy.models.TlTrack`."""
-	public void getTlTrackList(ResponseHandler<TlTrack[]> handler) {
-		call(new Call<TlTrack[]>(methodPrefix + "get_tl_tracks")
-				.setResultType(TlTrack[].class).setHandler(handler));
+	public Call<TlTrack[]> getTlTrackList() {
+		return createCall("get_tl_tracks", TlTrack[].class);
 	}
 
 	//"""Get tracklist as list of :class:`mopidy.models.Track`."""
-	public void getTracks(ResponseHandler<Track[]> handler) {
-		call(new Call<Track[]>(methodPrefix + "get_tracks")
-				.setResultType(Track[].class).setHandler(handler));
+	public Call<TlTrack[]> getTracks() {
+		return createCall("get_tracks", TlTrack[].class);
 	}
 
 	//Get The length of the tracklist
-	public void getLength(ResponseHandler<Integer> handler) {
-		call(new Call<Integer>(methodPrefix + "get_length")
-				.setResultType(Integer.class).setHandler(handler));
+	public Call<Integer> getLength(ResponseHandler<Integer> handler) {
+		return createCall("get_length", Integer.class);
 	}
 
 	/*
@@ -39,9 +36,8 @@ public class TrackList extends Api {
 	  Integer which is increased every time the tracklist is changed.
 	  Is not reset before Mopidy is restarted.
 	 */
-	public void getVersion(ResponseHandler<Integer> handler) {
-		call(new Call<Integer>(methodPrefix + "get_version")
-				.setResultType(Integer.class).setHandler(handler));
+	public Call<Integer> getVersion(ResponseHandler<Integer> handler) {
+		return createCall("get_version", Integer.class);
 	}
 
 	/*
@@ -51,9 +47,8 @@ public class TrackList extends Api {
         :class:`False`
             Tracks are not removed from the tracklist.
 	 */
-	public void getConsume(ResponseHandler<Boolean> handler) {
-		call(new Call<Boolean>(methodPrefix + "get_consume")
-				.setResultType(Boolean.class).setHandler(handler));
+	public Call<Boolean> getConsume() {
+		return createCall("get_consume", Boolean.class);
 	}
 
 	/*
@@ -64,11 +59,9 @@ public class TrackList extends Api {
         :class:`False`
             Tracks are not removed from the tracklist.
 	 */
-	public void setConsume(boolean consume, ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "set_consume")
-				.addParam("value", consume)
-				.setHandler(handler));
-
+	public Call<Void> setConsume(boolean consume) {
+		return createCall("set_consume", Void.class)
+				.addParam("value", consume);
 	}
 
 	/*
@@ -78,9 +71,8 @@ public class TrackList extends Api {
         :class:`False`
             Tracks are played in the order of the tracklist.
 	 */
-	public void getRandom(ResponseHandler<Boolean> handler) {
-		call(new Call<Boolean>(methodPrefix + "get_random")
-				.setResultType(Boolean.class).setHandler(handler));
+	public Call<Boolean> getRandom() {
+		return createCall("get_random", Boolean.class);
 	}
 
 	/*
@@ -91,10 +83,9 @@ public class TrackList extends Api {
         :class:`False`
             Tracks are played in the order of the tracklist.
 	 */
-	public void setRandom(boolean random, ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "set_random")
-				.addParam("value", random)
-				.setHandler(handler));
+	public Call<Void> setRandom(boolean random) {
+		return createCall("set_consume", Void.class)
+				.addParam("value", random);
 
 	}
 
@@ -106,8 +97,8 @@ public class TrackList extends Api {
         :class:`False`
             The tracklist is played once.
 	 */
-	public void getRepeat(ResponseHandler<Boolean> handler) {
-		call(new Call<Boolean>(methodPrefix + "get_repeat").setResultType(Boolean.class).setHandler(handler));
+	public Call<Boolean> getRepeat() {
+		return createCall("get_repeat", Boolean.class);
 	}
 
 	/*
@@ -120,10 +111,9 @@ public class TrackList extends Api {
         :class:`False`
             The tracklist is played once.
 	 */
-	public void setRepeat(boolean repeat, ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "set_repeat")
-				.addParam("value", repeat)
-				.setHandler(handler));
+	public Call<Void> setRepeat(boolean repeat) {
+		return createCall("set_repeat", Void.class)
+				.addParam("value", repeat);
 
 	}
 
@@ -135,9 +125,8 @@ public class TrackList extends Api {
         :class:`False`
             Playback continues after current song.
 	 */
-	public void getSingle(ResponseHandler<Boolean> handler) {
-		call(new Call<Boolean>(methodPrefix + "get_single")
-				.setResultType(Boolean.class).setHandler(handler));
+	public Call<Boolean> getSingle() {
+		return createCall("get_single", Boolean.class);
 	}
 
 	/*
@@ -148,10 +137,10 @@ public class TrackList extends Api {
         :class:`False`
             Playback continues after current song.
 	 */
-	public void setSingle(boolean single, ResponseHandler<Void> handler) {
-		call(new Call(methodPrefix + "set_single")
-				.addParam("value", single)
-				.setHandler(handler));
+	public Call<Void> setSingle(boolean single) {
+		return createCall("set_single", Void.class)
+				.addParam("value", single);
+
 	}
 
 
@@ -182,17 +171,16 @@ public class TrackList extends Api {
         :rtype: list of :class:`mopidy.models.TlTrack`
 	 */
 
-	public void add(String uri, JsonElement uris, ResponseHandler<TlTrack[]> handler) {
-		call(new Call<TlTrack[]>(methodPrefix + "add").setResultType(TlTrack[].class)
+	public Call<TlTrack[]> add(String uri, String[] uris, Track[] tracks, Integer at_position) {
+		return createCall("add", TlTrack[].class)
 				.addParam("uri", uri)
-				.addParam("uris", uris)
-				.addParam("tracks", (JsonElement) null)
-				.addParam("at_position", (JsonElement) null)
-				.setHandler(handler));
+				.addParam("uris", getGson().toJsonTree(uris))
+				.addParam("tracks", getGson().toJsonTree(tracks))
+				.addParam("at_position", at_position);
 	}
 
-	public void clear(ResponseHandler<Void> handler) {
-		call(new Call<Void>(methodPrefix + "clear").setHandler(handler));
+	public Call<Void> clear() {
+		return createCall("clear", Void.class);
 	}
 }
 

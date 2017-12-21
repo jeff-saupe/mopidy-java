@@ -184,9 +184,9 @@ public class Playback implements EventListener {
 
 	public void togglePlay() {
 		if (isPaused()) {
-			conn.getPlayback().play();
+			conn.getPlayback().play(null, null).call();
 		} else {
-			conn.getPlayback().pause();
+			conn.getPlayback().pause().call();
 		}
 	}
 

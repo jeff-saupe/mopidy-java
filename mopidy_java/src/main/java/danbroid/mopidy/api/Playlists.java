@@ -1,6 +1,5 @@
 package danbroid.mopidy.api;
 
-import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.model.Playlist;
 import danbroid.mopidy.model.Ref;
 
@@ -24,10 +23,8 @@ public class Playlists extends Api {
   If a playlist with the given ``uri`` doesn't exist, it returns
   :class:`None`.
 	 */
-	public void asList(ResponseHandler<Ref[]> handler) {
-		call(new Call<Ref[]>(methodPrefix + "as_list")
-				.setResultType(Ref[].class)
-				.setHandler(handler));
+	public Call<Ref[]> asList() {
+		return createCall("as_list", Ref[].class);
 	}
 
 	/*
@@ -67,15 +64,25 @@ public class Playlists extends Api {
             :attr:`~mopidy.models.Playlist.last_modified` field of the returned
             playlists is no longer set.
 	 */
-	public void getPlaylists(boolean include_tracks, ResponseHandler<Playlist[]> handler) {
-		call(new Call(methodPrefix + "get_playlists")
-				.setResultType(Playlist[].class).
-						addParam("include_tracks", include_tracks)
-				.setHandler(handler));
+	public Call<Playlist[]> getPlaylists(boolean include_tracks) {
+		return createCall("get_playlists", Playlist[].class)
+				.addParam("include_tracks", include_tracks);
 	}
 
-	public void getPlaylists(ResponseHandler<Playlist[]> handler) {
-		getPlaylists(true, handler);
+	/*
+	        Get the items in a playlist specified by ``uri``.
+
+        Returns a list of :class:`~mopidy.models.Ref` objects referring to the
+        playlist's items.
+
+        If a playlist with the given ``uri`` doesn't exist, it returns
+        :class:`None`.
+
+        :rtype: list of :class:`mopidy.models.Ref`, or :class:`None`
+	 */
+	public Call<Ref[]> getItems(String uri) {
+		return createCall("get_items", Ref[].class)
+				.addParam("uri", uri);
 	}
 
 	/*
@@ -95,12 +102,10 @@ public class Playlists extends Api {
         :type uri_scheme: string
         :rtype: :class:`mopidy.models.Playlist` or :class:`None`
 	 */
-	public void create(String name, String uri_scheme, ResponseHandler<Playlist> handler) {
-		call(new Call(methodPrefix + "create")
-				.setResultType(Playlist.class)
+	public Call<Playlist> create(String name, String uri_scheme) {
+		return createCall("create", Playlist.class)
 				.addParam("name", name)
-				.addParam("uri_scheme", uri_scheme)
-				.setHandler(handler));
+				.addParam("uri_scheme", uri_scheme);
 	}
 
 	/*
@@ -112,10 +117,9 @@ public class Playlists extends Api {
         :param uri: URI of the playlist to delete
         :type uri: string
 	 */
-	public void delete(String uri, ResponseHandler<Void> handler) {
-		call(new Call<Void>(methodPrefix + "delete")
-				.addParam("uri", uri)
-				.setHandler(handler));
+	public Call<Void> delete(String uri) {
+		return createCall("delete", Void.class)
+				.addParam("uri", uri);
 	}
 }
 /*

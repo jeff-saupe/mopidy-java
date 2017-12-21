@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import danbroid.mopidy.api.Call;
@@ -15,16 +14,14 @@ import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.Constants;
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.WebSocket;
-import okhttp3.WebSocketListener;
+import danbroid.mopidy.transport.Transport;
+import danbroid.mopidy.transport.WebSocketTransport;
 
 /**
  * Wraps the websocket communication with the Mopidy server
  */
 
-public class MopidyConnection extends Core implements CallContext {
+public class MopidyConnection extends Core implements CallContext, Transport.Callback {
 
 	private static final org.slf4j.Logger
 			log = org.slf4j.LoggerFactory.getLogger(MopidyConnection.class);
@@ -32,7 +29,7 @@ public class MopidyConnection extends Core implements CallContext {
 
 	private String url;
 
-	private WebSocket socket;
+
 	private JsonParser parser = new JsonParser();
 	private EventListener eventListener = new EventListenerImpl();
 	private String version;
@@ -43,6 +40,7 @@ public class MopidyConnection extends Core implements CallContext {
 
 	private AtomicInteger requestID = new AtomicInteger(0);
 	private HashMap<Integer, Call> calls = new HashMap<>();
+	private WebSocketTransport transport;
 
 	public void setEventListener(EventListener eventListener) {
 		this.eventListener = eventListener;
@@ -76,22 +74,12 @@ public class MopidyConnection extends Core implements CallContext {
 		stop();
 
 
-		OkHttpClient client = new OkHttpClient.Builder()
-				.readTimeout(5, TimeUnit.SECONDS).connectTimeout(5, TimeUnit.SECONDS).build();
-		Request request = new Request.Builder().url(url).build();
-
-
-		this.socket = client.newWebSocket(request, new WebSocketListener() {
-			@Override
-			public void onMessage(WebSocket webSocket, String text) {
-				MopidyConnection.this.onMessage(text);
-			}
-		});
-
+		transport = new WebSocketTransport(this);
+		transport.connect(url);
 
 		version = null;
 
-		getVersion(new ResponseHandler<String>() {
+		getVersion().call(new ResponseHandler<String>() {
 			@Override
 			public void onResponse(CallContext context, String result) {
 				MopidyConnection.this.version = result;
@@ -115,9 +103,14 @@ public class MopidyConnection extends Core implements CallContext {
 		sendCall(call);
 	}
 
+	@Override
+	protected MopidyConnection getConnection() {
+		return this;
+	}
+
 	protected void sendCall(Call call) {
-		if (socket == null) start();
-		if (socket == null) return;
+		if (transport == null) start();
+
 
 		int id = requestID.incrementAndGet();
 		call.setID(id);
@@ -126,7 +119,7 @@ public class MopidyConnection extends Core implements CallContext {
 
 		String request = call.toString();
 		log.trace("call(): request<{}>", request);
-		socket.send(request);
+		transport.send(request);
 	}
 
 	/**
@@ -148,10 +141,9 @@ public class MopidyConnection extends Core implements CallContext {
 	 * Shutsdown the socket.
 	 */
 	public void stop() {
-		if (socket != null) {
+		if (transport != null) {
 			log.debug("stop(): {}", url);
-			socket.close(1000, "Finished");
-			socket = null;
+			transport.close();
 			calls.clear();
 		}
 	}
@@ -163,6 +155,7 @@ public class MopidyConnection extends Core implements CallContext {
 	 *
 	 * @param text The JSON message
 	 */
+	@Override
 	public void onMessage(String text) {
 		processMessage(text);
 	}
@@ -296,20 +289,9 @@ public class MopidyConnection extends Core implements CallContext {
 		return true;
 	}
 
-	/**
-	 * Returns the size in bytes of all messages enqueued to be transmitted to the server. This
-	 * doesn't include framing overhead. It also doesn't include any bytes buffered by the operating
-	 * system or network intermediaries. This method returns 0 if no messages are waiting
-	 * in the queue. If may return a nonzero value after the web socket has been canceled; this
-	 * indicates that enqueued messages were not transmitted.
-	 */
-	public long getQueueSize() {
-		return socket == null ? 0 : socket.queueSize();
-	}
-
 
 	public boolean isStarted() {
-		return socket != null;
+		return transport != null;
 	}
 
 	public long getTimeout() {

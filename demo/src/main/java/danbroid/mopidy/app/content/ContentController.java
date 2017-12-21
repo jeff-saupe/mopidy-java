@@ -3,8 +3,6 @@ package danbroid.mopidy.app.content;
 import android.net.Uri;
 import android.net.nsd.NsdServiceInfo;
 
-import com.google.gson.JsonElement;
-
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.sharedpreferences.Pref;
@@ -92,20 +90,22 @@ public class ContentController {
 
 	public void browsePlaylists(Uri uri, final ContentView contentView) {
 		log.trace("browsePlaylists(): {}", uri);
-		conn.getPlaylists().asList(new ResponseHandler<Ref[]>() {
-			@Override
-			public void onResponse(CallContext context, Ref[] result) {
-				for (Ref ref : result) {
-					ref.setUri(MopidyUris.uriPlaylist(ref.getUri()).toString());
-				}
-				contentView.setContent(result);
-			}
-		});
+		conn.getPlaylists().asList().call(
+				new ResponseHandler<Ref[]>() {
+					@Override
+					public void onResponse(CallContext context, Ref[] result) {
+						for (Ref ref : result) {
+							ref.setUri(MopidyUris.uriPlaylist(ref.getUri()).toString());
+						}
+						contentView.setContent(result);
+					}
+				});
 	}
 
 	public void browsePlaylist(Uri uri, final ContentView contentView) {
 		log.trace("browsePlaylist(): {}", uri);
-		conn.getPlaylists().getItems(uri.toString(), new ResponseHandler<Ref[]>() {
+
+		conn.getPlaylists().getItems(uri.toString()).call(new ResponseHandler<Ref[]>() {
 			@Override
 			public void onResponse(CallContext context, Ref[] result) {
 				contentView.setContent(result);
@@ -115,7 +115,7 @@ public class ContentController {
 
 	public void browseTracklist(final ContentView contentView) {
 		log.trace("browseTracklist()");
-		conn.getTrackList().getTlTrackList(new ResponseHandler<TlTrack[]>() {
+		conn.getTrackList().getTlTrackList().call(new ResponseHandler<TlTrack[]>() {
 			@Override
 			public void onResponse(CallContext context, TlTrack[] result) {
 				List<Ref> refs = new LinkedList<>();
@@ -197,7 +197,7 @@ public class ContentController {
 	private void browseTopDirectory(final ContentView view) {
 		log.trace("browseTopDirectory()");
 
-		conn.getLibrary().browse(null, new ResponseHandler<Ref[]>() {
+		conn.getLibrary().browse(null).call(new ResponseHandler<Ref[]>() {
 			@Override
 			public void onResponse(CallContext context, Ref[] refs) {
 				refs = Arrays.copyOf(refs, refs.length + 2);
@@ -221,7 +221,7 @@ public class ContentController {
 
 	private void browseDirectory(String uri, final ContentView view) {
 		log.trace("browseDirectory(): {}", uri);
-		conn.getLibrary().browse(uri, new ResponseHandler<Ref[]>() {
+		conn.getLibrary().browse(uri).call(new ResponseHandler<Ref[]>() {
 			@Override
 			public void onResponse(CallContext context, final Ref[] refs) {
 				view.setContent(refs);
@@ -232,7 +232,7 @@ public class ContentController {
 
 	public void replaceInPlaylist(final Ref ref) {
 		log.debug("replaceInPlaylist(): {}", ref);
-		conn.getTrackList().clear(new UIResponseHandler<Void>() {
+		conn.getTrackList().clear().call(new UIResponseHandler<Void>() {
 			@Override
 			public void onUIResponse(CallContext context, Void result) {
 				addToPlaylist(ref);
@@ -246,7 +246,7 @@ public class ContentController {
 	}
 
 	private void addTracks(Ref dirRef, final Set<String> dirs) {
-		conn.getLibrary().browse(dirRef.getUri(), new ResponseHandler<Ref[]>() {
+		conn.getLibrary().browse(dirRef.getUri()).call(new ResponseHandler<Ref[]>() {
 			@Override
 			public void onResponse(CallContext context, Ref[] result) {
 				LinkedList<String> tracks = new LinkedList<>();
@@ -267,9 +267,7 @@ public class ContentController {
 					}
 				}
 				if (!tracks.isEmpty()) {
-					JsonElement uris = conn.getGson().toJsonTree(tracks);
-					if (uris != null)
-						conn.getTrackList().add(null, uris, null);
+					conn.getTrackList().add(null, tracks.toArray(new String[]{}), null, null).call();
 				}
 			}
 		});

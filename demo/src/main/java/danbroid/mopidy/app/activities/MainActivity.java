@@ -176,25 +176,22 @@ public class MainActivity extends PlaybackActivity implements MainView, MopidySe
 	@UiThread
 	public void addAndPlay(String uri) {
 		log.debug("addAndPlay(): {}", uri);
-		conn.getTrackList().add(uri, null, new ResponseHandler<TlTrack[]>() {
-			@Override
-			public void onResponse(CallContext context, TlTrack[] result) {
-				if (result.length > 0) {
-					playTrack(result[0].getTlid());
-				}
-			}
-		});
+		conn.getTrackList().add(uri, null, null, null)
+				.call(new ResponseHandler<TlTrack[]>() {
+					@Override
+					public void onResponse(CallContext context, TlTrack[] result) {
+						if (result.length > 0) {
+							playTrack(result[0].getTlid());
+						}
+					}
+				});
 	}
 
 	@UiThread
 	public void playTrack(int tlid) {
 		log.trace("playTrack(): tlid: {}", tlid);
 		conn.getPlayback()
-				.play(tlid, null, new ResponseHandler<Void>() {
-					@Override
-					public void onResponse(CallContext context, Void result) {
-					}
-				});
+				.play(tlid, null).call();
 	}
 
 

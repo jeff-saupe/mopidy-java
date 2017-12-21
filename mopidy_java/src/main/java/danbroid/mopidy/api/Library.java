@@ -1,13 +1,10 @@
 package danbroid.mopidy.api;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.Map;
 
-import danbroid.mopidy.ResponseHandler;
-import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.Constants;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
@@ -23,33 +20,26 @@ public class Library extends Api {
 		super(parent, "library.");
 	}
 
-	public void browse(final String uri, ResponseHandler<Ref[]> handler) {
-		call(new Call<Ref[]>(methodPrefix + "browse")
-				.addParam(Constants.Key.URI, uri)
-				.setResultType(Ref[].class)
-				.setHandler(handler));
+	public Call<Ref[]> browse(final String uri) {
+		return createCall("browse", Ref[].class).addParam(Constants.Key.URI, uri);
 	}
 
 
-	public void lookup(String uris, ResponseHandler<Track[]> handler) {
-		call(new Call<Track[]>(methodPrefix + "lookup")
-				.addParam(Constants.Key.URIS, uris)
-				.setResultType(Track[].class)
-				.setHandler(handler));
+	public Call<Track[]> lookup(String uris) {
+		return createCall("lookup", Track[].class)
+				.addParam("uris", uris);
 	}
 
-	public void getImages(final String uris[], ResponseHandler<Map<String, Image[]>> handler) {
+	public Call<Map<String, Image[]>> getImages(final String uris[]) {
 		JsonArray uriArray = new JsonArray();
 		for (String uri : uris) {
 			uriArray.add(uri);
 		}
+		Call<Map<String, Image[]>> call = createCall("get_images");
+		call.setResultType(new TypeToken<Map<String, Image[]>>() {
+		});
 
-		call(
-				new Call<Map<String, Image[]>>(methodPrefix + "get_images")
-						.setResultType(new TypeToken<Map<String, Image[]>>() {
-						})
-						.addParam(Constants.Key.URIS, uriArray)
-						.setHandler(handler));
+		return call.addParam(Constants.Key.URIS, uriArray);
 	}
 
 

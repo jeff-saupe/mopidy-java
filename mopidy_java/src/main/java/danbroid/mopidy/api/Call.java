@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
+import danbroid.mopidy.MopidyConnection;
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.Constants;
@@ -16,6 +17,7 @@ public class Call<T> {
 
 	private static final org.slf4j.Logger
 			log = org.slf4j.LoggerFactory.getLogger(Call.class);
+	private final MopidyConnection connection;
 
 	/**
 	 * The Java type of the result field of the response
@@ -42,8 +44,9 @@ public class Call<T> {
 	protected ResponseHandler<T> handler;
 	private int id;
 
-	public Call(String method) {
-		this.resultType = resultType;
+	public Call(String method, MopidyConnection connection) {
+		this.connection = connection;
+
 		request = new JsonObject();
 		request.addProperty(Constants.Key.METHOD, method);
 		request.addProperty(Constants.Key.JSONRPC, JSONRPC_VERSION);
@@ -73,6 +76,7 @@ public class Call<T> {
 		}
 	}
 
+
 	public void onError(int code, String message, JsonElement data) {
 		if (handler != null)
 			handler.onError(code, message, data);
@@ -96,7 +100,7 @@ public class Call<T> {
 	}
 
 
-	public Call<T> setHandler(ResponseHandler<T> handler) {
+	public Call<T> setResponseHandler(ResponseHandler<T> handler) {
 		this.handler = handler;
 		return this;
 	}
@@ -137,5 +141,13 @@ public class Call<T> {
 
 	public int getID() {
 		return id;
+	}
+
+	public void call(ResponseHandler<T> handler) {
+		setResponseHandler(handler).call();
+	}
+
+	public void call() {
+		connection.call(this);
 	}
 }

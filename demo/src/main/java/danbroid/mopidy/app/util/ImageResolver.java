@@ -47,7 +47,7 @@ public class ImageResolver {
 		}
 
 		conn.getLibrary().getImages(
-				imageUris.toArray(new String[]{}),
+				imageUris.toArray(new String[]{})).call(
 				new ResponseHandler<Map<String, Image[]>>() {
 					@Override
 					public void onResponse(CallContext context, Map<String, Image[]> result) {

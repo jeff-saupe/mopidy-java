@@ -3,6 +3,7 @@ package danbroid.mopidy.api;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import danbroid.mopidy.MopidyConnection;
 import danbroid.mopidy.RuntimeTypeAdapterFactory;
 import danbroid.mopidy.model.Album;
 import danbroid.mopidy.model.Artist;
@@ -30,6 +31,20 @@ public class Api {
 	protected Api(String methodPrefix) {
 		this.parent = null;
 		this.methodPrefix = methodPrefix;
+	}
+
+	protected MopidyConnection getConnection() {
+		return parent.getConnection();
+	}
+
+	protected <T> Call<T> createCall(String method) {
+		return new Call<T>(methodPrefix + method, getConnection());
+	}
+
+	protected <T> Call<T> createCall(String method, Class<T> resultType) {
+		Call<T> call = createCall(method);
+		call.setResultType(resultType);
+		return call;
 	}
 
 	protected void call(Call call) {

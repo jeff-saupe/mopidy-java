@@ -1,7 +1,5 @@
 package danbroid.mopidy.api;
 
-import danbroid.mopidy.ResponseHandler;
-
 /**
  * Created by dan on 10/12/17.
  */
@@ -11,16 +9,12 @@ public class Core extends Api {
 		super("core.");
 	}
 
-	public void getVersion(ResponseHandler<String> handler) {
-		call(new Call<String>(methodPrefix + "get_version")
-				.setResultType(String.class)
-				.setHandler(handler));
+	public Call<String> getVersion() {
+		return createCall("get_version", String.class);
 	}
 
-	public void getUriScemes(ResponseHandler<String[]> handler) {
-		call(new Call<String[]>(methodPrefix + "get_uri_schemes")
-				.setResultType(String[].class)
-				.setHandler(handler));
+	public Call<String[]> getUriScemes() {
+		return createCall("get_uri_schemes", String[].class);
 	}
 
 	private Library library = new Library(this);

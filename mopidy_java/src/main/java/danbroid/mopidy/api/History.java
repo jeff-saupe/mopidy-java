@@ -5,7 +5,6 @@ import com.google.gson.JsonElement;
 
 import java.util.LinkedList;
 
-import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
 
@@ -21,10 +20,8 @@ public class History extends Api {
 	}
 
 	//Get the number of tracks in the history.
-	public void getLength(ResponseHandler<Integer> handler) {
-		call(new Call<Integer>(methodPrefix + "get_length")
-				.setHandler(handler)
-				.setResultType(Integer.class));
+	public Call<Integer> getLength() {
+		return createCall("get_length", Integer.class);
 	}
 
 
@@ -52,9 +49,8 @@ public class History extends Api {
 	}
 
 	//Get the history
-	public void getHistory(final ResponseHandler<HistoryItem[]> handler) {
-		final LinkedList<HistoryItem> items = new LinkedList<>();
-		call(new Call<HistoryItem[]>(methodPrefix + "get_history") {
+	public Call<HistoryItem[]> getHistory() {
+		return new Call<HistoryItem[]>("get_history", getConnection()) {
 			@Override
 			protected HistoryItem[] parseResult(CallContext callContext, JsonElement response) {
 				LinkedList<HistoryItem> result = new LinkedList<>();
@@ -68,6 +64,6 @@ public class History extends Api {
 				}
 				return result.toArray(new HistoryItem[]{});
 			}
-		}.setHandler(handler).setResultType(HistoryItem[].class));
+		}.setResultType(HistoryItem[].class);
 	}
 }
