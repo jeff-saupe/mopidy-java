@@ -23,7 +23,7 @@ import danbroid.mopidy.interfaces.PlaybackState;
 public abstract class PlaybackActivity extends AppCompatActivity implements EventListener {
 
 	@Bean
-	protected PlaybackEvents playback;
+	protected Playback playback;
 
 	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 		@Override

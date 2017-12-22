@@ -11,26 +11,86 @@ import java.util.HashSet;
 import java.util.Set;
 
 import danbroid.mopidy.app.MopidyConnection;
+import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
+import danbroid.mopidy.model.TlTrack;
+import danbroid.mopidy.util.UIResponseHandler;
 
 /**
  * Created by dan on 14/12/17.
  */
 @EBean(scope = EBean.Scope.Singleton)
-public class PlaybackEvents implements EventListener {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PlaybackEvents.class);
+public class Playback implements EventListener {
+	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Playback.class);
 
 	@Bean
 	MopidyConnection conn;
+	private boolean mute;
+	private int volume;
+	private long time_position;
+	private String streamTitle;
+	private TlTrack tl_track;
 
 
 	@AfterInject
 	void init() {
 		conn.setEventListener(this);
+
+		conn.getMixer().getMute().call(new UIResponseHandler<Boolean>() {
+			@Override
+			public void onUIResponse(CallContext context, Boolean result) {
+				onMuteChanged(result);
+			}
+		});
+
+		conn.getMixer().getVolume().call(new UIResponseHandler<Integer>() {
+			@Override
+			public void onUIResponse(CallContext context, Integer result) {
+				onVolumeChanged(result);
+			}
+		});
+
+		conn.getPlayback().getTimePosition().call(new UIResponseHandler<Long>() {
+			@Override
+			public void onUIResponse(CallContext context, Long result) {
+				onSeeked(result);
+			}
+		});
+
+		conn.getPlayback().getCurrentTlTrack().call(new UIResponseHandler<TlTrack>() {
+			@Override
+			public void onUIResponse(CallContext context, TlTrack result) {
+				tl_track = result;
+			}
+		});
+
+
 	}
 
 	private Set<EventListener> listeners = new HashSet<>();
+
+	public TlTrack getTlTrack() {
+		return tl_track;
+	}
+
+	public long getTimePosition() {
+		return time_position;
+	}
+
+
+	public boolean getMute() {
+		return mute;
+	}
+
+	public int getVolume() {
+		return volume;
+	}
+
+	public String getStreamTitle() {
+		return streamTitle;
+	}
+
 
 	@SupposeUiThread
 	public void addListener(EventListener listener) {
@@ -77,6 +137,7 @@ public class PlaybackEvents implements EventListener {
 
 	@Override
 	public void onVolumeChanged(int volume) {
+		this.volume = volume;
 		log.trace("onVolumeChanged(): {}", volume);
 		for (EventListener listener : listeners) {
 			listener.onVolumeChanged(volume);
@@ -85,6 +146,7 @@ public class PlaybackEvents implements EventListener {
 
 	@Override
 	public void onMuteChanged(boolean mute) {
+		this.mute = mute;
 		log.trace("onMuteChanged(): {}", mute);
 		for (EventListener listener : listeners) {
 			listener.onMuteChanged(mute);
@@ -93,6 +155,7 @@ public class PlaybackEvents implements EventListener {
 
 	@Override
 	public void onSeeked(long time_position) {
+		this.time_position = time_position;
 		log.trace("onStreamSeeked(): {}", time_position);
 		for (EventListener listener : listeners) {
 			listener.onSeeked(time_position);
@@ -101,6 +164,7 @@ public class PlaybackEvents implements EventListener {
 
 	@Override
 	public void onStreamTitleChanged(String title) {
+		this.streamTitle = title;
 		log.trace("onStreamTitleChanged(): {}", title);
 		for (EventListener listener : listeners) {
 			listener.onStreamTitleChanged(title);
@@ -110,6 +174,7 @@ public class PlaybackEvents implements EventListener {
 
 	@Override
 	public void onTrackPlaybackPaused(JsonObject tl_track, long time_position) {
+		this.time_position = time_position;
 		log.trace("onTrackPlaybackPaused(): position: {} track:{}", time_position, tl_track);
 		for (EventListener listener : listeners) {
 			listener.onTrackPlaybackPaused(tl_track, time_position);
@@ -119,6 +184,8 @@ public class PlaybackEvents implements EventListener {
 
 	@Override
 	public void onTrackPlaybackResumed(JsonObject tl_track, long time_position) {
+		this.time_position = time_position;
+
 		log.trace("onTrackPlaybackResumed(): position: {} track:{}", time_position, tl_track);
 		for (EventListener listener : listeners) {
 			listener.onTrackPlaybackResumed(tl_track, time_position);
@@ -129,7 +196,7 @@ public class PlaybackEvents implements EventListener {
 	@Override
 	public void onTrackPlaybackStarted(JsonObject tl_track) {
 		log.trace("onTrackPlaybackStarted(): track:{}", tl_track);
-
+		this.tl_track = conn.getGson().fromJson(tl_track, TlTrack.class);
 		for (EventListener listener : listeners) {
 			listener.onTrackPlaybackStarted(tl_track);
 		}

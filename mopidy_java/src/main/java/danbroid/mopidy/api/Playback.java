@@ -83,7 +83,7 @@ Possible states and transitions:
 The current playback state will be kept. If it was playing, playing
 will continue. If it was paused, it will still be paused, etc.
 	 */
-	public Call<Void> next(ResponseHandler<Void> handler) {
+	public Call<Void> next() {
 		return createCall("next", Void.class);
 	}
 
