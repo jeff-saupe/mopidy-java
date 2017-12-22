@@ -1,5 +1,7 @@
 package danbroid.mopidy.app.util;
 
+import android.net.Uri;
+
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.SupposeUiThread;
@@ -14,6 +16,7 @@ import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.lastfm.LastFMCall;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
+import danbroid.mopidy.model.Track;
 import danbroid.mopidy.util.UIResponseHandler;
 
 /**
@@ -26,6 +29,7 @@ public class ImageResolver {
 	static {
 		LastFMCall.API_KEY = "00ed568fa493d39e290ae42713b9094f";
 	}
+
 	@Bean
 	MopidyConnection conn;
 
@@ -79,5 +83,25 @@ public class ImageResolver {
 			}
 		}
 		handler.onResponse(null, refs);
+	}
+
+	@SupposeUiThread
+	public void findCover(Track track, ResponseHandler<String> handler) {
+		String artist = null, album = null;
+
+		if (track.getAlbum() != null && track.getAlbum().getImages() != null &&
+				track.getAlbum().getImages().length > 0) {
+			String albumCover = track.getAlbum().getImages()[0];
+			log.trace("albumCover: " + albumCover + " conn.url: " + conn.getUrl());
+			if (albumCover.startsWith("/images/")) {
+				Uri connURL = Uri.parse(conn.getUrl());
+				log.debug("path " + connURL.getPath());
+				log.debug("host " + connURL.getHost());
+				log.debug("port " + connURL.getPort());
+
+			}
+			handler.onResponse(null, albumCover);
+			return;
+		}
 	}
 }

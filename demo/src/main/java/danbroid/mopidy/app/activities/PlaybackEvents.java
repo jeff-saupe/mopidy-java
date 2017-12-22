@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
-import org.androidannotations.annotations.UiThread;
+import org.androidannotations.annotations.SupposeUiThread;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,8 +18,8 @@ import danbroid.mopidy.interfaces.PlaybackState;
  * Created by dan on 14/12/17.
  */
 @EBean(scope = EBean.Scope.Singleton)
-public class Playback implements EventListener {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Playback.class);
+public class PlaybackEvents implements EventListener {
+	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PlaybackEvents.class);
 
 	@Bean
 	MopidyConnection conn;
@@ -32,7 +32,8 @@ public class Playback implements EventListener {
 
 	private Set<EventListener> listeners = new HashSet<>();
 
-	public synchronized void addListener(EventListener listener) {
+	@SupposeUiThread
+	public void addListener(EventListener listener) {
 		if (!listeners.contains(listener)) {
 			listeners.add(listener);
 			initListener(listener);
@@ -43,12 +44,14 @@ public class Playback implements EventListener {
 		listener.onPlaybackStateChanged(null, state);
 	}
 
-	public synchronized void removeListener(EventListener listener) {
+	@SupposeUiThread
+	public void removeListener(EventListener listener) {
 		if (listeners.contains(listener))
 			listeners.remove(listener);
 	}
 
 	private PlaybackState state;
+
 
 	@Override
 	public void onPlaybackStateChanged(PlaybackState oldState, PlaybackState newState) {
@@ -62,6 +65,7 @@ public class Playback implements EventListener {
 		return state;
 	}
 
+
 	@Override
 	public void onOptionsChanged() {
 		log.trace("onOptionsChanged()");
@@ -69,6 +73,7 @@ public class Playback implements EventListener {
 			listener.onOptionsChanged();
 		}
 	}
+
 
 	@Override
 	public void onVolumeChanged(int volume) {
@@ -130,7 +135,7 @@ public class Playback implements EventListener {
 		}
 	}
 
-	@UiThread
+
 	@Override
 	public void onTrackPlaybackEnded(JsonObject tl_track, long time_position) {
 		log.trace("onTrackPlaybackEnded(): position: {} track:{}", time_position, tl_track);
@@ -139,7 +144,7 @@ public class Playback implements EventListener {
 		}
 	}
 
-	@UiThread
+
 	@Override
 	public void onTracklistChanged() {
 		log.trace("onTracklistChanged() ");
@@ -148,7 +153,7 @@ public class Playback implements EventListener {
 		}
 	}
 
-	@UiThread
+
 	@Override
 	// Called when playlists are loaded or refreshed.
 	public void onPlaylistsLoaded() {
@@ -158,7 +163,7 @@ public class Playback implements EventListener {
 		}
 	}
 
-	@UiThread
+
 	@Override
 	//    Called whenever a playlist is changed.
 	public void onPlaylistChanged(JsonObject playlist) {

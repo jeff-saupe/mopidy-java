@@ -11,6 +11,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.UiThread;
@@ -19,6 +20,7 @@ import org.androidannotations.annotations.ViewById;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.util.FlingDetector;
 import danbroid.mopidy.app.util.GlideApp;
+import danbroid.mopidy.app.util.ImageResolver;
 import danbroid.mopidy.app.util.NavBarColours;
 import danbroid.mopidy.lastfm.Album;
 import danbroid.mopidy.lastfm.AlbumSearch;
@@ -46,6 +48,9 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 	@ViewById(R.id.line2)
 	TextView line2;
 
+	@Bean
+	ImageResolver imageResolver;
+
 	protected void init() {
 		super.init();
 		getView().setOnTouchListener(new FlingDetector(getContext()) {
@@ -64,31 +69,39 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 		if (tlTrack == null) return;
 
 		Track track = tlTrack.getTrack();
-		String album = null, artist = null, title = null;
+		String album = null, artist = null, title = null, albumCover = null;
+		String description = "";
 
 		title = track.getName();
 
 		line1.setText(title);
 
-		if (track.getAlbum() != null) {
-			album = track.getAlbum().getName();
-			String images[] = track.getAlbum().getImages();
-			if (images != null && images.length > 0)
-				displayImage(images[0]);
-		}
 
 		if (track.getArtists() != null) {
 			if (track.getArtists().length > 0)
 				artist = track.getArtists()[0].getName();
 		}
 
-		String description = "";
+		if (track.getAlbum() != null) {
+			album = track.getAlbum().getName();
+			if (track.getAlbum().getImages() != null
+					&& track.getAlbum().getImages().length > 0)
+				albumCover = track.getAlbum().getImages()[0];
+		}
+
+
 		if (album != null) description += album + " ";
 		if (artist != null) description += artist;
 		line2.setText(description);
 
+		if (albumCover != null) {
+			displayImage(albumCover);
+			return;
+		}
+
+
 		if (artist != null || album != null) {
-			log.trace("performing album search: album: {} artist: {}",album,artist);
+			log.trace("performing album search: album: {} artist: {}", album, artist);
 			new AlbumSearch() {
 				@Override
 				protected void onResponse(Response response) {
@@ -99,8 +112,9 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 				}
 			}.artist(artist).album(album).callAsync();
 		}
-
 	}
+
+
 
 
 	@Click(R.id.chevron_down)
@@ -116,12 +130,13 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 	@UiThread
 	public void displayImage(String url) {
 		log.trace("displayImage(): {}", url);
-		if (image == null) return;
-		if (getActivity() == null || !isResumed()) return;
+		if (url == null || getActivity() == null || !isResumed()) return;
+
 		GlideApp.with(this).asBitmap().load(url).into(new SimpleTarget<Bitmap>() {
 			@Override
 			public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
 				//Blurry.with(getContext()).radius(25).sampling(2)
+				if (getActivity() == null || !isResumed()) return;
 				if (resource != null) {
 					log.trace("size: " + resource.getWidth());
 

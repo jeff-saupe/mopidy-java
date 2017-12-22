@@ -22,7 +22,7 @@ import org.androidannotations.annotations.ViewById;
 
 import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.app.R;
-import danbroid.mopidy.app.activities.Playback;
+import danbroid.mopidy.app.activities.PlaybackEvents;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.EventListener;
@@ -46,7 +46,7 @@ public abstract class PlaybackFragment extends Fragment implements EventListener
 		}
 	};
 	@Bean
-	protected Playback playback;
+	protected PlaybackEvents playback;
 
 	@ViewById(R.id.play_pause)
 	protected ImageView playButton;

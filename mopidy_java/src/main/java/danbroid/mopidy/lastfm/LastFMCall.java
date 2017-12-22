@@ -65,7 +65,7 @@ public class LastFMCall implements Callback {
 
 	protected Call buildCall() {
 		HttpUrl url = getBuilder().build();
-		log.trace("call(): {}", url);
+		//log.trace("call(): {}", url);
 		call = HTTP_CLIENT.newCall(new Request.Builder().url(url).build());
 		return call;
 	}
@@ -73,7 +73,7 @@ public class LastFMCall implements Callback {
 	@Override
 	public void onResponse(Call call, okhttp3.Response response) throws IOException {
 		String text = response.body().string();
-		log.trace("onResponse(): {}", text);
+		//log.trace("onResponse(): {}", text);
 		danbroid.mopidy.lastfm.Response oResponse = getGson()
 				.fromJson(text, danbroid.mopidy.lastfm.Response.class);
 		onResponse(oResponse);

@@ -11,6 +11,6 @@ public abstract class ResponseHandler<T> {
 	public abstract void onResponse(CallContext context, T result);
 
 	public void onError(int code, String message, JsonElement data) {
-		log.error("onError() code: " + code + " {}: data: {}", message, data);
+		log.error("processError() code: " + code + " {}: data: {}", message, data);
 	}
 }

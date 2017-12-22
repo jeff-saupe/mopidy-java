@@ -108,6 +108,10 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		return this;
 	}
 
+	public Transport getTransport() {
+		return transport;
+	}
+
 	protected void sendCall(Call call) {
 		if (url == null) return;
 		if (transport == null) start();
@@ -123,19 +127,6 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		transport.send(request);
 	}
 
-	/**
-	 * Call timeout errors on all calls that havent been processed after CALL_TIMEOUT
-	 */
-	protected void expireCalls() {
-		if (!calls.isEmpty()) {
-			log.trace("expireCalls(): " + getCallQueueSize());
-			for (Call call : calls.values().toArray(new Call[]{})) {
-				if (System.currentTimeMillis() - call.getTimestamp() > timeout) {
-					onError(call.getID(), "Call timeout", ERROR_TIMEOUT, call.getRequest());
-				}
-			}
-		}
-	}
 
 
 	/**
@@ -145,6 +136,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		if (transport != null) {
 			log.debug("stop(): {}", url);
 			transport.close();
+			transport = null;
 			calls.clear();
 		}
 	}
@@ -162,7 +154,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	}
 
 	protected void processMessage(String text) {
-		log.trace("processMessage(): {}", text);
+		//log.trace("processMessage(): {}", text);
 		try {
 			JsonElement e = parser.parse(text);
 			if (e.isJsonObject()) {
@@ -174,7 +166,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 					String message = o.get(Constants.Key.MESSAGE).getAsString();
 					int code = o.get(Constants.Key.CODE).getAsInt();
 					JsonElement data = o.get(Constants.Key.DATA);
-					onError(id, message, code, data);
+					processError(id, message, code, data);
 					return;
 				}
 
@@ -195,7 +187,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		}
 	}
 
-	protected void onError(int id, String message, int code, JsonElement data) {
+	protected void processError(int id, String message, int code, JsonElement data) {
 
 		Call call = popCall(id);
 
