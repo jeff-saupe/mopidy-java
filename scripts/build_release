@@ -21,4 +21,4 @@ VERSION_CODE=`cat build.gradle  | grep versionCode | sed -e 's/^.*: //g'`
 
 
 
-cp demo/build/outputs/apk/release/demo-release.apk releases/jmopidy_v${VERSION_CODE}.apk
+cp app/build/outputs/apk/release/demo-release.apk releases/jmopidy_v${VERSION_CODE}.apk
