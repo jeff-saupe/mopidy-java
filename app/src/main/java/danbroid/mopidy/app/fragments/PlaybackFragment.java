@@ -25,7 +25,6 @@ import org.androidannotations.annotations.ViewById;
 import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.activities.Playback;
-import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
@@ -307,9 +306,6 @@ public abstract class PlaybackFragment extends Fragment implements EventListener
 	public void onPlaylistDeleted(String uri) {
 	}
 
-	public MainView getMainView() {
-		return (MainView) getActivity();
-	}
 
 	protected void setPaused(boolean paused) {
 		log.trace("setPaused(): {}", paused);

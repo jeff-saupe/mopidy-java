@@ -1,3 +1,4 @@
 <resources>
   <string name="app_name">mopidy_android</string>
+  <string name="msg_loading">Please Wait..</string>
 </resources>

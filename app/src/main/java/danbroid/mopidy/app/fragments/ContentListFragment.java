@@ -33,10 +33,9 @@ import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.content.ContentController;
 import danbroid.mopidy.app.interfaces.ContentView;
 import danbroid.mopidy.app.interfaces.MainPrefs_;
-import danbroid.mopidy.app.interfaces.MainView;
-import danbroid.mopidy.app.util.GlideApp;
 import danbroid.mopidy.app.util.ImageResolver;
 import danbroid.mopidy.app.util.MopidyUris;
+import danbroid.mopidy.glide.GlideApp;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
@@ -78,9 +77,6 @@ public class ContentListFragment extends Fragment implements ContentView {
 		controller.browse(uri, this);
 	}
 
-	public MainView getMainView() {
-		return (MainView) getActivity();
-	}
 
 
 	class MediaItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
@@ -119,7 +115,8 @@ public class ContentListFragment extends Fragment implements ContentView {
 
 		@Override
 		public void onClick(View v) {
-			getMainView().onRefClicked(ref);
+
+			//TODO getMainView().onRefClicked(ref);
 		}
 
 		@Override
@@ -143,6 +140,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 		log.debug("init() :{}", uri);
 
 		setHasOptionsMenu(true);
+
 
 		adapter = new RecyclerView.Adapter<MediaItemViewHolder>() {
 			@Override

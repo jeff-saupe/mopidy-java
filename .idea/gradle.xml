@@ -9,6 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/glide" />
             <option value="$PROJECT_DIR$/mopidy_android" />
             <option value="$PROJECT_DIR$/mopidy_java" />
           </set>

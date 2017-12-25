@@ -16,7 +16,7 @@ import java.util.Set;
 
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.interfaces.MainPrefs_;
-import danbroid.mopidy.app.interfaces.MainView;
+import danbroid.mopidy.interfaces.MainView;
 
 /**
  * Created by dan on 11/12/17.
@@ -97,7 +97,7 @@ public class AddServerDialog {
 		if (!servers.contains(addr)) {
 			servers.add(addr);
 			prefs.edit().servers().put(servers).apply();
-			mainView.getContent().refresh();
+		//TODO 	mainView.getContent().refresh();
 		}
 
 	}

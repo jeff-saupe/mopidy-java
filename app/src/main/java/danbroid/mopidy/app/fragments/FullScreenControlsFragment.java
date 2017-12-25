@@ -19,9 +19,9 @@ import org.androidannotations.annotations.ViewById;
 
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.util.FlingDetector;
-import danbroid.mopidy.app.util.GlideApp;
 import danbroid.mopidy.app.util.ImageResolver;
 import danbroid.mopidy.app.util.NavBarColours;
+import danbroid.mopidy.glide.GlideApp;
 import danbroid.mopidy.lastfm.Album;
 import danbroid.mopidy.lastfm.AlbumSearch;
 import danbroid.mopidy.lastfm.Response;
@@ -119,7 +119,7 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 
 	@Click(R.id.chevron_down)
 	public void close() {
-		getMainView().hideFullControls();
+	//TODO 	getMainView().hideFullControls();
 	}
 
 
@@ -131,6 +131,7 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 	public void displayImage(String url) {
 		log.trace("displayImage(): {}", url);
 		if (url == null || getActivity() == null || !isResumed()) return;
+
 
 		GlideApp.with(this).asBitmap().load(url).into(new SimpleTarget<Bitmap>() {
 			@Override
