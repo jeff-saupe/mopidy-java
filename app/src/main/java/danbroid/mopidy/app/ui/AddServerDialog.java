@@ -15,8 +15,8 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 import java.util.Set;
 
 import danbroid.mopidy.app.R;
-import danbroid.mopidy.app.interfaces.MainPrefs_;
 import danbroid.mopidy.interfaces.MainView;
+import danbroid.mopidy.interfaces.MopidyPrefs_;
 
 /**
  * Created by dan on 11/12/17.
@@ -37,7 +37,7 @@ public class AddServerDialog {
 	MainView mainView;
 
 	@Pref
-	MainPrefs_ prefs;
+	MopidyPrefs_ prefs;
 
 	public void show(final MainView mainView) {
 		log.trace("show()");

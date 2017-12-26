@@ -8,6 +8,7 @@ import android.support.v4.media.MediaBrowserCompat;
 public interface MainView {
 	String ACTION_CONTROLLER_CONNECTED = MainView.class.getName()+".ACTION_CONNECTED";
 
-
 	MediaBrowserCompat getMediaBrowser();
+
+	void onMediaItemSelected(MediaBrowserCompat.MediaItem item);
 }

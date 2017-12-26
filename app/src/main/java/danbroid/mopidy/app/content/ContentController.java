@@ -17,10 +17,10 @@ import java.util.Set;
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.app.MopidyConnection;
 import danbroid.mopidy.app.interfaces.ContentView;
-import danbroid.mopidy.app.interfaces.MainPrefs_;
-import danbroid.mopidy.app.util.MopidyServerDiscovery;
 import danbroid.mopidy.app.util.MopidyUris;
 import danbroid.mopidy.interfaces.CallContext;
+import danbroid.mopidy.interfaces.MopidyPrefs;
+import danbroid.mopidy.interfaces.MopidyPrefs_;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.util.UIResponseHandler;
@@ -42,10 +42,9 @@ public class ContentController {
 
 
 	@Pref
-	MainPrefs_ prefs;
+	MopidyPrefs_ prefs;
 
-	@Bean
-	MopidyServerDiscovery serverDiscovery;
+
 
 	public void browse(Uri uri, ContentView contentView) {
 		log.error("browse(): {}", uri);
@@ -171,7 +170,7 @@ public class ContentController {
 	public void browseServers(ContentView contentView) {
 		log.debug("browseServers()");
 
-		log.trace("server count: " + prefs.servers().get().size());
+/*		log.trace("server count: " + prefs.servers().get().size());
 		ArrayList<Ref> servers = new ArrayList<>();
 
 		for (NsdServiceInfo serviceInfo : serverDiscovery.getServerInfo().values()) {
@@ -192,9 +191,9 @@ public class ContentController {
 			ref.setName(address);
 			ref.setUri(MopidyUris.uriServer(address).toString());
 			servers.add(ref);
-		}
+		}contentView.setContent(servers.toArray(new Ref[]{}));*/
 
-		contentView.setContent(servers.toArray(new Ref[]{}));
+
 	}
 
 	private void browseTopDirectory(final ContentView view) {

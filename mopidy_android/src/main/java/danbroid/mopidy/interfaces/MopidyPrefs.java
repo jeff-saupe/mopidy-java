@@ -1,4 +1,4 @@
-package danbroid.mopidy.app.interfaces;
+package danbroid.mopidy.interfaces;
 
 import org.androidannotations.annotations.sharedpreferences.DefaultString;
 import org.androidannotations.annotations.sharedpreferences.DefaultStringSet;
@@ -10,7 +10,7 @@ import java.util.Set;
  * Created by dan on 12/12/17.
  */
 @SharedPref(SharedPref.Scope.APPLICATION_DEFAULT)
-public interface MainPrefs {
+public interface MopidyPrefs {
 
 	@DefaultStringSet(value = {})
 	Set<String> servers();

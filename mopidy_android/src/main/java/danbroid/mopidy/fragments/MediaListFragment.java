@@ -135,7 +135,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 		public MediaItemViewHolder(View itemView) {
 			super(itemView);
-			imageView = itemView.findViewById(R.id.play_eq);
+			imageView = itemView.findViewById(R.id.icon);
 			titleView = itemView.findViewById(R.id.title);
 			descriptionView = itemView.findViewById(R.id.description);
 			itemView.setOnClickListener(this);
@@ -165,7 +165,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 		@Override
 		public void onClick(View view) {
-			//TODO mainView.onMediaItemSelected(item);
+		mainView.onMediaItemSelected(item);
 		}
 	}
 

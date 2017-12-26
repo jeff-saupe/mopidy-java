@@ -10,7 +10,8 @@ import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
-import danbroid.mopidy.app.interfaces.MainPrefs_;
+import danbroid.mopidy.interfaces.MopidyPrefs_;
+
 
 /**
  * Created by dan on 14/12/17.
@@ -21,7 +22,7 @@ public class MopidyConnection extends danbroid.mopidy.MopidyConnection {
 	public static final String INTENT_SERVER_CONNECTED = MopidyConnection.class.getName() + ".INTENT_SERVER_CONNECTED";
 
 	@Pref
-	MainPrefs_ prefs;
+	MopidyPrefs_ prefs;
 
 	@RootContext
 	Context context;

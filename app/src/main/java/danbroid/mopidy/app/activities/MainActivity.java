@@ -1,21 +1,17 @@
 package danbroid.mopidy.app.activities;
 
-import android.content.ComponentName;
-import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.media.MediaBrowserCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
-import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
@@ -25,15 +21,15 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 
 import danbroid.mopidy.activities.MopidyActivity;
 import danbroid.mopidy.app.R;
-import danbroid.mopidy.app.fragments.ContentListFragment;
 import danbroid.mopidy.app.fragments.FullScreenControlsFragment;
-import danbroid.mopidy.app.interfaces.ContentView;
-import danbroid.mopidy.app.interfaces.MainPrefs_;
 import danbroid.mopidy.app.service.MopidyService_;
 import danbroid.mopidy.app.ui.AddServerDialog_;
-import danbroid.mopidy.app.util.MopidyUris;
+import danbroid.mopidy.fragments.MediaFragment;
+import danbroid.mopidy.fragments.MediaListFragment;
 import danbroid.mopidy.interfaces.MainView;
+import danbroid.mopidy.interfaces.MopidyPrefs_;
 import danbroid.mopidy.service.AbstractMopidyService;
+import danbroid.mopidy.util.MediaIds;
 
 @OptionsMenu(R.menu.menu_main)
 @EActivity(R.layout.activity_main)
@@ -44,7 +40,7 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 	Toolbar toolbar;
 
 	@Pref
-	MainPrefs_ prefs;
+	MopidyPrefs_ prefs;
 
 	@ViewById(R.id.fab)
 	FloatingActionButton fab;
@@ -58,6 +54,15 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 		getSupportFragmentManager().addOnBackStackChangedListener(this);
 
 		hideFullControls();
+
+		if (getContent() == null) {
+			actionHome();
+		}
+	}
+
+
+	public Fragment getContent() {
+		return getSupportFragmentManager().findFragmentById(R.id.content_container);
 	}
 
 	@Override
@@ -68,16 +73,12 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 
 	@OptionsItem(R.id.action_home)
 	public void actionHome() {
-
-		//TODO showContent(MopidyUris.URI_SERVERS);
+		setContent(MediaListFragment.getInstance(MediaIds.ROOT));
 	}
 
 
-
-
-	public void setContent(ContentView content) {
-		log.trace("setContent() uri:{}", content.getUri());
-
+	@Override
+	public void setContent(MediaFragment content) {
 		getSupportFragmentManager().beginTransaction()
 				.setCustomAnimations(
 						R.animator.slide_in_from_right, R.animator.slide_out_to_left,

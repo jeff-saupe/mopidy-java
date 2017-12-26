@@ -15,6 +15,8 @@ import android.support.v7.app.AppCompatActivity;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 
+import danbroid.mopidy.fragments.MediaFragment;
+import danbroid.mopidy.fragments.MediaListFragment;
 import danbroid.mopidy.interfaces.MainView;
 import danbroid.mopidy.service.AbstractMopidyService;
 
@@ -132,4 +134,23 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 	public MediaBrowserCompat getMediaBrowser() {
 		return mediaBrowser;
 	}
+
+	@Override
+	public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
+		String mediaID = item.getMediaId();
+		log.debug("onMediaItemSelected() mediaId: {}", mediaID);
+
+
+		if (item.isPlayable()) {
+			getSupportMediaController().getTransportControls()
+					.playFromMediaId(item.getMediaId(), null);
+
+		} else if (item.isBrowsable()) {
+			setContent(MediaListFragment.getInstance(item.getMediaId()));
+		} else {
+			log.warn("Ignoring MediaItem that is neither browsable nor playable: mediaId: {}", item.getMediaId());
+		}
+	}
+
+	protected abstract void setContent(MediaFragment instance);
 }

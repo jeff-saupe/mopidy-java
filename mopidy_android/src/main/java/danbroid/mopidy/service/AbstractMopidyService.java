@@ -11,7 +11,7 @@ import android.support.v4.media.MediaBrowserServiceCompat;
 
 import java.util.List;
 
-import danbroid.mopidy.util.MediaIDS;
+import danbroid.mopidy.util.MediaIds;
 import danbroid.mopidy.util.PackageValidator;
 
 /**
@@ -25,7 +25,7 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 	public static final String SESSION_EVENT_NOT_BUSY = AbstractMopidyService.class.getName() + ".EVENT_NOT_BUSY";
 
 
-	protected AbstractMopidyBackend backend;
+	protected MopidyBackend backend;
 	private PackageValidator packageValidator;
 
 	@Override
@@ -38,7 +38,9 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 		packageValidator = new PackageValidator(this);
 	}
 
-	protected abstract AbstractMopidyBackend createBackend();
+	protected  MopidyBackend createBackend(){
+		return MopidyBackend_.getInstance_(this);
+	}
 
 
 	public void setSessionActivity(Class<? extends Activity> activityClass) {
@@ -60,16 +62,21 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 			log.error("OnGetRoot: Browsing NOT ALLOWED for unknown caller. "
 					+ "Returning empty browser root so all apps can use MediaController."
 					+ clientPackageName);
-			return new BrowserRoot(MediaIDS.
-					MEDIA_ID_EMPTY_ROOT, null);
+			return new BrowserRoot(MediaIds.EMPTY_ROOT.toString(), null);
 		}
 
-		return new BrowserRoot(MediaIDS.MEDIA_ID_ROOT, null);
+		return new BrowserRoot(MediaIds.ROOT, null);
 	}
 
 	@Override
 	public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-		log.trace("onLoadChildren(): {}", parentId);
 		backend.onLoadChildren(parentId, result);
+	}
+
+	@Override
+	public void onDestroy() {
+		log.info("onDestroy()");
+		super.onDestroy();
+		backend.onDestroy();
 	}
 }

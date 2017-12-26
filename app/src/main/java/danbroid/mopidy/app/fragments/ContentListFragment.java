@@ -32,11 +32,12 @@ import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.content.ContentController;
 import danbroid.mopidy.app.interfaces.ContentView;
-import danbroid.mopidy.app.interfaces.MainPrefs_;
 import danbroid.mopidy.app.util.ImageResolver;
 import danbroid.mopidy.app.util.MopidyUris;
 import danbroid.mopidy.glide.GlideApp;
 import danbroid.mopidy.interfaces.CallContext;
+import danbroid.mopidy.interfaces.MopidyPrefs;
+import danbroid.mopidy.interfaces.MopidyPrefs_;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
 
@@ -56,7 +57,7 @@ public class ContentListFragment extends Fragment implements ContentView {
 	View spinner;
 
 	@Pref
-	MainPrefs_ prefs;
+	MopidyPrefs_ prefs;
 
 	@FragmentArg(ARG_URI)
 	Uri uri;

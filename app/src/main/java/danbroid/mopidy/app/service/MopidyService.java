@@ -1,16 +1,9 @@
 package danbroid.mopidy.app.service;
 
-import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.media.MediaBrowserCompat;
-
 import org.androidannotations.annotations.EService;
 
-import java.util.List;
-
 import danbroid.mopidy.app.activities.MainActivity_;
-import danbroid.mopidy.service.AbstractMopidyBackend;
+import danbroid.mopidy.service.MopidyBackend;
 import danbroid.mopidy.service.AbstractMopidyService;
 
 /**
@@ -26,20 +19,7 @@ public class MopidyService extends AbstractMopidyService {
 		setSessionActivity(MainActivity_.class);
 	}
 
-	@Override
-	protected AbstractMopidyBackend createBackend() {
-		return MopidyBackend_.getInstance_(this);
-	}
 
 
-	@Nullable
-	@Override
-	public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
-		return super.onGetRoot(clientPackageName, clientUid, rootHints);
-	}
 
-	@Override
-	public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-		super.onLoadChildren(parentId, result);
-	}
 }
