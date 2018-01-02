@@ -21,8 +21,7 @@ import danbroid.mopidy.util.PackageValidator;
 public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractMopidyService.class);
 
-	public static final String SESSION_EVENT_BUSY = AbstractMopidyService.class.getName() + ".EVENT_BUSY";
-	public static final String SESSION_EVENT_NOT_BUSY = AbstractMopidyService.class.getName() + ".EVENT_NOT_BUSY";
+
 
 
 	protected MopidyBackend backend;
@@ -62,7 +61,7 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 			log.error("OnGetRoot: Browsing NOT ALLOWED for unknown caller. "
 					+ "Returning empty browser root so all apps can use MediaController."
 					+ clientPackageName);
-			return new BrowserRoot(MediaIds.EMPTY_ROOT.toString(), null);
+			return new BrowserRoot(MediaIds.EMPTY_ROOT, null);
 		}
 
 		return new BrowserRoot(MediaIds.ROOT, null);

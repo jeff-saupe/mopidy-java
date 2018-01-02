@@ -37,9 +37,9 @@
         android:layout_marginBottom="?attr/actionBarSize"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
-    <fragment
+    <FrameLayout
         android:id="@+id/bottom_controls"
-        class="danbroid.mopidy.app.fragments.BottomControlsFragment_"
+
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:layout_behavior="@string/bottom_sheet_behavior"

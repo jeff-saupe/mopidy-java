@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.net.ConnectivityManager;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v4.media.MediaBrowserCompat;
@@ -26,7 +25,6 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
 
-import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.ViewById;
 
@@ -35,8 +33,8 @@ import java.util.List;
 
 import danbroid.mopidy.R;
 import danbroid.mopidy.glide.GlideApp;
-import danbroid.mopidy.interfaces.MainView;
 import danbroid.mopidy.interfaces.MediaContentView;
+import danbroid.mopidy.util.MediaIds;
 
 
 /**
@@ -49,7 +47,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 	private String mediaId;
 
 	@ViewById(resName = "busy_indicator")
-	View busyIndicator;
+	protected View busyIndicator;
 
 
 	private final ContentObserver contentObserver = new ContentObserver(null) {
@@ -65,26 +63,25 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 
 	public static MediaListFragment getInstance(String mediaID) {
-
 		return MediaListFragment_.builder().arg(ARG_MEDIA_ID, mediaID).build();
 	}
 
 	@ViewById(resName = "spinner")
-	View spinner;
+	protected View spinner;
 
 	@ViewById(resName = "empty_text")
-	TextView emptyText;
+	protected TextView emptyText;
 
 	@ViewById(resName = "recycler_view")
-	RecyclerView recyclerView;
+	protected RecyclerView recyclerView;
 
 	@ViewById(resName = "swipe_refresh")
-	SwipeRefreshLayout swipeRefreshLayout;
+	protected SwipeRefreshLayout swipeRefreshLayout;
 
-	MainView mainView;
+	protected String mediaID;
 
+	protected RecyclerView.Adapter<MediaItemViewHolder> adapter;
 
-	RecyclerView.Adapter<MediaItemViewHolder> adapter;
 
 	private final BroadcastReceiver connectivityChangeListener = new BroadcastReceiver() {
 		private boolean oldOnline = false;
@@ -121,7 +118,9 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 	@Override
 	protected void onMetadataChanged(MediaMetadataCompat metadata) {
 		super.onMetadataChanged(metadata);
-		adapter.notifyDataSetChanged();
+
+
+		//adapter.notifyDataSetChanged();
 	}
 
 	private List<MediaBrowserCompat.MediaItem> data = new LinkedList<>();
@@ -152,6 +151,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 			if (iconURI == null) {
 				imageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_folder));
+
 			} else {
 				GlideApp.with(MediaListFragment.this)
 						.load(iconURI)
@@ -165,16 +165,16 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 		@Override
 		public void onClick(View view) {
-		mainView.onMediaItemSelected(item);
+			getMainView().onMediaItemSelected(item);
 		}
 	}
 
-
-	@AfterViews
-	void init() {
-		log.trace("init()");
+	protected void init() {
+		super.init();
+		mediaId = getArguments().getString(ARG_MEDIA_ID, null);
+		log.trace("init() :{}", mediaId);
 		setEmptyText(R.string.msg_loading);
-		mainView = (MainView) getActivity();
+
 
 		swipeRefreshLayout.setEnabled(false);
 
@@ -217,12 +217,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 	}
 
 	public String getMediaId() {
-		Bundle args = getArguments();
-		String defaultValue = null; //TODO MediaIDHelper.MEDIA_ID_ALL;
-		if (args != null) {
-			return args.getString(ARG_MEDIA_ID, defaultValue);
-		}
-		return defaultValue;
+		return getArguments().getString(ARG_MEDIA_ID, null);
 	}
 
 
@@ -242,7 +237,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 		mediaId = getMediaId();
 		if (mediaId == null) {
-			mediaId = mainView.getMediaBrowser().getRoot();
+			mediaId = getMainView().getMediaBrowser().getRoot();
 		}
 
 		log.trace("onConnected() mediaID:{}", mediaId);
@@ -258,7 +253,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		// subscriber or not. Currently this only happens if the mediaID has no previous
 		// subscriber or if the media content changes on the service side, so we need to
 		// unsubscribe first.
-		MediaBrowserCompat mediaBrowser = mainView.getMediaBrowser();
+		MediaBrowserCompat mediaBrowser = getMainView().getMediaBrowser();
 		mediaBrowser.unsubscribe(mediaId);
 //		mainView.getMediaBrowser().
 
@@ -307,7 +302,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 	@Override
 	public void onStop() {
 		super.onStop();
-		MediaBrowserCompat mediaBrowser = mainView.getMediaBrowser();
+		MediaBrowserCompat mediaBrowser = getMainView().getMediaBrowser();
 		if (mediaBrowser != null && mediaBrowser.isConnected() && mediaId != null) {
 			mediaBrowser.unsubscribe(mediaId);
 		}
@@ -344,5 +339,13 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 				}
 			};
 
+	@Override
+	protected void onMopidyConnected() {
+		log.info("onMopidyConnected(): {}", getMediaId());
+		if (mediaId.startsWith(MediaIds.SERVER))
+			getMainView().showContent(MediaIds.MOPIDY_ROOT);
+
+
+	}
 }
 

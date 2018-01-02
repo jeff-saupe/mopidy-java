@@ -33,15 +33,15 @@ public class Api {
 		this.methodPrefix = methodPrefix;
 	}
 
-	protected MopidyConnection getConnection() {
+	public MopidyConnection getConnection() {
 		return parent.getConnection();
 	}
 
-	protected <T> Call<T> createCall(String method) {
+	public <T> Call<T> createCall(String method) {
 		return new Call<T>(methodPrefix + method, getConnection());
 	}
 
-	protected <T> Call<T> createCall(String method, Class<T> resultType) {
+	public <T> Call<T> createCall(String method, Class<T> resultType) {
 		Call<T> call = createCall(method);
 		call.setResultType(resultType);
 		return call;

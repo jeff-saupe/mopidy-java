@@ -21,6 +21,7 @@
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
 
+
     </activity>
 
     <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
@@ -31,7 +32,12 @@
 
     <service
         android:name=".service.MopidyService_"
-        android:exported="true">
+        android:exported="true"
+        >
+      <meta-data
+          android:name="message"
+          android:value="Hello World"/>
+
       <intent-filter>
         <action android:name="android.media.browse.MediaBrowserService"/>
       </intent-filter>

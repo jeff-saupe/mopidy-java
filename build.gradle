@@ -26,7 +26,7 @@ buildscript {
         annotations: "4.4.0",
         supportLib : "27.0.2",
         utilVersion: "v1.038",
-        googlePlay : "11.6.2",
+        googlePlay : "11.8.0",
         slf4j      : "1.7.25",
         gson       : "2.8.2",
         glide      : "4.4.0",

@@ -10,7 +10,7 @@ import org.androidannotations.annotations.SupposeUiThread;
 import java.util.HashSet;
 import java.util.Set;
 
-import danbroid.mopidy.app.MopidyConnection;
+import danbroid.mopidy.AndroidMopidyConnection;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
@@ -20,12 +20,13 @@ import danbroid.mopidy.util.UIResponseHandler;
 /**
  * Created by dan on 14/12/17.
  */
+@Deprecated
 @EBean(scope = EBean.Scope.Singleton)
 public class Playback implements EventListener {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Playback.class);
 
 	@Bean
-	MopidyConnection conn;
+	AndroidMopidyConnection conn;
 	private boolean mute;
 	private int volume;
 	private long time_position;
@@ -250,7 +251,7 @@ public class Playback implements EventListener {
 		}
 	}
 
-	public MopidyConnection getConnection() {
+	public AndroidMopidyConnection getConnection() {
 		return conn;
 	}
 

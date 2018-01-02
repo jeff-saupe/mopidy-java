@@ -9,10 +9,6 @@ public class Core extends Api {
 		super("core.");
 	}
 
-	public Call<String> getVersion() {
-		return createCall("get_version", String.class);
-	}
-
 	public Call<String[]> getUriScemes() {
 		return createCall("get_uri_schemes", String[].class);
 	}

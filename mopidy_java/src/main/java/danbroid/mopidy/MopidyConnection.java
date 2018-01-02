@@ -47,23 +47,24 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	}
 
 
-	public void setUrl(String url) {
-		log.trace("setUrl(): {}", url);
+	public void setURL(String url) {
+		log.trace("setURL(): {}", url);
 		this.url = url;
 	}
 
-	public String getUrl() {
+	public String getURL() {
 		return url;
 	}
 
 	public void start(String url) {
 		log.info("start(): {}", url);
-		setUrl(url);
+		setURL(url);
 		start();
 	}
 
 	public void start(String host, int port) {
-		start("ws://" + host + ":" + port + "/mopidy/ws");
+		setURL(host, port);
+		start();
 	}
 
 
@@ -79,7 +80,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 		version = null;
 
-		getVersion().call(new ResponseHandler<String>() {
+		createCall("get_version", String.class).call(new ResponseHandler<String>() {
 			@Override
 			public void onResponse(CallContext context, String result) {
 				MopidyConnection.this.version = result;
@@ -87,6 +88,10 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 				onConnect();
 			}
 		});
+	}
+
+	public String getVersion() {
+		return version;
 	}
 
 	protected void onConnect() {
@@ -103,10 +108,6 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		sendCall(call);
 	}
 
-	@Override
-	protected MopidyConnection getConnection() {
-		return this;
-	}
 
 	public Transport getTransport() {
 		return transport;
@@ -114,7 +115,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 	protected void sendCall(Call call) {
 		if (url == null) return;
-		if (transport == null) start();
+		if (transport == null) start(null);
 
 
 		int id = requestID.incrementAndGet();
@@ -126,7 +127,6 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		log.trace("call(): request<{}>", request);
 		transport.send(request);
 	}
-
 
 
 	/**
@@ -154,7 +154,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	}
 
 	protected void processMessage(String text) {
-		//log.trace("processMessage(): {}", text);
+		log.trace("processMessage(): {}", text);
 		try {
 			JsonElement e = parser.parse(text);
 			if (e.isJsonObject()) {
@@ -164,7 +164,9 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 					o = o.getAsJsonObject(Constants.Key.ERROR);
 					int id = o.get(Constants.Key.ID).getAsInt();
 					String message = o.get(Constants.Key.MESSAGE).getAsString();
-					int code = o.get(Constants.Key.CODE).getAsInt();
+					int code = 0;
+					if (o.has(Constants.Key.CODE)) code = o.get(Constants.Key.CODE).getAsInt();
+
 					JsonElement data = o.get(Constants.Key.DATA);
 					processError(id, message, code, data);
 					return;
@@ -282,6 +284,10 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		return true;
 	}
 
+	@Override
+	public MopidyConnection getConnection() {
+		return this;
+	}
 
 	public boolean isStarted() {
 		return transport != null;
@@ -297,5 +303,9 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 	public int getCallQueueSize() {
 		return calls.size();
+	}
+
+	public void setURL(String host, int port) {
+		setURL("ws://" + host + ":" + port + "/mopidy/ws");
 	}
 }

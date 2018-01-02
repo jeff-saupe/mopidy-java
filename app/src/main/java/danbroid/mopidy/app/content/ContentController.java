@@ -1,7 +1,6 @@
 package danbroid.mopidy.app.content;
 
 import android.net.Uri;
-import android.net.nsd.NsdServiceInfo;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
@@ -15,11 +14,10 @@ import java.util.List;
 import java.util.Set;
 
 import danbroid.mopidy.ResponseHandler;
-import danbroid.mopidy.app.MopidyConnection;
+import danbroid.mopidy.AndroidMopidyConnection;
 import danbroid.mopidy.app.interfaces.ContentView;
 import danbroid.mopidy.app.util.MopidyUris;
 import danbroid.mopidy.interfaces.CallContext;
-import danbroid.mopidy.interfaces.MopidyPrefs;
 import danbroid.mopidy.interfaces.MopidyPrefs_;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
@@ -28,6 +26,7 @@ import danbroid.mopidy.util.UIResponseHandler;
 /**
  * Created by dan on 10/12/17.
  */
+@Deprecated
 @EBean(scope = EBean.Scope.Singleton)
 public class ContentController {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContentController.class);
@@ -38,7 +37,7 @@ public class ContentController {
 
 
 	@Bean
-	MopidyConnection conn;
+	AndroidMopidyConnection conn;
 
 
 	@Pref

@@ -1,25 +1,27 @@
-package danbroid.mopidy.app;
+package danbroid.mopidy;
 
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.androidannotations.annotations.AfterInject;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
 import danbroid.mopidy.interfaces.MopidyPrefs_;
+import danbroid.mopidy.service.MopidyBackend;
 
 
 /**
  * Created by dan on 14/12/17.
  */
 @EBean(scope = EBean.Scope.Singleton)
-public class MopidyConnection extends danbroid.mopidy.MopidyConnection {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyConnection.class);
-	public static final String INTENT_SERVER_CONNECTED = MopidyConnection.class.getName() + ".INTENT_SERVER_CONNECTED";
+public class AndroidMopidyConnection extends danbroid.mopidy.MopidyConnection {
+	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AndroidMopidyConnection.class);
+	public static final String INTENT_SERVER_CONNECTED = AndroidMopidyConnection.class.getName() + ".INTENT_SERVER_CONNECTED";
 
 	@Pref
 	MopidyPrefs_ prefs;
@@ -27,17 +29,21 @@ public class MopidyConnection extends danbroid.mopidy.MopidyConnection {
 	@RootContext
 	Context context;
 
+
+	@Bean
+	MopidyBackend backend;
+
 	@AfterInject
 	void init() {
 		String url = prefs.lastConnectionURL().getOr(null);
 		if (url != null) {
-			setUrl(url);
+			setURL(url);
 		}
 	}
 
 	@Override
-	public void setUrl(String url) {
-		super.setUrl(url);
+	public void setURL(String url) {
+		super.setURL(url);
 		prefs.edit().lastConnectionURL().put(url).apply();
 	}
 
@@ -45,6 +51,7 @@ public class MopidyConnection extends danbroid.mopidy.MopidyConnection {
 	protected void onConnect() {
 		log.info("onConnect()");
 		LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(INTENT_SERVER_CONNECTED));
+		backend.getSession().sendSessionEvent(MopidyBackend.SESSION_EVENT_CONNECTED,null);
 	}
 
 	/**

@@ -8,13 +8,17 @@ import android.net.Uri;
 public class MediaIds {
 	//private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MediaIds.class);
 
-	public static final String EMPTY_ROOT = "empty_root";
-	public static final String ROOT = "root";
-	public static final String SERVER = "server";
+	public static final String EMPTY_ROOT = "__EMPTY_ROOT__";
+	public static final String ROOT = "__ROOT__";
+	public static final String SERVER = "__SERVER__";
+	public static final String MOPIDY_ROOT = "__MOPIDY__";
+
 
 	public static String idServer(String host, int port) {
 		return SERVER + "/" + Uri.encode(host + ":" + port);
 	}
+
+
 
 
 }

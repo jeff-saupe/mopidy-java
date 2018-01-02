@@ -142,15 +142,21 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 
 
 		if (item.isPlayable()) {
+			log.error("PLAYABLE!");
 			getSupportMediaController().getTransportControls()
 					.playFromMediaId(item.getMediaId(), null);
 
 		} else if (item.isBrowsable()) {
-			setContent(MediaListFragment.getInstance(item.getMediaId()));
+			showContent(item.getMediaId());
 		} else {
 			log.warn("Ignoring MediaItem that is neither browsable nor playable: mediaId: {}", item.getMediaId());
 		}
 	}
 
 	protected abstract void setContent(MediaFragment instance);
+
+	@Override
+	public void showContent(String mediaID) {
+		setContent(MediaListFragment.getInstance(mediaID));
+	}
 }

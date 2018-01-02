@@ -9,6 +9,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.text.TextUtils;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
@@ -17,8 +18,13 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 import java.util.LinkedList;
 import java.util.List;
 
+import danbroid.mopidy.AndroidMopidyConnection;
 import danbroid.mopidy.BuildConfig;
+import danbroid.mopidy.ResponseHandler;
+import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.MopidyPrefs_;
+import danbroid.mopidy.model.Ref;
+import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.util.MediaIds;
 import danbroid.mopidy.util.MopidyServerFinder;
 
@@ -29,6 +35,11 @@ import danbroid.mopidy.util.MopidyServerFinder;
 @EBean(scope = EBean.Scope.Singleton)
 public class MopidyBackend {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyBackend.class);
+
+	public static final String SESSION_EVENT_BUSY = "MopidyBackend.EVENT_BUSY";
+	public static final String SESSION_EVENT_NOT_BUSY = "MopidyBackend.EVENT_NOT_BUSY";
+	public static final String SESSION_EVENT_CONNECTED = "MopidyBackend.EVENT_CONNECTED";
+
 	public static String SESSION_TAG = "MopidyService";
 
 	protected MediaBrowserServiceCompat service;
@@ -39,6 +50,10 @@ public class MopidyBackend {
 
 	@Pref
 	MopidyPrefs_ prefs;
+
+
+	@Bean
+	AndroidMopidyConnection conn;
 
 	@Bean
 	protected MopidyServerFinder discoveryHelper;
@@ -51,7 +66,11 @@ public class MopidyBackend {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 			discoveryHelper.start();
 		}
+
+		new MopidyEventManager(session, conn);
+
 	}
+
 
 	protected void initSession() {
 		session = new MediaSessionCompat(service, SESSION_TAG);
@@ -69,10 +88,41 @@ public class MopidyBackend {
 	}
 
 	protected class SessionCallback extends MediaSessionCompat.Callback {
+
+		@Override
+		public void onPause() {
+			conn.getPlayback().pause().call();
+		}
+
+		@Override
+		public void onPlay() {
+			conn.getPlayback().play(null, null).call();
+		}
+
 		@Override
 		public void onPlayFromUri(Uri uri, Bundle extras) {
 			log.error("onPlayFromUri(): {} NOT IMPLEMENTED", uri);//TODO
 		}
+
+		@Override
+		public void onPlayFromMediaId(String mediaId, Bundle extras) {
+			playFromMediaID(mediaId);
+		}
+	}
+
+	public void playFromMediaID(String mediaId) {
+		log.debug("playFromMediaID(): {}", mediaId);
+		conn.getTrackList().add(mediaId, null, null, null)
+				.call(new ResponseHandler<TlTrack[]>() {
+					@Override
+					public void onResponse(CallContext context, TlTrack[] result) {
+						if (result.length != 1) {
+							log.error("unexpected result length: " + result.length);
+							return;
+						}
+						conn.getPlayback().play(result[0].getTlid(), null).call();
+					}
+				});
 	}
 
 	protected MediaSessionCompat.Callback createSessionCallback() {
@@ -92,18 +142,71 @@ public class MopidyBackend {
 		switch (type) {
 			case MediaIds.ROOT:
 				loadRoot(result);
-				break;
+				return;
 			case MediaIds.SERVER:
 				loadServer(data, result);
-				break;
-			default:
-				log.error("Unhandled parentID: " + parentId);
+				return;
+			case MediaIds.MOPIDY_ROOT:
+				parentId = null;
 				break;
 		}
+
+		loadMopidy(parentId, result);
 	}
 
-	protected void loadServer(String data, MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
+	protected void loadMopidy(String id, @NonNull final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
+		log.trace("loadMopidy(): {}", id);
+		if (TextUtils.isEmpty(id)) id = null;
+		result.detach();
+		conn.getLibrary().browse(id).call(new ResponseHandler<Ref[]>() {
+			@Override
+			public void onResponse(CallContext context, Ref[] refs) {
+				result.sendResult(toMediaItems(refs));
+			}
+		});
+
+	}
+
+	public List<MediaBrowserCompat.MediaItem> toMediaItems(Ref[] refs) {
+		LinkedList<MediaBrowserCompat.MediaItem> items = new LinkedList<>();
+		for (Ref ref : refs)
+			items.add(toMediaItem(ref));
+		return items;
+	}
+
+	public MediaBrowserCompat.MediaItem toMediaItem(Ref ref) {
+		MediaDescriptionCompat.Builder desc = new MediaDescriptionCompat.Builder();
+		String name = ref.getName();
+		desc.setTitle(name);
+		String uri = ref.getUri();
+		desc.setMediaId(uri);
+
+		log.trace("toMediaItem(): " + ref.getType() + " {}:{}", name, uri);
+		desc.setDescription(uri);
+
+		int flags = 0;
+		if (ref.getType().equals(Ref.TYPE_TRACK)) flags = MediaBrowserCompat.MediaItem.FLAG_PLAYABLE;
+		else flags = MediaBrowserCompat.MediaItem.FLAG_BROWSABLE;
+		return new MediaBrowserCompat.MediaItem(desc.build(), flags);
+	}
+
+	protected void loadServer(String data, final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
 		log.trace("loadServer(): {}", data);
+		int i = data.indexOf(':');
+		String host = data.substring(0, i);
+		int port = Integer.parseInt(data.substring(i + 1));
+		String url = conn.getURL();
+		conn.setURL(host,port);
+		String url2 = conn.getURL();
+
+		if (url2.equals(url)){
+			log.error("NO CHANGE TO URL: version: " + conn.getVersion());
+		}else {
+			conn.start();
+		}
+
+
+		loadMopidy(null,result);
 	}
 
 	protected void loadRoot(MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
@@ -139,6 +242,12 @@ public class MopidyBackend {
 			desc.setTitle("Dan");
 			desc.setMediaId(MediaIds.idServer("192.168.1.2", 6680));
 			desc.setDescription("dans mopidy server");
+			items.add(new MediaBrowserCompat.MediaItem(desc.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+
+			desc = new MediaDescriptionCompat.Builder();
+			desc.setTitle("Rip");
+			desc.setMediaId(MediaIds.idServer("192.168.1.4", 6680));
+			desc.setDescription("rip mopidy server");
 			items.add(new MediaBrowserCompat.MediaItem(desc.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
 		}
 

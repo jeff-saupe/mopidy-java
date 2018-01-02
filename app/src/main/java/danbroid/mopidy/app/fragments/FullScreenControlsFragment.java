@@ -21,6 +21,7 @@ import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.util.FlingDetector;
 import danbroid.mopidy.app.util.ImageResolver;
 import danbroid.mopidy.app.util.NavBarColours;
+import danbroid.mopidy.fragments.MediaFragment;
 import danbroid.mopidy.glide.GlideApp;
 import danbroid.mopidy.lastfm.Album;
 import danbroid.mopidy.lastfm.AlbumSearch;
@@ -33,7 +34,7 @@ import jp.wasabeef.blurry.Blurry;
  * Created by dan on 18/12/17.
  */
 @EFragment(R.layout.fullscreen_controls)
-public class FullScreenControlsFragment extends PlaybackFragment {
+public class FullScreenControlsFragment extends MediaFragment {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FullScreenControlsFragment.class);
 
 	@ViewById(R.id.image)
@@ -52,7 +53,6 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 	ImageResolver imageResolver;
 
 	protected void init() {
-		super.init();
 		getView().setOnTouchListener(new FlingDetector(getContext()) {
 			@Override
 			protected boolean onFlingDown(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
@@ -62,9 +62,8 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 		});
 	}
 
-	@Override
+
 	protected void displayTrack(TlTrack tlTrack) {
-		super.displayTrack(tlTrack);
 
 		if (tlTrack == null) return;
 
@@ -115,11 +114,9 @@ public class FullScreenControlsFragment extends PlaybackFragment {
 	}
 
 
-
-
 	@Click(R.id.chevron_down)
 	public void close() {
-	//TODO 	getMainView().hideFullControls();
+		//TODO 	getMainView().hideFullControls();
 	}
 
 

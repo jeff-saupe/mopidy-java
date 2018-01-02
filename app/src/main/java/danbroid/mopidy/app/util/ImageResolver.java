@@ -1,7 +1,5 @@
 package danbroid.mopidy.app.util;
 
-import android.net.Uri;
-
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.SupposeUiThread;
@@ -11,12 +9,11 @@ import java.util.HashSet;
 import java.util.Map;
 
 import danbroid.mopidy.ResponseHandler;
-import danbroid.mopidy.app.MopidyConnection;
+import danbroid.mopidy.AndroidMopidyConnection;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.lastfm.LastFMCall;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
-import danbroid.mopidy.model.Track;
 import danbroid.mopidy.util.UIResponseHandler;
 
 /**
@@ -31,7 +28,7 @@ public class ImageResolver {
 	}
 
 	@Bean
-	MopidyConnection conn;
+	AndroidMopidyConnection conn;
 
 	public static final Image MISSING_IMAGE = new Image();
 	private Map<String, Image> CACHE = new HashMap<>();
