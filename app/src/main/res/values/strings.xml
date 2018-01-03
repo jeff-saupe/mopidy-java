@@ -7,4 +7,5 @@
   <string name="msg_replace_in_playlist">Replace in playlist</string>
   <string name="msg_add_to_playlist">Add to playlist</string>
   <string name="action_home">Home</string>
+  <string name="lastfm_api_key">00ed568fa493d39e290ae42713b9094f</string>
 </resources>

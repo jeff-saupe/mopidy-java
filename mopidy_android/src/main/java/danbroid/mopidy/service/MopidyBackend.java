@@ -196,17 +196,17 @@ public class MopidyBackend {
 		String host = data.substring(0, i);
 		int port = Integer.parseInt(data.substring(i + 1));
 		String url = conn.getURL();
-		conn.setURL(host,port);
+		conn.setURL(host, port);
 		String url2 = conn.getURL();
 
-		if (url2.equals(url)){
-			log.error("NO CHANGE TO URL: version: " + conn.getVersion());
-		}else {
+		if (url2.equals(url)) {
+			log.error("NO CHANGE TO URL: {}   version: ",url, conn.getVersion());
+		} else {
 			conn.start();
 		}
 
 
-		loadMopidy(null,result);
+		loadMopidy(null, result);
 	}
 
 	protected void loadRoot(MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
@@ -215,6 +215,7 @@ public class MopidyBackend {
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 			for (String serviceName : discoveryHelper.getServices().keySet()) {
+				log.error("FOUND SERVICE: " + serviceName);
 
 				NsdServiceInfo service = discoveryHelper.getServices().get(serviceName);
 

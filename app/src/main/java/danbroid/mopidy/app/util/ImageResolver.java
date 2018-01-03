@@ -23,9 +23,7 @@ import danbroid.mopidy.util.UIResponseHandler;
 public class ImageResolver {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ImageResolver.class);
 
-	static {
-		LastFMCall.API_KEY = "00ed568fa493d39e290ae42713b9094f";
-	}
+
 
 	@Bean
 	AndroidMopidyConnection conn;

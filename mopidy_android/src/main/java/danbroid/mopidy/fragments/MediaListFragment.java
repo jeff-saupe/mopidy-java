@@ -176,6 +176,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		setEmptyText(R.string.msg_loading);
 
 
+		getActivity().setTitle(mediaId);
 		swipeRefreshLayout.setEnabled(false);
 
 
@@ -242,7 +243,6 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 		log.trace("onConnected() mediaID:{}", mediaId);
 
-		updateTitle();
 
 		// Unsubscribing before subscribing is required if this mediaId already has a subscriber
 		// on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
@@ -269,34 +269,15 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		return false;
 	}
 
-	private void updateTitle() {
-	/*TODO	if (MediaIDHelper.MEDIA_ID_PODCASTS.equals(mediaId)) {
-			mainView.setToolbarTitle(null);
-			return;
-		}
-
-		MediaBrowserCompat mediaBrowser = mainView.getMediaBrowser();
-		mediaBrowser.getItem(mediaId, new MediaBrowserCompat.ItemCallback() {
-			@Override
-			public void onItemLoaded(MediaBrowserCompat.MediaItem item) {
-				mainView.setToolbarTitle(
-						item.getDescription().getTitle());
-			}
-		});*/
-	}
 
 
 	@Override
 	public void onStart() {
 		super.onStart();
-
-
 		// Registers BroadcastReceiver to track network connection changes.
 		this.getActivity().registerReceiver(connectivityChangeListener,
 				new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
-
-		//TODO getContext().getContentResolver().registerContentObserver(MediaURIs.URI_STREAMS, false, contentObserver);
 	}
 
 	@Override
@@ -342,10 +323,6 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 	@Override
 	protected void onMopidyConnected() {
 		log.info("onMopidyConnected(): {}", getMediaId());
-		if (mediaId.startsWith(MediaIds.SERVER))
-			getMainView().showContent(MediaIds.MOPIDY_ROOT);
-
-
 	}
 }
 

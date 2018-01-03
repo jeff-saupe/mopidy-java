@@ -62,18 +62,17 @@ public class MopidyServerFinder implements NsdManager.DiscoveryListener {
 
 	@Override
 	public void onServiceFound(NsdServiceInfo serviceInfo) {
-		log.trace("onServiceFound(): {}", serviceInfo);
+		log.trace("onServiceFound(): {}", serviceInfo.getServiceName());
 		nsdManager.resolveService(serviceInfo, new NsdManager.ResolveListener() {
 			@Override
 			public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
 				log.debug("onResolvedFailed(): code: {} :{}", errorCode, serviceInfo);
 				onServiceRemoved(serviceInfo);
-
 			}
 
 			@Override
 			public void onServiceResolved(NsdServiceInfo serviceInfo) {
-				log.debug("onServiceResolved(): {}", serviceInfo);
+				log.debug("onServiceResolved(): {}", serviceInfo.getServiceName());
 				onServiceAdded(serviceInfo);
 			}
 		});
