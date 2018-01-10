@@ -31,7 +31,10 @@ public class WebSocketTransport extends Transport {
 		if (socket != null) throw new IllegalArgumentException("socket already exists");
 
 		OkHttpClient client = new OkHttpClient.Builder()
-				.readTimeout(10, TimeUnit.SECONDS).connectTimeout(5, TimeUnit.SECONDS).build();
+				.readTimeout(5, TimeUnit.SECONDS)
+				.retryOnConnectionFailure(true)
+				.connectTimeout(5, TimeUnit.SECONDS).build();
+
 
 		Request request = new Request.Builder().url(url).build();
 

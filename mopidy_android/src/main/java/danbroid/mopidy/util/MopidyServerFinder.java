@@ -6,12 +6,15 @@ import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.SystemService;
 import org.androidannotations.annotations.UiThread;
 
 import java.util.HashMap;
+
+import danbroid.mopidy.service.MopidyBackend;
 
 /**
  * Created by dan on 26/12/17.
@@ -27,6 +30,9 @@ public class MopidyServerFinder implements NsdManager.DiscoveryListener {
 
 	@SystemService
 	NsdManager nsdManager;
+
+	@Bean
+	MopidyBackend backend;
 
 	private HashMap<String, NsdServiceInfo> services = new HashMap<>();
 
@@ -79,9 +85,11 @@ public class MopidyServerFinder implements NsdManager.DiscoveryListener {
 	}
 
 	protected void onServiceAdded(NsdServiceInfo serviceInfo) {
+		log.trace("onServiceAdded(): {}",serviceInfo);
 		if (!services.containsKey(serviceInfo.getServiceName())) {
 			services.put(serviceInfo.getServiceName(), serviceInfo);
 		}
+		backend.getService().notifyChildrenChanged(MediaIds.ROOT);
 	}
 
 
@@ -90,6 +98,7 @@ public class MopidyServerFinder implements NsdManager.DiscoveryListener {
 		if (services.containsKey(serviceInfo.getServiceName())) {
 			services.remove(serviceInfo.getServiceName());
 		}
+		backend.getService().notifyChildrenChanged(MediaIds.ROOT);
 	}
 
 	@UiThread

@@ -77,14 +77,12 @@ public class MopidyEventManager extends EventListenerImpl {
 		if (album != null)
 			description = (description == null) ? album : description + " - " + album;
 
-
-		log.error("DESCRIPTION: " + description);
-		long duration = track.getLength();
 		MediaMetadataCompat.Builder md = new MediaMetadataCompat.Builder()
 				.putText(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, track.getName())
-				.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
 				.putText(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, description);
 
+		if (track.getLength() != null)
+			md.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, track.getLength());
 
 		if (track.getAlbum() != null) {
 			if (track.getAlbum().getImages() != null && track.getAlbum().getImages().length > 0) {

@@ -15,14 +15,17 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import danbroid.mopidy.AndroidMopidyConnection;
 import danbroid.mopidy.BuildConfig;
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.MopidyPrefs_;
+import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.util.MediaIds;
@@ -49,14 +52,15 @@ public class MopidyBackend {
 
 
 	@Pref
-	MopidyPrefs_ prefs;
+	protected MopidyPrefs_ prefs;
 
 
 	@Bean
-	AndroidMopidyConnection conn;
+	protected AndroidMopidyConnection conn;
 
 	@Bean
 	protected MopidyServerFinder discoveryHelper;
+
 
 	public void init(MediaBrowserServiceCompat service) {
 		this.service = service;
@@ -158,14 +162,48 @@ public class MopidyBackend {
 		log.trace("loadMopidy(): {}", id);
 		if (TextUtils.isEmpty(id)) id = null;
 		result.detach();
+
 		conn.getLibrary().browse(id).call(new ResponseHandler<Ref[]>() {
 			@Override
 			public void onResponse(CallContext context, Ref[] refs) {
-				result.sendResult(toMediaItems(refs));
+				resolveImages(refs, result);
 			}
 		});
 
 	}
+
+	protected void resolveImages(final Ref[] refs, @NonNull final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
+		log.trace("resolveImages()");
+		HashSet<String> uris = new HashSet<>();
+		for (Ref ref : refs) {
+			if (ref.getType().equals(Ref.TYPE_TRACK)) {
+				if (!uris.contains(ref.getUri())) uris.add(ref.getUri());
+			}
+		}
+
+		if (uris.isEmpty()) {
+			result.sendResult(toMediaItems(refs));
+			return;
+		}
+
+		conn.getLibrary().getImages(uris.toArray(new String[]{})).call(new ResponseHandler<Map<String, Image[]>>() {
+			@Override
+			public void onResponse(CallContext context, Map<String, Image[]> imgMap) {
+				for (Ref ref : refs) {
+					if (ref.getType().equals(Ref.TYPE_TRACK)) {
+						if (imgMap.containsKey(ref.getUri())) {
+							Image images[] = imgMap.get(ref.getUri());
+							if (images.length > 0)
+								ref.setExtra(images[0]);
+						}
+					}
+				}
+				result.sendResult(toMediaItems(refs));
+
+			}
+		});
+	}
+
 
 	public List<MediaBrowserCompat.MediaItem> toMediaItems(Ref[] refs) {
 		LinkedList<MediaBrowserCompat.MediaItem> items = new LinkedList<>();
@@ -184,6 +222,12 @@ public class MopidyBackend {
 		log.trace("toMediaItem(): " + ref.getType() + " {}:{}", name, uri);
 		desc.setDescription(uri);
 
+		if (ref.getExtra() != null) {
+			Image img = (Image) ref.getExtra();
+			log.trace("FOUND IMAGE {} -> {}", ref.getUri(), img.getUri());
+			desc.setIconUri(Uri.parse(img.getUri()));
+		}
+
 		int flags = 0;
 		if (ref.getType().equals(Ref.TYPE_TRACK)) flags = MediaBrowserCompat.MediaItem.FLAG_PLAYABLE;
 		else flags = MediaBrowserCompat.MediaItem.FLAG_BROWSABLE;
@@ -195,16 +239,7 @@ public class MopidyBackend {
 		int i = data.indexOf(':');
 		String host = data.substring(0, i);
 		int port = Integer.parseInt(data.substring(i + 1));
-		String url = conn.getURL();
-		conn.setURL(host, port);
-		String url2 = conn.getURL();
-
-		if (url2.equals(url)) {
-			log.error("NO CHANGE TO URL: {}   version: ",url, conn.getVersion());
-		} else {
-			conn.start();
-		}
-
+		conn.start(host, port);
 
 		loadMopidy(null, result);
 	}
@@ -238,7 +273,7 @@ public class MopidyBackend {
 			}
 		}
 
-		if (BuildConfig.DEBUG) {
+		if (BuildConfig.DEBUG) { //TODO REMOVE THIS SECTION
 			MediaDescriptionCompat.Builder desc = new MediaDescriptionCompat.Builder();
 			desc.setTitle("Dan");
 			desc.setMediaId(MediaIds.idServer("192.168.1.2", 6680));
@@ -261,5 +296,9 @@ public class MopidyBackend {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 			discoveryHelper.stop();
 		}
+	}
+
+	public MediaBrowserServiceCompat getService() {
+		return service;
 	}
 }

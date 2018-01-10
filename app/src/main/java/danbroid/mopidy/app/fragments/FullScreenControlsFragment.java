@@ -19,7 +19,6 @@ import org.androidannotations.annotations.ViewById;
 
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.util.FlingDetector;
-import danbroid.mopidy.app.util.ImageResolver;
 import danbroid.mopidy.app.util.NavBarColours;
 import danbroid.mopidy.fragments.MediaFragment;
 import danbroid.mopidy.glide.GlideApp;
@@ -49,8 +48,6 @@ public class FullScreenControlsFragment extends MediaFragment {
 	@ViewById(R.id.line2)
 	TextView line2;
 
-	@Bean
-	ImageResolver imageResolver;
 
 	protected void init() {
 		getView().setOnTouchListener(new FlingDetector(getContext()) {

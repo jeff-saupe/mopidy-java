@@ -21,9 +21,6 @@ import danbroid.mopidy.util.PackageValidator;
 public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractMopidyService.class);
 
-
-
-
 	protected MopidyBackend backend;
 	private PackageValidator packageValidator;
 
@@ -47,6 +44,7 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 		PendingIntent pi = PendingIntent.getActivity(this, 99 /*request code*/,
 				intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		backend.getSession().setSessionActivity(pi);
+
 	}
 
 
