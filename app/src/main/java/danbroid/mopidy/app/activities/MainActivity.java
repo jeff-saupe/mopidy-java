@@ -2,6 +2,7 @@ package danbroid.mopidy.app.activities;
 
 import android.os.Build;
 import android.support.annotation.DrawableRes;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,11 +23,11 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 import danbroid.mopidy.activities.MopidyActivity;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.fragments.FullScreenControlsFragment;
+import danbroid.mopidy.interfaces.MainView;
 import danbroid.mopidy.app.service.MopidyService_;
 import danbroid.mopidy.app.ui.AddServerDialog_;
 import danbroid.mopidy.fragments.MediaFragment;
 import danbroid.mopidy.fragments.MediaListFragment;
-import danbroid.mopidy.interfaces.MainView;
 import danbroid.mopidy.interfaces.MopidyPrefs_;
 import danbroid.mopidy.service.AbstractMopidyService;
 import danbroid.mopidy.util.MediaIds;
@@ -45,6 +46,12 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 	@ViewById(R.id.fab)
 	FloatingActionButton fab;
 
+	@ViewById(R.id.bottom_controls)
+	View bottomControls;
+
+	@ViewById(R.id.content_container)
+	View contentContainer;
+
 
 	public void init() {
 		super.init();
@@ -58,6 +65,69 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 		if (getContent() == null) {
 			actionHome();
 		}
+
+
+	}
+
+
+	public void showBottomControls(boolean animate) {
+		log.trace("showBottomControls(): animate: {}", animate);
+
+		if (bottomControls == null) {
+			log.warn("showBottomControls() no controls found");
+			return;
+		}
+
+		if (bottomControls.getVisibility() != View.VISIBLE) {
+
+			log.error("showing bottom controls");
+			if (!animate) {
+				bottomControls.setVisibility(View.VISIBLE);
+				CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) contentContainer.getLayoutParams();
+				params.bottomMargin += bottomControls.getHeight();
+				log.error("set bottom margin to " + params.bottomMargin);
+				contentContainer.setLayoutParams(params);
+				return;
+			}
+			//shall slide it up from the bottom
+			Animation slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+
+			slideUp.setAnimationListener(new Animation.AnimationListener() {
+				@Override
+				public void onAnimationStart(Animation animation) {
+				}
+
+				@Override
+				public void onAnimationEnd(Animation animation) {
+					//need to reset the padding on the main content to allow space for the bottom controls
+
+					CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) contentContainer.getLayoutParams();
+					params.bottomMargin += bottomControls.getHeight();
+					contentContainer.setLayoutParams(params);
+				}
+
+				@Override
+				public void onAnimationRepeat(Animation animation) {
+				}
+			});
+
+			bottomControls.setAnimation(slideUp);
+			bottomControls.setVisibility(View.VISIBLE);
+			bottomControls.animate();
+		} else {
+			log.error("bottom controls already visible");
+		}
+	}
+
+	public void hideBottomControls() {
+		log.trace("hideBottomControls()");
+
+		int height = bottomControls.getHeight();
+		bottomControls.setVisibility(View.GONE);
+		CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) contentContainer.getLayoutParams();
+		params.bottomMargin -= height;
+		contentContainer.setLayoutParams(params);
+
 	}
 
 

@@ -1,6 +1,7 @@
 package danbroid.mopidy.app.fragments;
 
 import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.view.GestureDetectorCompat;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,7 +31,6 @@ public class BottomControlsFragment extends MediaFragment {
 	protected void init() {
 		super.init();
 
-		//playButton.setVisibility(View.INVISIBLE);
 		chevronUp.setVisibility(View.INVISIBLE);
 
 		getView().setOnTouchListener(new FlingDetector(getContext()) {
@@ -40,9 +40,15 @@ public class BottomControlsFragment extends MediaFragment {
 				return true;
 			}
 		});
-		//getView().setVisibility(View.INVISIBLE);
 
 
+	}
+
+
+	@Override
+	protected void onPlaybackStateChanged(PlaybackStateCompat state) {
+		super.onPlaybackStateChanged(state);
+		log.error("onPlaybackStateChanged(): {}", state);
 	}
 
 	@Override
@@ -54,8 +60,7 @@ public class BottomControlsFragment extends MediaFragment {
 	@Click(R.id.chevron_up)
 	protected void showFullControls() {
 		log.trace("showFullControls()");
-		//TODO	getMainView().showFullControls();
+		((danbroid.mopidy.app.interfaces.MainView) getMainView()).showFullControls();
 	}
-
 
 }

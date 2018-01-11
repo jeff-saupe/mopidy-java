@@ -52,6 +52,7 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 			new MediaControllerCompat.Callback() {
 				@Override
 				public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
+					log.error("onPlaybackStateCHanged(): " + state.getState());
 					MopidyActivity.this.onPlaybackStateChanged(state);
 				}
 
@@ -79,6 +80,7 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 		MediaControllerCompat mediaController = new MediaControllerCompat(this, token);
 		MediaControllerCompat.setMediaController(this, mediaController);
 		mediaController.registerCallback(controllerCallback);
+
 		LocalBroadcastManager bm = LocalBroadcastManager.getInstance(this);
 		bm.sendBroadcast(new Intent(MainView.ACTION_CONTROLLER_CONNECTED));
 		PlaybackStateCompat playbackState = mediaController.getPlaybackState();

@@ -34,15 +34,15 @@
         android:id="@+id/content_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="?attr/actionBarSize"
+        android:layout_marginBottom="@dimen/bottom_controls_height"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
-    <FrameLayout
+    <fragment
         android:id="@+id/bottom_controls"
-
+        class="danbroid.mopidy.app.fragments.BottomControlsFragment_"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        app:layout_behavior="@string/bottom_sheet_behavior"
+        android:layout_height="@dimen/bottom_controls_height"
+        android:layout_gravity="bottom"
         />
 
     <android.support.design.widget.FloatingActionButton

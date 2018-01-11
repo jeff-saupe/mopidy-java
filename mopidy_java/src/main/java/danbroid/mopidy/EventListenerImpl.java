@@ -30,6 +30,7 @@ public class EventListenerImpl implements EventListener {
 
 	public void onStreamTitleChanged(String title) {
 		log.trace("onStreamTitleChanged(): {}", title);
+
 	}
 
 	public void onTrackPlaybackPaused(JsonObject tl_track, long time_position) {

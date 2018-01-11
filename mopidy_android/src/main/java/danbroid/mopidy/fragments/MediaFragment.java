@@ -142,11 +142,8 @@ public class MediaFragment extends Fragment {
 	}
 
 
-	protected MainView getMainView() {
-		return (MainView) getActivity();
-	}
-
 	protected void onConnected() {
+
 		log.trace("onConnected()");
 		MediaControllerCompat controller = getController();
 		onMetadataChanged(controller.getMetadata());
@@ -197,6 +194,10 @@ public class MediaFragment extends Fragment {
 			descriptionText.setText(desc.getSubtitle());
 		}
 
+	}
+
+	public MainView getMainView() {
+		return (MainView) getActivity();
 	}
 
 	protected MediaControllerCompat getController() {

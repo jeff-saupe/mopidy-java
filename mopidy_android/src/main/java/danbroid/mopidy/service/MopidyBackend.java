@@ -61,6 +61,8 @@ public class MopidyBackend {
 	@Bean
 	protected MopidyServerFinder discoveryHelper;
 
+	private MopidyEventManager eventManager;
+
 
 	public void init(MediaBrowserServiceCompat service) {
 		this.service = service;
@@ -71,7 +73,7 @@ public class MopidyBackend {
 			discoveryHelper.start();
 		}
 
-		new MopidyEventManager(session, conn);
+		eventManager = new MopidyEventManager(session, conn);
 
 	}
 

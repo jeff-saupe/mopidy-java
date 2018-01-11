@@ -7,7 +7,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import com.google.gson.JsonObject;
 
 import danbroid.mopidy.AndroidMopidyConnection;
-import danbroid.mopidy.EventListenerImpl;
+import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
@@ -15,7 +15,7 @@ import danbroid.mopidy.model.Track;
 /**
  * Created by dan on 28/12/17.
  */
-public class MopidyEventManager extends EventListenerImpl {
+public class MopidyEventManager implements EventListener {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyEventManager.class);
 
 	private final MediaSessionCompat session;
@@ -33,21 +33,18 @@ public class MopidyEventManager extends EventListenerImpl {
 
 	@Override
 	public void onTrackPlaybackEnded(JsonObject tl_track, long time_position) {
-		super.onTrackPlaybackEnded(tl_track, time_position);
 		this.position = time_position;
 		updateState();
 	}
 
 	@Override
 	public void onTrackPlaybackResumed(JsonObject tl_track, long time_position) {
-		super.onTrackPlaybackResumed(tl_track, time_position);
 		this.position = time_position;
 		updateState();
 	}
 
 	@Override
 	public void onTrackPlaybackStarted(JsonObject tl_track) {
-		super.onTrackPlaybackStarted(tl_track);
 		this.position = 0;
 		updateState();
 		updateMetadata(tl_track);
@@ -96,14 +93,12 @@ public class MopidyEventManager extends EventListenerImpl {
 
 	@Override
 	public void onTrackPlaybackPaused(JsonObject tl_track, long time_position) {
-		super.onTrackPlaybackPaused(tl_track, time_position);
 		this.position = time_position;
 		updateState();
 	}
 
 	@Override
 	public void onPlaybackStateChanged(PlaybackState oldState, PlaybackState newState) {
-		super.onPlaybackStateChanged(oldState, newState);
 		switch (newState) {
 			case PAUSED:
 				state = PlaybackStateCompat.STATE_PAUSED;
@@ -127,6 +122,48 @@ public class MopidyEventManager extends EventListenerImpl {
 
 		builder.setState(state, position, playBackSpeed, System.currentTimeMillis());
 		session.setPlaybackState(builder.build());
+	}
+
+	public void onOptionsChanged() {
+		log.trace("onOptionsChanged()");
+	}
+
+	public void onVolumeChanged(int volume) {
+		log.trace("onVolumeChanged(): {}", volume);
+	}
+
+	public void onMuteChanged(boolean mute) {
+		log.trace("onMuteChanged(): {}", mute);
+	}
+
+	public void onSeeked(long time_position) {
+		log.trace("onStreamSeeked(): {}", time_position);
+	}
+
+	public void onStreamTitleChanged(String title) {
+		log.trace("onStreamTitleChanged(): {}", title);
+
+	}
+
+
+	public void onTracklistChanged() {
+		log.trace("onTracklistChanged() ");
+	}
+
+	// Called when playlists are loaded or refreshed.
+	public void onPlaylistsLoaded() {
+		log.trace("onPlaylistsLoaded() ");
+	}
+
+
+	//    Called whenever a playlist is changed.
+	public void onPlaylistChanged(JsonObject playlist) {
+		log.trace("onPlaylistChanged() :{}", playlist);
+	}
+
+	//Called whenever a playlist is deleted.
+	public void onPlaylistDeleted(String uri) {
+		log.trace("onPLaylistDeleted(): {}", uri);
 	}
 }
 

@@ -33,8 +33,8 @@ import java.util.List;
 
 import danbroid.mopidy.R;
 import danbroid.mopidy.glide.GlideApp;
+import danbroid.mopidy.interfaces.MainView;
 import danbroid.mopidy.interfaces.MediaContentView;
-import danbroid.mopidy.util.MediaIds;
 
 
 /**
@@ -169,6 +169,8 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		}
 	}
 
+
+
 	protected void init() {
 		super.init();
 		mediaId = getArguments().getString(ARG_MEDIA_ID, null);
@@ -268,7 +270,6 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		log.error("onBackButton(): " + mediaId);
 		return false;
 	}
-
 
 
 	@Override
