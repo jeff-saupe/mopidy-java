@@ -23,7 +23,7 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 import danbroid.mopidy.activities.MopidyActivity;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.fragments.FullScreenControlsFragment;
-import danbroid.mopidy.interfaces.MainView;
+import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.service.MopidyService_;
 import danbroid.mopidy.app.ui.AddServerDialog_;
 import danbroid.mopidy.fragments.MediaFragment;
@@ -54,7 +54,9 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 
 
 	public void init() {
+		log.error("init()");
 		super.init();
+
 
 		setSupportActionBar(toolbar);
 

@@ -1,35 +1,30 @@
 package danbroid.mopidy.service;
 
+import android.app.Activity;
 import android.net.Uri;
-import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.media.MediaBrowserCompat;
+import android.os.ResultReceiver;
 import android.support.v4.media.MediaBrowserServiceCompat;
-import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
-import android.text.TextUtils;
+
+import com.google.gson.JsonElement;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import danbroid.mopidy.AndroidMopidyConnection;
-import danbroid.mopidy.BuildConfig;
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.MopidyPrefs_;
-import danbroid.mopidy.model.Image;
-import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.util.MediaIds;
 import danbroid.mopidy.util.MopidyServerFinder;
+import danbroid.mopidy.util.UIResponseHandler;
 
 /**
  * Created by dan on 26/12/17.
@@ -38,10 +33,27 @@ import danbroid.mopidy.util.MopidyServerFinder;
 @EBean(scope = EBean.Scope.Singleton)
 public class MopidyBackend {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyBackend.class);
+	public static final String COMMAND_CONNECT = "MopidyBackend.COMMAND_CONNECT";
+	public static final String COMMAND_ADD_TO_TRACKLIST = "MopidyBackend.COMMAND_ADD_TO_TRACKLIST";
+
 
 	public static final String SESSION_EVENT_BUSY = "MopidyBackend.EVENT_BUSY";
 	public static final String SESSION_EVENT_NOT_BUSY = "MopidyBackend.EVENT_NOT_BUSY";
 	public static final String SESSION_EVENT_CONNECTED = "MopidyBackend.EVENT_CONNECTED";
+
+	public static final String ARG_MESSAGE = "message";
+
+	public static final String ARG_VERSION = "version";
+	public static final String ARG_URL = "url";
+	public static final String ARG_URI = "uri";
+	public static final String ARG_URIS = "uris";
+	public static final String ARG_MEDIAID = "mediaid";
+	public static final String ARG_REPLACE = "replace";
+	public static final String ARG_POSITION = "position";
+	public static final String ARG_PLAYABLE = "playable";
+
+	public static final int RESULT_CODE_SUCCESS = 0;
+
 
 	public static String SESSION_TAG = "MopidyService";
 
@@ -50,10 +62,11 @@ public class MopidyBackend {
 	protected MediaSessionCompat session;
 	protected Bundle sessionExtras = new Bundle();
 
+	@Bean
+	protected MopidyContentManager contentManager;
 
 	@Pref
 	protected MopidyPrefs_ prefs;
-
 
 	@Bean
 	protected AndroidMopidyConnection conn;
@@ -61,10 +74,9 @@ public class MopidyBackend {
 	@Bean
 	protected MopidyServerFinder discoveryHelper;
 
-	private MopidyEventManager eventManager;
-
 
 	public void init(MediaBrowserServiceCompat service) {
+		log.trace("init()");
 		this.service = service;
 
 		initSession();
@@ -73,7 +85,8 @@ public class MopidyBackend {
 			discoveryHelper.start();
 		}
 
-		eventManager = new MopidyEventManager(session, conn);
+		new MopidyEventManager(session, conn);
+
 
 	}
 
@@ -111,14 +124,135 @@ public class MopidyBackend {
 		}
 
 		@Override
+		public void onSkipToNext() {
+			conn.getPlayback().next().call();
+		}
+
+		@Override
+		public void onSkipToPrevious() {
+			conn.getPlayback().previous().call();
+		}
+
+		@Override
 		public void onPlayFromMediaId(String mediaId, Bundle extras) {
 			playFromMediaID(mediaId);
 		}
+
+		@Override
+		public void onSeekTo(long pos) {
+			log.trace("onSeekTo(): {}", pos);
+			conn.getPlayback().seek(pos).call();
+		}
+
+		@Override
+		public void onCommand(String command, Bundle extras, final ResultReceiver cb) {
+
+			switch (command) {
+				case COMMAND_ADD_TO_TRACKLIST:
+					String mediaID = extras.getString(ARG_MEDIAID);
+					boolean replace = extras.getBoolean(ARG_REPLACE);
+					boolean playable = extras.getBoolean(ARG_PLAYABLE);
+					addToTracklist(mediaID, replace, playable, cb);
+					return;
+
+				case COMMAND_CONNECT:
+					String url = extras.getString(ARG_URL);
+					log.trace("connecting to {}", url);
+					conn.start(url).call(new ResponseHandler<String>() {
+						@Override
+						public void onError(int code, String message, JsonElement data) {
+							cb.send(code, bundle(ARG_MESSAGE, message));
+						}
+
+						@Override
+						public void onResponse(CallContext context, String version) {
+							cb.send(RESULT_CODE_SUCCESS, bundle(ARG_VERSION, version));
+						}
+					});
+					break;
+			}
+
+		}
+
+
 	}
+
+	private void addToTracklist(final String mediaID, boolean replace, final boolean playable, final ResultReceiver cb) {
+		log.info("addToTracklist() {} replace: " + replace + " playable: " + playable, mediaID);
+		if (replace) {
+			conn.getTrackList().clear().call(new ResponseHandler<Void>() {
+				@Override
+				public void onResponse(CallContext context, Void result) {
+					appendToTracklist(mediaID, playable, cb);
+				}
+			});
+		} else {
+			appendToTracklist(mediaID, playable, cb);
+		}
+	}
+
+	private void appendToTracklist(String mediaID, boolean playable, final ResultReceiver cb) {
+		log.trace("appendToTracklist(): {} playable: {}", mediaID, playable);
+
+		if (playable) {
+			conn.getTrackList().add(mediaID).call(new ResponseHandler<TlTrack[]>() {
+				@Override
+				public void onResponse(CallContext context, TlTrack[] result) {
+					cb.send(RESULT_CODE_SUCCESS, bundle(ARG_MESSAGE, "Added " + result.length + " tracks to tracklist"));
+					service.notifyChildrenChanged(MediaIds.TRACKLIST);
+				}
+			});
+			return;
+		}
+
+		contentManager.getTracks(mediaID, new MopidyContentManager.Result<List<String>>() {
+			@Override
+			public void onResult(List<String> result) {
+				conn.getTrackList().add(result.toArray(new String[]{})).call(new ResponseHandler<TlTrack[]>() {
+					@Override
+					public void onResponse(CallContext context, TlTrack[] result) {
+						cb.send(RESULT_CODE_SUCCESS, bundle(ARG_MESSAGE, "added " + result.length + " tracks to the tracklist"));
+						service.notifyChildrenChanged(MediaIds.TRACKLIST);
+					}
+				});
+			}
+		});
+
+	}
+
+	private static Bundle bundle(String name, String value) {
+		Bundle b = new Bundle();
+		b.putString(name, value);
+		return b;
+	}
+
 
 	public void playFromMediaID(String mediaId) {
 		log.debug("playFromMediaID(): {}", mediaId);
-		conn.getTrackList().add(mediaId, null, null, null)
+
+		if (mediaId.startsWith(MediaIds.TRACKLIST)) {
+			int i = mediaId.lastIndexOf(':');
+
+			if (i > -1) {
+				String action = mediaId.substring(i + 1);
+				if (action.equals("clear")) {
+					log.warn("CLEARING TRACKLIST!");
+					conn.getTrackList().clear().call(new UIResponseHandler<Void>() {
+						@Override
+						public void onUIResponse(CallContext context, Void result) {
+							service.notifyChildrenChanged(MediaIds.TRACKLIST);
+						}
+					});
+					return;
+				}
+			}
+
+			int tlid = Integer.parseInt(mediaId.substring(mediaId.lastIndexOf('/') + 1));
+			conn.getPlayback().play(tlid, null).call();
+			return;
+		}
+
+		conn.getTrackList().add(mediaId)
 				.call(new ResponseHandler<TlTrack[]>() {
 					@Override
 					public void onResponse(CallContext context, TlTrack[] result) {
@@ -126,9 +260,12 @@ public class MopidyBackend {
 							log.error("unexpected result length: " + result.length);
 							return;
 						}
+
+						log.trace("tracklist length: " + result.length + " playing {}", result[0]);
 						conn.getPlayback().play(result[0].getTlid(), null).call();
 					}
 				});
+
 	}
 
 	protected MediaSessionCompat.Callback createSessionCallback() {
@@ -136,162 +273,13 @@ public class MopidyBackend {
 	}
 
 	public MediaSessionCompat getSession() {
+		if (session == null) {
+			log.error("SESSION IS NULL!");
+			return null;
+		}
 		return session;
 	}
 
-	public void onLoadChildren(@NonNull String parentId, @NonNull MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
-		log.trace("onLoadChildren(): {}", parentId);
-		int i = parentId.indexOf('/');
-		String type = i == -1 ? parentId : parentId.substring(0, i);
-		String data = i == -1 ? "" : Uri.decode(parentId.substring(i + 1));
-
-		switch (type) {
-			case MediaIds.ROOT:
-				loadRoot(result);
-				return;
-			case MediaIds.SERVER:
-				loadServer(data, result);
-				return;
-			case MediaIds.MOPIDY_ROOT:
-				parentId = null;
-				break;
-		}
-
-		loadMopidy(parentId, result);
-	}
-
-	protected void loadMopidy(String id, @NonNull final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
-		log.trace("loadMopidy(): {}", id);
-		if (TextUtils.isEmpty(id)) id = null;
-		result.detach();
-
-		conn.getLibrary().browse(id).call(new ResponseHandler<Ref[]>() {
-			@Override
-			public void onResponse(CallContext context, Ref[] refs) {
-				resolveImages(refs, result);
-			}
-		});
-
-	}
-
-	protected void resolveImages(final Ref[] refs, @NonNull final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
-		log.trace("resolveImages()");
-		HashSet<String> uris = new HashSet<>();
-		for (Ref ref : refs) {
-			if (ref.getType().equals(Ref.TYPE_TRACK)) {
-				if (!uris.contains(ref.getUri())) uris.add(ref.getUri());
-			}
-		}
-
-		if (uris.isEmpty()) {
-			result.sendResult(toMediaItems(refs));
-			return;
-		}
-
-		conn.getLibrary().getImages(uris.toArray(new String[]{})).call(new ResponseHandler<Map<String, Image[]>>() {
-			@Override
-			public void onResponse(CallContext context, Map<String, Image[]> imgMap) {
-				for (Ref ref : refs) {
-					if (ref.getType().equals(Ref.TYPE_TRACK)) {
-						if (imgMap.containsKey(ref.getUri())) {
-							Image images[] = imgMap.get(ref.getUri());
-							if (images.length > 0)
-								ref.setExtra(images[0]);
-						}
-					}
-				}
-				result.sendResult(toMediaItems(refs));
-
-			}
-		});
-	}
-
-
-	public List<MediaBrowserCompat.MediaItem> toMediaItems(Ref[] refs) {
-		LinkedList<MediaBrowserCompat.MediaItem> items = new LinkedList<>();
-		for (Ref ref : refs)
-			items.add(toMediaItem(ref));
-		return items;
-	}
-
-	public MediaBrowserCompat.MediaItem toMediaItem(Ref ref) {
-		MediaDescriptionCompat.Builder desc = new MediaDescriptionCompat.Builder();
-		String name = ref.getName();
-		desc.setTitle(name);
-		String uri = ref.getUri();
-		desc.setMediaId(uri);
-
-		log.trace("toMediaItem(): " + ref.getType() + " {}:{}", name, uri);
-		desc.setDescription(uri);
-
-		if (ref.getExtra() != null) {
-			Image img = (Image) ref.getExtra();
-			log.trace("FOUND IMAGE {} -> {}", ref.getUri(), img.getUri());
-			desc.setIconUri(Uri.parse(img.getUri()));
-		}
-
-		int flags = 0;
-		if (ref.getType().equals(Ref.TYPE_TRACK)) flags = MediaBrowserCompat.MediaItem.FLAG_PLAYABLE;
-		else flags = MediaBrowserCompat.MediaItem.FLAG_BROWSABLE;
-		return new MediaBrowserCompat.MediaItem(desc.build(), flags);
-	}
-
-	protected void loadServer(String data, final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
-		log.trace("loadServer(): {}", data);
-		int i = data.indexOf(':');
-		String host = data.substring(0, i);
-		int port = Integer.parseInt(data.substring(i + 1));
-		conn.start(host, port);
-
-		loadMopidy(null, result);
-	}
-
-	protected void loadRoot(MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
-		log.trace("loadRoot()");
-		List<MediaBrowserCompat.MediaItem> items = new LinkedList<>();
-
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-			for (String serviceName : discoveryHelper.getServices().keySet()) {
-				log.error("FOUND SERVICE: " + serviceName);
-
-				NsdServiceInfo service = discoveryHelper.getServices().get(serviceName);
-
-				MediaDescriptionCompat.Builder desc = new MediaDescriptionCompat.Builder();
-
-				desc.setTitle(service.getServiceName());
-
-				String host = service.getHost().toString();
-				int port = service.getPort();
-
-				if (host.startsWith("/")) host = host.substring(1);
-				String description = host + ":" + port;
-
-				desc.setDescription(description);
-				String id = MediaIds.idServer(host, port);
-
-				desc.setMediaId(id);
-
-				items.add(new MediaBrowserCompat.MediaItem(desc.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
-			}
-		}
-
-		if (BuildConfig.DEBUG) { //TODO REMOVE THIS SECTION
-			MediaDescriptionCompat.Builder desc = new MediaDescriptionCompat.Builder();
-			desc.setTitle("Dan");
-			desc.setMediaId(MediaIds.idServer("192.168.1.2", 6680));
-			desc.setDescription("dans mopidy server");
-			items.add(new MediaBrowserCompat.MediaItem(desc.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
-
-			desc = new MediaDescriptionCompat.Builder();
-			desc.setTitle("Rip");
-			desc.setMediaId(MediaIds.idServer("192.168.1.4", 6680));
-			desc.setDescription("rip mopidy server");
-			items.add(new MediaBrowserCompat.MediaItem(desc.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
-		}
-
-
-		result.sendResult(items);
-	}
 
 	public void onDestroy() {
 		log.info("onDestroy()");
@@ -302,5 +290,27 @@ public class MopidyBackend {
 
 	public MediaBrowserServiceCompat getService() {
 		return service;
+	}
+
+	public static void connect(Activity activity, String url, ResultReceiver resultReceiver) {
+		MediaControllerCompat controller = MediaControllerCompat.getMediaController(activity);
+
+		if (controller == null) {
+			log.error("controller is null");
+			return;
+		}
+
+		controller.sendCommand(COMMAND_CONNECT, bundle(ARG_URL, url), resultReceiver);
+	}
+
+	public static void addToTracklist(Activity activity, String uri, boolean replace, ResultReceiver resultReceiver) {
+		MediaControllerCompat controller = MediaControllerCompat.getMediaController(activity);
+
+		if (controller == null) {
+			log.error("controller is null");
+			return;
+		}
+		Bundle args = new Bundle();
+		controller.sendCommand(COMMAND_ADD_TO_TRACKLIST, args, resultReceiver);
 	}
 }

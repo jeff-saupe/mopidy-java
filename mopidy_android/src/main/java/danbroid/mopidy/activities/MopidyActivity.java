@@ -19,6 +19,7 @@ import danbroid.mopidy.fragments.MediaFragment;
 import danbroid.mopidy.fragments.MediaListFragment;
 import danbroid.mopidy.interfaces.MainView;
 import danbroid.mopidy.service.AbstractMopidyService;
+import danbroid.mopidy.service.MopidyClient;
 
 /**
  * Created by dan on 24/12/17.
@@ -52,7 +53,6 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 			new MediaControllerCompat.Callback() {
 				@Override
 				public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
-					log.error("onPlaybackStateCHanged(): " + state.getState());
 					MopidyActivity.this.onPlaybackStateChanged(state);
 				}
 
@@ -77,29 +77,20 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 
 	private void connectToSession(MediaSessionCompat.Token token) throws RemoteException {
 		log.info("connectToSession(): {}", token);
+
 		MediaControllerCompat mediaController = new MediaControllerCompat(this, token);
 		MediaControllerCompat.setMediaController(this, mediaController);
 		mediaController.registerCallback(controllerCallback);
 
+		onConnected();
+
 		LocalBroadcastManager bm = LocalBroadcastManager.getInstance(this);
 		bm.sendBroadcast(new Intent(MainView.ACTION_CONTROLLER_CONNECTED));
-		PlaybackStateCompat playbackState = mediaController.getPlaybackState();
 
-		if (playbackState != null) {
-			switch (playbackState.getState()) {
-				case PlaybackStateCompat.STATE_NONE:
-				case PlaybackStateCompat.STATE_STOPPED:
-					break;
-				default:
-					log.warn("unhandled playback state: " + playbackState.getState());
-					//		showBottomControls(false);
-					break;
-			}
-			onPlaybackStateChanged(playbackState);
-		} else {
-			log.warn("playback state is null");
-		}
+		onPlaybackStateChanged(mediaController.getPlaybackState());
+	}
 
+	protected void onConnected() {
 	}
 
 	@Override
@@ -125,7 +116,7 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 	}
 
 	protected void onPlaybackStateChanged(PlaybackStateCompat state) {
-		log.trace("onPlaybackStateChanged(): {}", state.getState());
+		log.trace("onPlaybackStateChanged(): {}", state);
 	}
 
 	protected void onMetadataChanged(MediaMetadataCompat metadata) {
@@ -140,11 +131,9 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 	@Override
 	public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
 		String mediaID = item.getMediaId();
-		log.debug("onMediaItemSelected() mediaId: {}", mediaID);
-
+		log.trace("onMediaItemSelected() mediaId: {}", mediaID);
 
 		if (item.isPlayable()) {
-			log.error("PLAYABLE!");
 			getSupportMediaController().getTransportControls()
 					.playFromMediaId(item.getMediaId(), null);
 
@@ -153,6 +142,17 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 		} else {
 			log.warn("Ignoring MediaItem that is neither browsable nor playable: mediaId: {}", item.getMediaId());
 		}
+	}
+
+	@Override
+	public void addToTracklist(MediaBrowserCompat.MediaItem item) {
+		new MopidyClient.AddToTracklist(this, item).call();
+	}
+
+	@Override
+	public void replaceTracklist(MediaBrowserCompat.MediaItem item) {
+		new MopidyClient.AddToTracklist(this, item).replace(true).call();
+
 	}
 
 	protected abstract void setContent(MediaFragment instance);

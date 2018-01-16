@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import danbroid.mopidy.AndroidMopidyConnection;
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
+import danbroid.mopidy.model.Artist;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 
@@ -24,6 +25,7 @@ public class MopidyEventManager implements EventListener {
 	private int state;
 	private float playBackSpeed = 1;
 	private long position = 0;
+	private MediaMetadataCompat metadata;
 
 	public MopidyEventManager(MediaSessionCompat session, AndroidMopidyConnection connection) {
 		this.session = session;
@@ -33,22 +35,33 @@ public class MopidyEventManager implements EventListener {
 
 	@Override
 	public void onTrackPlaybackEnded(JsonObject tl_track, long time_position) {
+		log.trace("onPLaybackEnded(): pos:{}", time_position);
 		this.position = time_position;
 		updateState();
 	}
 
 	@Override
 	public void onTrackPlaybackResumed(JsonObject tl_track, long time_position) {
+		log.trace("onTrackPlaybackResumed(): pos:{}", time_position);
 		this.position = time_position;
 		updateState();
 	}
 
 	@Override
 	public void onTrackPlaybackStarted(JsonObject tl_track) {
+		log.trace("onTrackPlaybackStarted(): pos:{}", 0);
 		this.position = 0;
-		updateState();
 		updateMetadata(tl_track);
+		updateState();
 	}
+
+	@Override
+	public void onTrackPlaybackPaused(JsonObject tl_track, long time_position) {
+		log.warn("onTrackPlaybackPaused(): {} pos: {}", tl_track, time_position);
+		this.position = time_position;
+		updateState();
+	}
+
 
 	protected void updateMetadata(JsonObject json) {
 		log.trace("updateMetadata(): {}", json);
@@ -57,9 +70,10 @@ public class MopidyEventManager implements EventListener {
 		String description = null;
 		String artist = null;
 		String album = null;
+		String comment = null;
 
 		if (track.getComment() != null)
-			description = track.getComment();
+			comment = track.getComment();
 
 		if (track.getArtists() != null && track.getArtists().length > 0)
 			artist = track.getArtists()[0].getName();
@@ -78,51 +92,66 @@ public class MopidyEventManager implements EventListener {
 				.putText(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, track.getName())
 				.putText(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, description);
 
+		if (comment != null)
+			md.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, comment);
+
 		if (track.getLength() != null)
 			md.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, track.getLength());
+
+		log.error("DURATION IS " + track.getLength());
 
 		if (track.getAlbum() != null) {
 			if (track.getAlbum().getImages() != null && track.getAlbum().getImages().length > 0) {
 				md.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, track.getAlbum().getImages()[0]);
 			}
+			md.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album);
+
+			if (track.getAlbum().getArtists() != null && track.getAlbum().getArtists().length > 0) {
+				String albumArtist = null;
+				for (Artist a : track.getAlbum().getArtists()) {
+					albumArtist = albumArtist == null ? a.getName() : albumArtist + "," + a.getName();
+				}
+				md.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, albumArtist);
+			}
+		}
+
+		if (artist != null) {
+			md.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist);
 		}
 
 
-		session.setMetadata(md.build());
+		session.setMetadata(metadata = md.build());
 	}
 
-	@Override
-	public void onTrackPlaybackPaused(JsonObject tl_track, long time_position) {
-		this.position = time_position;
-		updateState();
-	}
 
 	@Override
 	public void onPlaybackStateChanged(PlaybackState oldState, PlaybackState newState) {
+
+
+		log.trace("onPlaybackStateChanged(): {} -> {}  pos: " + position, oldState, newState);
 		switch (newState) {
 			case PAUSED:
-				state = PlaybackStateCompat.STATE_PAUSED;
+				this.state = PlaybackStateCompat.STATE_PAUSED;
 				break;
 			case PLAYING:
-				state = PlaybackStateCompat.STATE_PLAYING;
+				this.state = PlaybackStateCompat.STATE_PLAYING;
 				break;
 			case STOPPED:
-				state = PlaybackStateCompat.STATE_STOPPED;
+				this.state = PlaybackStateCompat.STATE_STOPPED;
 				break;
 			default:
 				log.error("unhandled state: " + newState);
 				return;
 		}
-
-		updateState();
 	}
 
 	private void updateState() {
+		//log.trace("updateState()");
 		PlaybackStateCompat.Builder builder = new PlaybackStateCompat.Builder();
-
 		builder.setState(state, position, playBackSpeed, System.currentTimeMillis());
 		session.setPlaybackState(builder.build());
 	}
+
 
 	public void onOptionsChanged() {
 		log.trace("onOptionsChanged()");
@@ -138,10 +167,16 @@ public class MopidyEventManager implements EventListener {
 
 	public void onSeeked(long time_position) {
 		log.trace("onStreamSeeked(): {}", time_position);
+		this.position = time_position;
+		updateState();
 	}
 
 	public void onStreamTitleChanged(String title) {
 		log.trace("onStreamTitleChanged(): {}", title);
+
+		MediaMetadataCompat.Builder md = metadata == null ? new MediaMetadataCompat.Builder() : new MediaMetadataCompat.Builder(metadata);
+		md.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, title);
+		session.setMetadata(md.build());
 
 	}
 

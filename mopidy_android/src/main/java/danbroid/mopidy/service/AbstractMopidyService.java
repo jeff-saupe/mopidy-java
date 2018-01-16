@@ -23,18 +23,19 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 
 	protected MopidyBackend backend;
 	private PackageValidator packageValidator;
+	private MopidyContentManager_ contentManager;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		log.info("onCreate()");
 		backend = createBackend();
-		backend.init(this);
-
 		packageValidator = new PackageValidator(this);
+		contentManager = MopidyContentManager_.getInstance_(this);
+		backend.init(this);
 	}
 
-	protected  MopidyBackend createBackend(){
+	protected MopidyBackend createBackend() {
 		return MopidyBackend_.getInstance_(this);
 	}
 
@@ -44,7 +45,6 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 		PendingIntent pi = PendingIntent.getActivity(this, 99 /*request code*/,
 				intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		backend.getSession().setSessionActivity(pi);
-
 	}
 
 
@@ -67,7 +67,7 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 
 	@Override
 	public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-		backend.onLoadChildren(parentId, result);
+		contentManager.onLoadChildren(parentId, result);
 	}
 
 	@Override

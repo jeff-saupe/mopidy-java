@@ -1,10 +1,7 @@
 package danbroid.mopidy.api;
 
-import com.google.gson.JsonElement;
-
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.model.TlTrack;
-import danbroid.mopidy.model.Track;
 
 /**
  * Created by dan on 13/12/17.
@@ -171,13 +168,26 @@ public class TrackList extends Api {
         :rtype: list of :class:`mopidy.models.TlTrack`
 	 */
 
-	public Call<TlTrack[]> add(String uri, String[] uris, Track[] tracks, Integer at_position) {
-		return createCall("add", TlTrack[].class)
-				.addParam("uri", uri)
-				.addParam("uris", getGson().toJsonTree(uris))
-				.addParam("tracks", getGson().toJsonTree(tracks))
-				.addParam("at_position", at_position);
+	public Call<TlTrack[]> add(String[] uris, int position) {
+		Call<TlTrack[]> call = createCall("add", TlTrack[].class)
+				.addParam("uris", getGson().toJsonTree(uris));
+		if (position > -1)
+			call.addParam("at_position", position);
+		return call;
 	}
+
+	public Call<TlTrack[]> add(String uri, int position) {
+		return add(new String[]{uri}, position);
+	}
+
+	public Call<TlTrack[]> add(String uri) {
+		return add(uri, -1);
+	}
+
+	public Call<TlTrack[]> add(String uris[]) {
+		return add(uris, -1);
+	}
+
 
 	public Call<Void> clear() {
 		return createCall("clear", Void.class);

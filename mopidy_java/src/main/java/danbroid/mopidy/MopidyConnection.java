@@ -25,14 +25,14 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 	private static final org.slf4j.Logger
 			log = org.slf4j.LoggerFactory.getLogger(MopidyConnection.class);
-	public static final int ERROR_TIMEOUT = -20;
+	public static final int ERROR_TIMEOUT = -2;
+	public static final int ERROR_TRANSPORT = -1;
 
 	private String url;
 
 
 	private JsonParser parser = new JsonParser();
 	private EventListener eventListener = new EventListenerImpl();
-	private String version;
 
 	public static final long DEFAULT_CALL_TIMEOUT = 3000;
 	private long timeout = DEFAULT_CALL_TIMEOUT;
@@ -56,42 +56,33 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		return url;
 	}
 
-	public void start(String url) {
+	public Call<String> start(String url) {
 		log.info("start(): {}", url);
 		setURL(url);
-		start();
+		return start();
 	}
 
-	public void start(String host, int port) {
+	public Call<String> start(String host, int port) {
 		setURL(host, port);
-		start();
+		return start();
 	}
 
 
-	public void start() {
+	public Call<String> start() {
 		log.info("start() url: {}", url);
-		if (url == null) return;
+		if (url == null) return null;
 
 		stop();
-
 
 		transport = new WebSocketTransport(this);
 		transport.connect(url);
 
-		version = null;
 
-		createCall("get_version", String.class).call(new ResponseHandler<String>() {
-			@Override
-			public void onResponse(CallContext context, String result) {
-				MopidyConnection.this.version = result;
-				log.trace("version: {}", version);
-				onConnect();
-			}
-		});
+		return getVersion();
 	}
 
-	public String getVersion() {
-		return version;
+	public Call<String> getVersion() {
+		return createCall("get_version", String.class);
 	}
 
 	protected void onConnect() {
@@ -151,6 +142,16 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	@Override
 	public void onMessage(String text) {
 		processMessage(text);
+	}
+
+	@Override
+	public synchronized void onError(Throwable t) {
+		log.error(t.getMessage(), t);
+		String message = t.getLocalizedMessage();
+		if (t.getCause()!= null) message = t.getCause().getLocalizedMessage();
+		for (Call call : calls.values()) {
+			call.onError(ERROR_TRANSPORT, message, null);
+		}
 	}
 
 	protected void processMessage(String text) {

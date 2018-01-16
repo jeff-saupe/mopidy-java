@@ -1,9 +1,13 @@
 package danbroid.mopidy.app.fragments;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.SystemClock;
+import android.support.v4.app.Fragment;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.MotionEvent;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
@@ -11,13 +15,13 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
-import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
 import danbroid.mopidy.app.R;
+import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.util.FlingDetector;
 import danbroid.mopidy.app.util.NavBarColours;
 import danbroid.mopidy.fragments.MediaFragment;
@@ -25,8 +29,6 @@ import danbroid.mopidy.glide.GlideApp;
 import danbroid.mopidy.lastfm.Album;
 import danbroid.mopidy.lastfm.AlbumSearch;
 import danbroid.mopidy.lastfm.Response;
-import danbroid.mopidy.model.TlTrack;
-import danbroid.mopidy.model.Track;
 import jp.wasabeef.blurry.Blurry;
 
 /**
@@ -42,14 +44,10 @@ public class FullScreenControlsFragment extends MediaFragment {
 	@ViewById(R.id.blurred_image)
 	ImageView blurredImage;
 
-	@ViewById(R.id.line1)
-	TextView line1;
-
-	@ViewById(R.id.line2)
-	TextView line2;
 
 
 	protected void init() {
+		super.init();
 		getView().setOnTouchListener(new FlingDetector(getContext()) {
 			@Override
 			protected boolean onFlingDown(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
@@ -60,60 +58,9 @@ public class FullScreenControlsFragment extends MediaFragment {
 	}
 
 
-	protected void displayTrack(TlTrack tlTrack) {
-
-		if (tlTrack == null) return;
-
-		Track track = tlTrack.getTrack();
-		String album = null, artist = null, title = null, albumCover = null;
-		String description = "";
-
-		title = track.getName();
-
-		line1.setText(title);
-
-
-		if (track.getArtists() != null) {
-			if (track.getArtists().length > 0)
-				artist = track.getArtists()[0].getName();
-		}
-
-		if (track.getAlbum() != null) {
-			album = track.getAlbum().getName();
-			if (track.getAlbum().getImages() != null
-					&& track.getAlbum().getImages().length > 0)
-				albumCover = track.getAlbum().getImages()[0];
-		}
-
-
-		if (album != null) description += album + " ";
-		if (artist != null) description += artist;
-		line2.setText(description);
-
-		if (albumCover != null) {
-			displayImage(albumCover);
-			return;
-		}
-
-
-		if (artist != null || album != null) {
-			log.trace("performing album search: album: {} artist: {}", album, artist);
-			new AlbumSearch() {
-				@Override
-				protected void onResponse(Response response) {
-					if (response.album != null) {
-						String image = response.album.getImage(Album.ImageSize.DEFAULT);
-						displayImage(image);
-					}
-				}
-			}.artist(artist).album(album).callAsync();
-		}
-	}
-
-
 	@Click(R.id.chevron_down)
 	public void close() {
-		//TODO 	getMainView().hideFullControls();
+		((MainView) getMainView()).hideFullControls();
 	}
 
 
@@ -125,7 +72,6 @@ public class FullScreenControlsFragment extends MediaFragment {
 	public void displayImage(String url) {
 		log.trace("displayImage(): {}", url);
 		if (url == null || getActivity() == null || !isResumed()) return;
-
 
 		GlideApp.with(this).asBitmap().load(url).into(new SimpleTarget<Bitmap>() {
 			@Override
@@ -149,4 +95,39 @@ public class FullScreenControlsFragment extends MediaFragment {
 				.apply(RequestOptions.bitmapTransform(new RoundedCorners(8))).into(image);
 
 	}
+
+	@Override
+	protected void onMetadataChanged(MediaMetadataCompat metadata) {
+		log.error("onMetadataChanged(): {}", metadata == null ? null : metadata.getDescription().getTitle());
+		super.onMetadataChanged(metadata);
+
+		if (metadata == null) return;
+
+		Uri imageURI = metadata.getDescription().getIconUri();
+
+		if (imageURI != null) {
+			displayImage(imageURI.toString());
+			return;
+		}
+
+		String album = metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM);
+		String artist = metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
+		if (artist == null)
+			artist = metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST);
+		log.trace("album: {} artist: {}", album, artist);
+
+		if (artist != null || album != null) {
+			log.trace("performing album search: album: {} artist: {}", album, artist);
+			new AlbumSearch() {
+				@Override
+				protected void onResponse(Response response) {
+					if (response.album != null) {
+						String image = response.album.getImage(Album.ImageSize.DEFAULT);
+						displayImage(image);
+					}
+				}
+			}.artist(artist).album(album).callAsync();
+		}
+	}
+
 }

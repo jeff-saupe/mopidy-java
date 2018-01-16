@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 
@@ -36,15 +37,26 @@ public class WebSocketTransport extends Transport {
 				.connectTimeout(5, TimeUnit.SECONDS).build();
 
 
-		Request request = new Request.Builder().url(url).build();
+		Request request = new Request.Builder()
+				.url(url)
+				.build();
+
 
 		this.socket = client.newWebSocket(request, new WebSocketListener() {
+
+			@Override
+			public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+				callback.onError(t);
+			}
+
 			@Override
 			public void onMessage(WebSocket webSocket, String text) {
-				WebSocketTransport.this.onMessage(text);
+				callback.onMessage(text);
 			}
 		});
+
 	}
+
 
 	@Override
 	public synchronized void close() {

@@ -29,7 +29,6 @@ public class AndroidMopidyConnection extends danbroid.mopidy.MopidyConnection {
 	@RootContext
 	Context context;
 
-
 	@Bean
 	MopidyBackend backend;
 

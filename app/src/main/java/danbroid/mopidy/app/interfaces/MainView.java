@@ -7,4 +7,6 @@ public interface  MainView extends danbroid.mopidy.interfaces.MainView{
 
 
 	void showFullControls();
+
+	void hideFullControls();
 }

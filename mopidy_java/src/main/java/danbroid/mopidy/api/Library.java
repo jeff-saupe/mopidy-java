@@ -25,21 +25,18 @@ public class Library extends Api {
 	}
 
 
-	public Call<Track[]> lookup(String uris) {
+	public Call<Track[]> lookup(String uris[]) {
 		return createCall("lookup", Track[].class)
-				.addParam("uris", uris);
+				.addParam(Constants.Key.URIS,getGson().toJsonTree(uris));
 	}
 
 	public Call<Map<String, Image[]>> getImages(final String uris[]) {
-		JsonArray uriArray = new JsonArray();
-		for (String uri : uris) {
-			uriArray.add(uri);
-		}
+
 		Call<Map<String, Image[]>> call = createCall("get_images");
 		call.setResultType(new TypeToken<Map<String, Image[]>>() {
 		});
 
-		return call.addParam(Constants.Key.URIS, uriArray);
+		return call.addParam(Constants.Key.URIS, getGson().toJsonTree(uris));
 	}
 
 

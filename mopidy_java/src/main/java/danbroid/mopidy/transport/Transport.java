@@ -13,6 +13,7 @@ public abstract class Transport {
 
 	public interface Callback {
 		void onMessage(String message);
+		void onError(Throwable t);
 	}
 
 	protected Transport(Callback callback) {
@@ -25,19 +26,16 @@ public abstract class Transport {
 		open();
 	}
 
-
 	public String getUrl() {
 		return url;
 	}
 
 	protected abstract void open();
 
+
 	public abstract void close();
 
-	protected void onMessage(String message) {
-		//log.trace("onMessage(): {}", message);
-		callback.onMessage(message);
-	}
+
 
 
 }

@@ -1,7 +1,6 @@
 package danbroid.mopidy.app.fragments;
 
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.view.GestureDetectorCompat;
 import android.view.MotionEvent;
 import android.view.View;
@@ -40,21 +39,14 @@ public class BottomControlsFragment extends MediaFragment {
 				return true;
 			}
 		});
-
-
 	}
 
-
-	@Override
-	protected void onPlaybackStateChanged(PlaybackStateCompat state) {
-		super.onPlaybackStateChanged(state);
-		log.error("onPlaybackStateChanged(): {}", state);
-	}
 
 	@Override
 	protected void onMetadataChanged(MediaMetadataCompat metadata) {
 		super.onMetadataChanged(metadata);
-		descriptionText.setSelected(true);
+		subTitleText.setSelected(true);
+		chevronUp.setVisibility(View.VISIBLE);
 	}
 
 	@Click(R.id.chevron_up)
@@ -62,5 +54,7 @@ public class BottomControlsFragment extends MediaFragment {
 		log.trace("showFullControls()");
 		((danbroid.mopidy.app.interfaces.MainView) getMainView()).showFullControls();
 	}
+
+
 
 }

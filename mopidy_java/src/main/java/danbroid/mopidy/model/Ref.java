@@ -15,6 +15,33 @@ public class Ref extends Base {
 	private String name;
 	private String uri;
 
+	public Ref(String type, String name, String uri) {
+		super();
+		this.type = type;
+		this.name = name;
+		this.uri = uri;
+	}
+
+	public static Ref directory(String name, String uri) {
+		return new Ref(TYPE_DIRECTORY, name, uri);
+	}
+
+	public static Ref track(String name, String uri) {
+		return new Ref(TYPE_TRACK, name, uri);
+	}
+
+	public static Ref playlist(String name, String uri) {
+		return new Ref(TYPE_PLAYLIST, name, uri);
+	}
+
+	public static Ref album(String name, String uri) {
+		return new Ref(TYPE_ALBUM, name, uri);
+	}
+
+	public static Ref artist(String name, String uri) {
+		return new Ref(TYPE_ARTIST, name, uri);
+	}
+
 	public String getType() {
 		return type;
 	}

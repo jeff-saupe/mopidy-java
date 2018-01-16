@@ -50,7 +50,7 @@
         tools:text="The Best Music EVAH1111 FOREVER YOUNG I'M AWESOME!!!11^H^H"/>
 
     <TextView
-        android:id="@+id/description"
+        android:id="@+id/sub_title"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"

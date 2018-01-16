@@ -15,7 +15,10 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -33,7 +36,6 @@ import java.util.List;
 
 import danbroid.mopidy.R;
 import danbroid.mopidy.glide.GlideApp;
-import danbroid.mopidy.interfaces.MainView;
 import danbroid.mopidy.interfaces.MediaContentView;
 
 
@@ -78,7 +80,6 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 	@ViewById(resName = "swipe_refresh")
 	protected SwipeRefreshLayout swipeRefreshLayout;
 
-	protected String mediaID;
 
 	protected RecyclerView.Adapter<MediaItemViewHolder> adapter;
 
@@ -126,25 +127,26 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 	private List<MediaBrowserCompat.MediaItem> data = new LinkedList<>();
 
 
-	class MediaItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+	class MediaItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 		ImageView imageView;
 		TextView titleView;
-		TextView descriptionView;
+		TextView subTitleView;
 		private MediaBrowserCompat.MediaItem item;
 
 		public MediaItemViewHolder(View itemView) {
 			super(itemView);
 			imageView = itemView.findViewById(R.id.icon);
 			titleView = itemView.findViewById(R.id.title);
-			descriptionView = itemView.findViewById(R.id.description);
+			subTitleView = itemView.findViewById(R.id.sub_title);
 			itemView.setOnClickListener(this);
+			itemView.setOnLongClickListener(this);
 		}
 
 		public void bind(MediaBrowserCompat.MediaItem mediaItem) {
 			this.item = mediaItem;
 			MediaDescriptionCompat info = item.getDescription();
 			titleView.setText(info.getTitle());
-			descriptionView.setText(info.getDescription());
+			subTitleView.setText(info.getSubtitle());
 
 
 			Uri iconURI = mediaItem.getDescription().getIconUri();
@@ -167,8 +169,36 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		public void onClick(View view) {
 			getMainView().onMediaItemSelected(item);
 		}
+
+		@Override
+		public boolean onLongClick(View v) {
+			showLongClickMenu(itemView, item);
+			return true;
+		}
 	}
 
+	protected void showLongClickMenu(View view, final MediaBrowserCompat.MediaItem item) {
+		PopupMenu popupMenu = new PopupMenu(getContext(), view);
+		Menu menu = popupMenu.getMenu();
+
+		menu.add(R.string.tracklist_add).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				getMainView().addToTracklist(item);
+				return true;
+			}
+		});
+
+		menu.add(R.string.tracklist_replace).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				getMainView().replaceTracklist(item);
+				return true;
+			}
+		});
+
+		popupMenu.show();
+	}
 
 
 	protected void init() {
