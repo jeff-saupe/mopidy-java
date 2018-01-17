@@ -19,7 +19,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Click;
@@ -81,21 +80,22 @@ public class MediaFragment extends Fragment {
 		}
 	};
 	private ScheduledFuture<?> mScheduleFuture;
-	private PlaybackStateCompat mLastPlaybackState;
+	private PlaybackStateCompat state;
 
 	private void updateProgress() {
-		if (mLastPlaybackState == null) {
+		if (state == null || seekBar == null) {
 			return;
 		}
-		long currentPosition = mLastPlaybackState.getPosition();
-		if (mLastPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
+
+		long currentPosition = state.getPosition();
+		if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
 			// Calculate the elapsed time between the last position update and now and unless
 			// paused, we can assume (delta * speed) + current position is approximately the
 			// latest position. This ensure that we do not repeatedly call the getPlaybackState()
 			// on MediaControllerCompat.
 			long timeDelta = SystemClock.elapsedRealtime() -
-					mLastPlaybackState.getLastPositionUpdateTime();
-			currentPosition += (int) timeDelta * mLastPlaybackState.getPlaybackSpeed();
+					state.getLastPositionUpdateTime();
+			currentPosition += (int) timeDelta * state.getPlaybackSpeed();
 		}
 
 		seekBar.setProgress((int) currentPosition);
@@ -141,7 +141,6 @@ public class MediaFragment extends Fragment {
 			seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 				@Override
 				public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-					log.trace("onProgressChanged(): " + progress);
 					if (seekStartText != null)
 						seekStartText.setText(DateUtils.formatElapsedTime(progress / 1000));
 				}
@@ -277,7 +276,7 @@ public class MediaFragment extends Fragment {
 
 	protected void onPlaybackStateChanged(PlaybackStateCompat state) {
 		log.trace("onPlaybackStateChanged(): {}", state);
-		this.mLastPlaybackState = state;
+		this.state = state;
 
 		if (state == null) {
 			if (playPauseImage != null)

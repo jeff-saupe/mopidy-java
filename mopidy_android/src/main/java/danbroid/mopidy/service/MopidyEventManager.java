@@ -1,5 +1,6 @@
 package danbroid.mopidy.service;
 
+import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -12,6 +13,7 @@ import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.model.Artist;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
+import danbroid.mopidy.util.MediaIds;
 
 /**
  * Created by dan on 28/12/17.
@@ -21,15 +23,17 @@ public class MopidyEventManager implements EventListener {
 
 	private final MediaSessionCompat session;
 	private final AndroidMopidyConnection connection;
+	private final MediaBrowserServiceCompat service;
 
 	private int state;
 	private float playBackSpeed = 1;
 	private long position = 0;
 	private MediaMetadataCompat metadata;
 
-	public MopidyEventManager(MediaSessionCompat session, AndroidMopidyConnection connection) {
+	public MopidyEventManager(MediaSessionCompat session, AndroidMopidyConnection connection, MediaBrowserServiceCompat service) {
 		this.session = session;
 		this.connection = connection;
+		this.service = service;
 		connection.setEventListener(this);
 	}
 
@@ -183,6 +187,7 @@ public class MopidyEventManager implements EventListener {
 
 	public void onTracklistChanged() {
 		log.trace("onTracklistChanged() ");
+		service.notifyChildrenChanged(MediaIds.TRACKLIST);
 	}
 
 	// Called when playlists are loaded or refreshed.

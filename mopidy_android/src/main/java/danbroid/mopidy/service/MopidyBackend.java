@@ -36,6 +36,7 @@ public class MopidyBackend {
 	public static final String COMMAND_CONNECT = "MopidyBackend.COMMAND_CONNECT";
 	public static final String COMMAND_ADD_TO_TRACKLIST = "MopidyBackend.COMMAND_ADD_TO_TRACKLIST";
 
+	public static final String COMMAND_TRACKLIST_CLEAR = "MopidyBackend.COMMAND_TRACKLIST_CLEAR";
 
 	public static final String SESSION_EVENT_BUSY = "MopidyBackend.EVENT_BUSY";
 	public static final String SESSION_EVENT_NOT_BUSY = "MopidyBackend.EVENT_NOT_BUSY";
@@ -85,7 +86,7 @@ public class MopidyBackend {
 			discoveryHelper.start();
 		}
 
-		new MopidyEventManager(session, conn);
+		new MopidyEventManager(session, conn,service);
 
 
 	}
@@ -148,6 +149,15 @@ public class MopidyBackend {
 		public void onCommand(String command, Bundle extras, final ResultReceiver cb) {
 
 			switch (command) {
+				case COMMAND_TRACKLIST_CLEAR:
+					conn.getTrackList().clear().call(new ResponseHandler<Void>() {
+						@Override
+						public void onResponse(CallContext context, Void result) {
+							cb.send(RESULT_CODE_SUCCESS, null);
+						}
+					});
+					return;
+
 				case COMMAND_ADD_TO_TRACKLIST:
 					String mediaID = extras.getString(ARG_MEDIAID);
 					boolean replace = extras.getBoolean(ARG_REPLACE);
@@ -199,7 +209,6 @@ public class MopidyBackend {
 				@Override
 				public void onResponse(CallContext context, TlTrack[] result) {
 					cb.send(RESULT_CODE_SUCCESS, bundle(ARG_MESSAGE, "Added " + result.length + " tracks to tracklist"));
-					service.notifyChildrenChanged(MediaIds.TRACKLIST);
 				}
 			});
 			return;
@@ -212,7 +221,6 @@ public class MopidyBackend {
 					@Override
 					public void onResponse(CallContext context, TlTrack[] result) {
 						cb.send(RESULT_CODE_SUCCESS, bundle(ARG_MESSAGE, "added " + result.length + " tracks to the tracklist"));
-						service.notifyChildrenChanged(MediaIds.TRACKLIST);
 					}
 				});
 			}
@@ -232,21 +240,6 @@ public class MopidyBackend {
 
 		if (mediaId.startsWith(MediaIds.TRACKLIST)) {
 			int i = mediaId.lastIndexOf(':');
-
-			if (i > -1) {
-				String action = mediaId.substring(i + 1);
-				if (action.equals("clear")) {
-					log.warn("CLEARING TRACKLIST!");
-					conn.getTrackList().clear().call(new UIResponseHandler<Void>() {
-						@Override
-						public void onUIResponse(CallContext context, Void result) {
-							service.notifyChildrenChanged(MediaIds.TRACKLIST);
-						}
-					});
-					return;
-				}
-			}
-
 			int tlid = Integer.parseInt(mediaId.substring(mediaId.lastIndexOf('/') + 1));
 			conn.getPlayback().play(tlid, null).call();
 			return;
@@ -303,14 +296,5 @@ public class MopidyBackend {
 		controller.sendCommand(COMMAND_CONNECT, bundle(ARG_URL, url), resultReceiver);
 	}
 
-	public static void addToTracklist(Activity activity, String uri, boolean replace, ResultReceiver resultReceiver) {
-		MediaControllerCompat controller = MediaControllerCompat.getMediaController(activity);
 
-		if (controller == null) {
-			log.error("controller is null");
-			return;
-		}
-		Bundle args = new Bundle();
-		controller.sendCommand(COMMAND_ADD_TO_TRACKLIST, args, resultReceiver);
-	}
 }

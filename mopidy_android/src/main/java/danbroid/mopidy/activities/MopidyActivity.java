@@ -20,6 +20,7 @@ import danbroid.mopidy.fragments.MediaListFragment;
 import danbroid.mopidy.interfaces.MainView;
 import danbroid.mopidy.service.AbstractMopidyService;
 import danbroid.mopidy.service.MopidyClient;
+import danbroid.mopidy.util.MediaIds;
 
 /**
  * Created by dan on 24/12/17.
@@ -132,6 +133,12 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 	public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
 		String mediaID = item.getMediaId();
 		log.trace("onMediaItemSelected() mediaId: {}", mediaID);
+
+		switch (mediaID) {
+			case MediaIds.TRACKLIST_CLEAR:
+				new MopidyClient.ClearTracklist(this).call();
+				return;
+		}
 
 		if (item.isPlayable()) {
 			getSupportMediaController().getTransportControls()

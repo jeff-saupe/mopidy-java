@@ -116,4 +116,10 @@ public class MopidyClient {
 	}
 
 
+	public static class ClearTracklist extends Call {
+
+		public ClearTracklist(Activity activity) {
+			super(activity, MopidyBackend.COMMAND_TRACKLIST_CLEAR);
+		}
+	}
 }
