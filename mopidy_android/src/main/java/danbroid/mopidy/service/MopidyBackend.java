@@ -24,7 +24,6 @@ import danbroid.mopidy.interfaces.MopidyPrefs_;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.util.MediaIds;
 import danbroid.mopidy.util.MopidyServerFinder;
-import danbroid.mopidy.util.UIResponseHandler;
 
 /**
  * Created by dan on 26/12/17.
@@ -86,7 +85,7 @@ public class MopidyBackend {
 			discoveryHelper.start();
 		}
 
-		new MopidyEventManager(session, conn,service);
+		new MopidyEventManager(session, conn, service);
 
 
 	}
@@ -108,6 +107,7 @@ public class MopidyBackend {
 	}
 
 	protected class SessionCallback extends MediaSessionCompat.Callback {
+
 
 		@Override
 		public void onPause() {
@@ -240,7 +240,7 @@ public class MopidyBackend {
 
 		if (mediaId.startsWith(MediaIds.TRACKLIST)) {
 			int i = mediaId.lastIndexOf(':');
-			int tlid = Integer.parseInt(mediaId.substring(mediaId.lastIndexOf('/') + 1));
+			int tlid = Integer.parseInt(mediaId.substring(i + 1));
 			conn.getPlayback().play(tlid, null).call();
 			return;
 		}

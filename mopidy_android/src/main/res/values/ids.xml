@@ -3,6 +3,8 @@
   <item name="play_pause" type="id"/>
   <item name="skip_next" type="id"/>
   <item name="skip_prev" type="id"/>
+
+  <item name="seek_bar_container" type="id"/>
   <item name="seek_bar" type="id"/>
   <item name="seekbar_end_text" type="id"/>
   <item name="seekbar_start_text" type="id"/>

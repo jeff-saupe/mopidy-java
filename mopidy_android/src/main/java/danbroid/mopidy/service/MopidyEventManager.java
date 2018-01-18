@@ -1,5 +1,6 @@
 package danbroid.mopidy.service;
 
+import android.os.SystemClock;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -152,7 +153,7 @@ public class MopidyEventManager implements EventListener {
 	private void updateState() {
 		//log.trace("updateState()");
 		PlaybackStateCompat.Builder builder = new PlaybackStateCompat.Builder();
-		builder.setState(state, position, playBackSpeed, System.currentTimeMillis());
+		builder.setState(state, position, playBackSpeed, SystemClock.elapsedRealtime());
 		session.setPlaybackState(builder.build());
 	}
 

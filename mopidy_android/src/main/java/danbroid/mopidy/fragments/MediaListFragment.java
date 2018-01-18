@@ -37,6 +37,7 @@ import java.util.List;
 import danbroid.mopidy.R;
 import danbroid.mopidy.glide.GlideApp;
 import danbroid.mopidy.interfaces.MediaContentView;
+import danbroid.mopidy.util.MediaIds;
 
 
 /**
@@ -46,25 +47,22 @@ import danbroid.mopidy.interfaces.MediaContentView;
 @EFragment(resName = "refreshable_list")
 public class MediaListFragment extends MediaFragment implements MediaContentView {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MediaListFragment.class);
-	private String mediaId;
 
 	@ViewById(resName = "busy_indicator")
 	protected View busyIndicator;
-
-
-	private final ContentObserver contentObserver = new ContentObserver(null) {
-		@Override
-		public void onChange(boolean selfChange) {
-			onContentChanged();
-		}
-	};
 
 	protected void onContentChanged() {
 		log.debug("onContentChanged()");
 	}
 
+	private static MediaBrowserCompat.MediaItem PARENT_MEDIA_ITEM = new MediaBrowserCompat.MediaItem(
+			new MediaDescriptionCompat.Builder()
+					.setMediaId(MediaIds.PARENT_FOLDER)
+					.setTitle("..")
+					.build(),
+			MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
 
-	public static MediaListFragment getInstance(String mediaID) {
+	public static MediaListFragment newInstance(String mediaID) {
 		return MediaListFragment_.builder().arg(ARG_MEDIA_ID, mediaID).build();
 	}
 
@@ -126,6 +124,19 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 	private List<MediaBrowserCompat.MediaItem> data = new LinkedList<>();
 
+	@Override
+	public boolean onBackButton() {
+		String parentID = MediaIds.extractParentID(getMediaID());
+		log.trace("onBackButton() parent: {}", parentID);
+
+		if (parentID != null) {
+			loadContent(parentID);
+			return true;
+		}
+
+		return false;
+	}
+
 
 	class MediaItemViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 		ImageView imageView;
@@ -167,7 +178,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 		@Override
 		public void onClick(View view) {
-			getMainView().onMediaItemSelected(item);
+			onItemClicked(view, item);
 		}
 
 		@Override
@@ -176,6 +187,36 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 			return true;
 		}
 	}
+
+	protected void onItemClicked(View view, MediaBrowserCompat.MediaItem item) {
+		log.trace("onItemClicked(): {}", item.getDescription().getTitle());
+
+		if (item.getMediaId().equals(MediaIds.PARENT_FOLDER)) {
+			loadContent(MediaIds.extractParentID(getMediaID()));
+			return;
+		}
+
+		if (item.isPlayable()) {
+			getController().getTransportControls().playFromMediaId(item.getMediaId(), null);
+			return;
+		}
+
+		loadContent(MediaIds.prependParentID(getMediaID(), item.getMediaId()));
+
+	}
+
+	protected void loadContent(String newID) {
+		log.trace("loadContent(): {}", newID);
+
+		MediaBrowserCompat mediaBrowser = getMainView().getMediaBrowser();
+
+		String oldID = getMediaID();
+		mediaBrowser.unsubscribe(oldID);
+
+		setMediaID(newID);
+		mediaBrowser.subscribe(newID, subscriptionCallback);
+	}
+
 
 	protected void showLongClickMenu(View view, final MediaBrowserCompat.MediaItem item) {
 		PopupMenu popupMenu = new PopupMenu(getContext(), view);
@@ -203,12 +244,12 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 	protected void init() {
 		super.init();
-		mediaId = getArguments().getString(ARG_MEDIA_ID, null);
-		log.trace("init() :{}", mediaId);
+
+
+		log.trace("init() :{}", getMediaID());
 		setEmptyText(R.string.msg_loading);
 
 
-		getActivity().setTitle(mediaId);
 		swipeRefreshLayout.setEnabled(false);
 
 
@@ -249,10 +290,13 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		recyclerView.setVisibility(View.INVISIBLE);
 	}
 
-	public String getMediaId() {
+	public String getMediaID() {
 		return getArguments().getString(ARG_MEDIA_ID, null);
 	}
 
+	public void setMediaID(String mediaID) {
+		getArguments().putString(ARG_MEDIA_ID, mediaID);
+	}
 
 	@Override
 	public void onConnected() {
@@ -268,37 +312,12 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 			return;
 		}
 
-		mediaId = getMediaId();
-		if (mediaId == null) {
-			mediaId = getMainView().getMediaBrowser().getRoot();
-		}
+		String mediaID = getMediaID();
 
-		log.trace("onConnected() mediaID:{}", mediaId);
+		log.trace("onConnected() mediaID:{}", mediaID);
 
+		loadContent(mediaID);
 
-		// Unsubscribing before subscribing is required if this mediaId already has a subscriber
-		// on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
-		// the callback, but won't trigger the initial callback.onChildrenLoaded.
-		//
-		// This is temporary: A bug is being fixed that will make subscribe
-		// consistently call onChildrenLoaded initially, no matter if it is replacing an existing
-		// subscriber or not. Currently this only happens if the mediaID has no previous
-		// subscriber or if the media content changes on the service side, so we need to
-		// unsubscribe first.
-		MediaBrowserCompat mediaBrowser = getMainView().getMediaBrowser();
-		mediaBrowser.unsubscribe(mediaId);
-//		mainView.getMediaBrowser().
-
-
-		mediaBrowser.subscribe(mediaId, subscriptionCallback);
-
-
-	}
-
-	@Override
-	public boolean onBackButton() {
-		log.error("onBackButton(): " + mediaId);
-		return false;
 	}
 
 
@@ -315,8 +334,9 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 	public void onStop() {
 		super.onStop();
 		MediaBrowserCompat mediaBrowser = getMainView().getMediaBrowser();
-		if (mediaBrowser != null && mediaBrowser.isConnected() && mediaId != null) {
-			mediaBrowser.unsubscribe(mediaId);
+		String mediaID = getMediaID();
+		if (mediaBrowser != null && mediaBrowser.isConnected() && mediaID != null) {
+			mediaBrowser.unsubscribe(mediaID);
 		}
 
 		getActivity().unregisterReceiver(connectivityChangeListener);
@@ -327,12 +347,25 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 				@Override
 				public void onChildrenLoaded(@NonNull String parentId,
 				                             @NonNull List<MediaBrowserCompat.MediaItem> children) {
+
+					if (!isResumed() || getActivity() == null) return;
+
 					try {
 						log.warn("onChildrenLoaded(), parentId: {} size: {}", parentId,
 								children.size());
 						MediaListFragment.this.data = children;
 						//TODO  checkForUserVisibleErrors(children.isEmpty());
 
+						if (adapter == null) {
+							log.warn("ADAPTER IS NULL!");
+							return;
+						}
+
+						String parentID = MediaIds.extractParentID(parentId);
+
+						if (parentID != null) {
+							data.add(0, PARENT_MEDIA_ITEM);
+						}
 
 						if (!data.isEmpty()) {
 							adapter.notifyDataSetChanged();
@@ -353,7 +386,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 	@Override
 	protected void onMopidyConnected() {
-		log.info("onMopidyConnected(): {}", getMediaId());
+		log.info("onMopidyConnected(): {}", getMediaID());
 	}
 }
 

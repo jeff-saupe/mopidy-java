@@ -10,22 +10,50 @@ public class MediaIds {
 
 	public static final String EMPTY_ROOT = "__EMPTY_ROOT__";
 	public static final String ROOT = "__ROOT__";
-	public static final String SERVER = "__SERVER__";
-	public static final String MOPIDY_ROOT = "__MOPIDY__";
+	public static final String PROFILES = "__PROFILES__";
 	public static final String TRACKLIST = "__TRACKLIST__";
 	public static final String PLAYLISTS = "__PLAYLISTS__";
+	public static final String PARENT_FOLDER = "__PARENT_FOLDER__";
 
-	public static final String TRACKLIST_CLEAR = "__TRACKLIST_CLEAR__";
 	public static final String M3U = "m3u";
 
-
-	public static String idServer(String host, int port) {
-		return SERVER + ":" + Uri.encode(host + ":" + port);
+	public static String encode(String prefix, String uri) {
+		return prefix + ":" + Uri.encode(uri);
 	}
 
-	public static String idTracklistItem(int tlid) {
-		return TRACKLIST + "/" + tlid;
+	public static String[] decode(String mediaID) {
+		int i = mediaID.indexOf(':');
+		if (i > 0) {
+			return new String[]{mediaID.substring(0, i), Uri.decode(mediaID.substring(i + 1))};
+		} else {
+			return new String[]{mediaID};
+		}
+	}
+
+	public static String profileID(String mopidyURL) {
+		return encode(PROFILES, mopidyURL);
+	}
+
+	public static String trackListID(int tlid) {
+		return TRACKLIST + ":" + tlid;
 	}
 
 
+	public static String prependParentID(String parentID, String mediaID) {
+		return parentID + "->" + mediaID;
+	}
+
+	public static String extractParentID(String mediaID) {
+		int i = mediaID.lastIndexOf("->");
+		if (i > -1)
+			return mediaID.substring(0, i);
+		return null;
+	}
+
+	public static String extractChildID(String mediaID) {
+		int i = mediaID.lastIndexOf("->");
+		if (i > -1)
+			return mediaID.substring(i + 2);
+		return mediaID;
+	}
 }

@@ -2,10 +2,7 @@ package danbroid.mopidy.app.fragments;
 
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.SystemClock;
-import android.support.v4.app.Fragment;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
@@ -24,6 +21,7 @@ import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.util.FlingDetector;
 import danbroid.mopidy.app.util.NavBarColours;
+import danbroid.mopidy.fragments.MediaControlsFragment;
 import danbroid.mopidy.fragments.MediaFragment;
 import danbroid.mopidy.glide.GlideApp;
 import danbroid.mopidy.lastfm.Album;
@@ -35,7 +33,7 @@ import jp.wasabeef.blurry.Blurry;
  * Created by dan on 18/12/17.
  */
 @EFragment(R.layout.fullscreen_controls)
-public class FullScreenControlsFragment extends MediaFragment {
+public class FullScreenControlsFragment extends MediaControlsFragment {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FullScreenControlsFragment.class);
 
 	@ViewById(R.id.image)
@@ -43,7 +41,6 @@ public class FullScreenControlsFragment extends MediaFragment {
 
 	@ViewById(R.id.blurred_image)
 	ImageView blurredImage;
-
 
 
 	protected void init() {
@@ -98,7 +95,6 @@ public class FullScreenControlsFragment extends MediaFragment {
 
 	@Override
 	protected void onMetadataChanged(MediaMetadataCompat metadata) {
-		log.error("onMetadataChanged(): {}", metadata == null ? null : metadata.getDescription().getTitle());
 		super.onMetadataChanged(metadata);
 
 		if (metadata == null) return;

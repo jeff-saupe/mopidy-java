@@ -3,4 +3,9 @@
   <string name="msg_loading">Please Wait..</string>
   <string name="tracklist_add">Add to tracklist</string>
   <string name="tracklist_replace">Replace tracklist</string>
+  <string name="lbl_tracklist">Track List</string>
+  <string name="lbl_library">Library</string>
+  <string name="lbl_playlists">Playlists</string>
+
+
 </resources>

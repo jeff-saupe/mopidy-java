@@ -11,15 +11,14 @@ import org.androidannotations.annotations.ViewById;
 
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.util.FlingDetector;
-import danbroid.mopidy.fragments.MediaFragment;
+import danbroid.mopidy.fragments.MediaControlsFragment;
 
 /**
  * Created by dan on 11/12/17.
  */
 @EFragment(R.layout.bottom_controls)
-public class BottomControlsFragment extends MediaFragment {
+public class BottomControlsFragment extends MediaControlsFragment {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BottomControlsFragment.class);
-
 
 	@ViewById(R.id.chevron_up)
 	View chevronUp;
@@ -54,7 +53,6 @@ public class BottomControlsFragment extends MediaFragment {
 		log.trace("showFullControls()");
 		((danbroid.mopidy.app.interfaces.MainView) getMainView()).showFullControls();
 	}
-
 
 
 }

@@ -20,7 +20,6 @@ import danbroid.mopidy.fragments.MediaListFragment;
 import danbroid.mopidy.interfaces.MainView;
 import danbroid.mopidy.service.AbstractMopidyService;
 import danbroid.mopidy.service.MopidyClient;
-import danbroid.mopidy.util.MediaIds;
 
 /**
  * Created by dan on 24/12/17.
@@ -28,7 +27,6 @@ import danbroid.mopidy.util.MediaIds;
 @EActivity
 public abstract class MopidyActivity extends AppCompatActivity implements MainView {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyActivity.class);
-
 
 	protected final MediaBrowserCompat.ConnectionCallback connectionCallback =
 			new MediaBrowserCompat.ConnectionCallback() {
@@ -87,9 +85,10 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 
 		LocalBroadcastManager bm = LocalBroadcastManager.getInstance(this);
 		bm.sendBroadcast(new Intent(MainView.ACTION_CONTROLLER_CONNECTED));
-
 		onPlaybackStateChanged(mediaController.getPlaybackState());
 	}
+
+
 
 	protected void onConnected() {
 	}
@@ -134,12 +133,6 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 		String mediaID = item.getMediaId();
 		log.trace("onMediaItemSelected() mediaId: {}", mediaID);
 
-		switch (mediaID) {
-			case MediaIds.TRACKLIST_CLEAR:
-				new MopidyClient.ClearTracklist(this).call();
-				return;
-		}
-
 		if (item.isPlayable()) {
 			getSupportMediaController().getTransportControls()
 					.playFromMediaId(item.getMediaId(), null);
@@ -166,6 +159,6 @@ public abstract class MopidyActivity extends AppCompatActivity implements MainVi
 
 	@Override
 	public void showContent(String mediaID) {
-		setContent(MediaListFragment.getInstance(mediaID));
+		setContent(MediaListFragment.newInstance(mediaID));
 	}
 }

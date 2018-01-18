@@ -2,11 +2,13 @@ package danbroid.mopidy.app.activities;
 
 import android.os.Build;
 import android.support.annotation.DrawableRes;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.animation.Animation;
@@ -23,14 +25,17 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 import danbroid.mopidy.activities.MopidyActivity;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.fragments.FullScreenControlsFragment;
+import danbroid.mopidy.app.fragments.LibraryTab;
+import danbroid.mopidy.app.fragments.PlaylistsTab;
+import danbroid.mopidy.app.fragments.TracklistTab;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.service.MopidyService_;
 import danbroid.mopidy.app.ui.AddServerDialog_;
 import danbroid.mopidy.fragments.MediaFragment;
-import danbroid.mopidy.fragments.MediaListFragment;
+import danbroid.mopidy.interfaces.MediaContentView;
 import danbroid.mopidy.interfaces.MopidyPrefs_;
 import danbroid.mopidy.service.AbstractMopidyService;
-import danbroid.mopidy.util.MediaIds;
+import danbroid.mopidy.service.MopidyClient;
 
 @OptionsMenu(R.menu.menu_main)
 @EActivity(R.layout.activity_main)
@@ -49,14 +54,35 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 	@ViewById(R.id.bottom_controls)
 	View bottomControls;
 
-	@ViewById(R.id.content_container)
-	View contentContainer;
+	@ViewById(R.id.view_pager)
+	ViewPager viewPager;
 
+	@ViewById(R.id.tab_layout)
+	TabLayout tabLayout;
+
+	abstract class TabInfo {
+		final String title;
+		Fragment fragment;
+
+		TabInfo(String title) {
+			this.title = title;
+		}
+
+		Fragment getFragment() {
+			return fragment = createFragment();
+		}
+
+		abstract Fragment createFragment();
+
+		public String getTitle() {
+			return title;
+		}
+	}
+
+	private TabInfo tabs[] = {};
 
 	public void init() {
-		log.error("init()");
 		super.init();
-
 
 		setSupportActionBar(toolbar);
 
@@ -64,15 +90,66 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 
 		hideFullControls();
 
-		if (getContent() == null) {
-			actionHome();
-		}
+		tabs = new TabInfo[]{
+				new TabInfo(getString(R.string.lbl_library)) {
+					@Override
+					Fragment createFragment() {
+						return LibraryTab.newInstance();
+					}
+				},
+				new TabInfo(getString(R.string.lbl_tracklist)) {
+					@Override
+					Fragment createFragment() {
+						return TracklistTab.newInstance();
+					}
+				},
+				new TabInfo(getString(R.string.lbl_playlists)) {
+					@Override
+					Fragment createFragment() {
+						return PlaylistsTab.newInstance();
+					}
+				},
+		};
+
+		FragmentPagerAdapter pageAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
+			@Override
+			public Fragment getItem(int i) {
+				return tabs[i].getFragment();
+			}
+
+			@Override
+			public int getCount() {
+				return tabs.length;
+			}
+
+			@Override
+			public CharSequence getPageTitle(int position) {
+				return tabs[position].getTitle();
+			}
+		};
+
+		viewPager.setAdapter(pageAdapter);
+
+		tabLayout.setupWithViewPager(viewPager);
 
 
 	}
 
+	@Override
+	protected void onConnected() {
+		String lastConnection = prefs.lastConnectionURL().getOr(null);
+		log.info("onConnected() lastConnection: {}", lastConnection);
+		if (lastConnection != null) {
+			new MopidyClient.Connect(this, lastConnection) {
+				@Override
+				protected void onSuccess(String version) {
+					actionHome();
+				}
+			}.call();
+		}
+	}
 
-	public void showBottomControls(boolean animate) {
+/*	public void showBottomControls(boolean animate) {
 		log.trace("showBottomControls(): animate: {}", animate);
 
 		if (bottomControls == null) {
@@ -129,13 +206,8 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 		CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) contentContainer.getLayoutParams();
 		params.bottomMargin -= height;
 		contentContainer.setLayoutParams(params);
+	}*/
 
-	}
-
-
-	public Fragment getContent() {
-		return getSupportFragmentManager().findFragmentById(R.id.content_container);
-	}
 
 	@Override
 	protected Class<? extends AbstractMopidyService> getServiceClass() {
@@ -145,20 +217,15 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 
 	@OptionsItem(R.id.action_home)
 	public void actionHome() {
-		setContent(MediaListFragment.getInstance(MediaIds.ROOT));
+		viewPager.setCurrentItem(0);
 	}
 
 
 	@Override
 	public void setContent(MediaFragment content) {
-		getSupportFragmentManager().beginTransaction()
-				.setCustomAnimations(
-						R.animator.slide_in_from_right, R.animator.slide_out_to_left,
-						R.animator.slide_in_from_left, R.animator.slide_out_to_right)
-				.replace(R.id.content_container, (Fragment) content)
-				.addToBackStack(null)
-				.commit();
+
 	}
+
 
 	public void showFAB(@DrawableRes int icon) {
 		fab.setImageResource(icon);
@@ -191,6 +258,11 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 		if (fm.findFragmentById(R.id.full_controls) != null) {
 			hideFullControls();
 			return;
+		}
+
+		fragment = tabs[tabLayout.getSelectedTabPosition()].fragment;
+		if (fragment != null && fragment instanceof MediaContentView) {
+			if (((MediaContentView) fragment).onBackButton()) return;
 		}
 
 		if (fm.getBackStackEntryCount() > 1) {
@@ -234,6 +306,8 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 		ft.replace(R.id.full_controls, FullScreenControlsFragment.newInstance()).commit();
 		view.setAnimation(anim);
 		view.animate();
+
+
 	}
 
 
