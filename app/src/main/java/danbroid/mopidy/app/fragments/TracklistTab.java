@@ -20,7 +20,6 @@ public class TracklistTab extends MediaListFragment {
 		return TracklistTab_.builder().arg(ARG_MEDIA_ID, MediaIds.TRACKLIST).build();
 	}
 
-
 	@Override
 	protected void showLongClickMenu(View view, MediaBrowserCompat.MediaItem item) {
 	}

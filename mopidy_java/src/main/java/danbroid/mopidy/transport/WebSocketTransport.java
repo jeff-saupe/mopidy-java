@@ -1,7 +1,9 @@
 package danbroid.mopidy.transport;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -13,7 +15,6 @@ import okhttp3.WebSocketListener;
  */
 public class WebSocketTransport extends Transport {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WebSocketTransport.class);
-	public static final int ERROR_CLOSE_CALLED = 1001;
 
 	private WebSocket socket;
 
@@ -22,25 +23,41 @@ public class WebSocketTransport extends Transport {
 		socket.send(request);
 	}
 
-	public WebSocketTransport(Callback callback) {
-		super(callback);
-	}
 
+	class LoggingInterceptor implements Interceptor {
+		@Override
+		public Response intercept(Interceptor.Chain chain) throws IOException {
+			Request request = chain.request();
+
+			long t1 = System.nanoTime();
+			log.info(String.format("Sending request %s on %s%n%s",
+					request.url(), chain.connection(), request.headers()));
+
+			Response response = chain.proceed(request);
+
+			long t2 = System.nanoTime();
+			log.info(String.format("Received response for %s in %.1fms%n%s",
+					response.request().url(), (t2 - t1) / 1e6d, response.headers()));
+
+			return response;
+		}
+	}
 
 	@Override
 	protected synchronized void open() {
 		if (socket != null) throw new IllegalArgumentException("socket already exists");
 
 		OkHttpClient client = new OkHttpClient.Builder()
+				.addInterceptor(new LoggingInterceptor())
 				.readTimeout(5, TimeUnit.SECONDS)
 				.retryOnConnectionFailure(true)
 				.connectTimeout(5, TimeUnit.SECONDS).build();
 
-
 		Request request = new Request.Builder()
 				.url(url)
+				.addHeader("Accept-Encoding", "gzip")
+				.addHeader("Sec-WebSocket-Extensions","permessage-deflate")
 				.build();
-
 
 		this.socket = client.newWebSocket(request, new WebSocketListener() {
 

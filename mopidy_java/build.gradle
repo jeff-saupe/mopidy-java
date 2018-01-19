@@ -13,7 +13,9 @@ test {
 dependencies {
   api "org.slf4j:slf4j-api:${deps.slf4j}"
   api "com.google.code.gson:gson:${deps.gson}"
+
   api "com.squareup.okhttp3:okhttp:${deps.okhttp}"
+
 
   testImplementation 'junit:junit:4.12'
   //testImplementation "org.slf4j:slf4j-simple:${deps.slf4j}"

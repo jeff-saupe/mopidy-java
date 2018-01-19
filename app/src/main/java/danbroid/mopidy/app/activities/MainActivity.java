@@ -27,6 +27,7 @@ import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.fragments.FullScreenControlsFragment;
 import danbroid.mopidy.app.fragments.LibraryTab;
 import danbroid.mopidy.app.fragments.PlaylistsTab;
+import danbroid.mopidy.app.fragments.ProfilesTab;
 import danbroid.mopidy.app.fragments.TracklistTab;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.service.MopidyService_;
@@ -107,6 +108,12 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 					@Override
 					Fragment createFragment() {
 						return PlaylistsTab.newInstance();
+					}
+				},
+				new TabInfo(getString(R.string.lbl_profiles)) {
+					@Override
+					Fragment createFragment() {
+						return ProfilesTab.newInstance();
 					}
 				},
 		};

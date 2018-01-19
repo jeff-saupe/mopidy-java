@@ -49,6 +49,8 @@ dependencies {
   api 'me.zhanghai.android.materialprogressbar:library:1.4.2'
   testImplementation 'junit:junit:4.12'
   testImplementation "org.slf4j:slf4j-simple:${deps.slf4j}"
+  implementation 'com.neovisionaries:nv-websocket-client:2.3'
+
   //testImplementation "org.skyscreamer:jsonassert:1.5.0"
   androidTestImplementation 'com.android.support.test:runner:1.0.1'
   androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'

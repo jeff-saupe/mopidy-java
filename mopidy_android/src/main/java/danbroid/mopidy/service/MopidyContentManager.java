@@ -54,6 +54,9 @@ public class MopidyContentManager {
 			case MediaIds.PLAYLISTS:
 				loadPlaylists(result);
 				return;
+			case MediaIds.PROFILES:
+				loadServers(result);
+				return;
 		}
 
 		int i = parentId.indexOf(':');
@@ -158,8 +161,8 @@ public class MopidyContentManager {
 				});
 	}
 
-	protected void loadRoot(MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
-		log.trace("loadRoot()");
+	protected void loadServers(MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {
+		log.trace("loadServers()");
 		List<MediaBrowserCompat.MediaItem> items = new LinkedList<>();
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {

@@ -13,6 +13,7 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 
 import danbroid.mopidy.interfaces.MopidyPrefs_;
 import danbroid.mopidy.service.MopidyBackend;
+import danbroid.mopidy.transport.Transport;
 
 
 /**
@@ -61,5 +62,11 @@ public class AndroidMopidyConnection extends danbroid.mopidy.MopidyConnection {
 	@Override
 	protected void processMessage(String text) {
 		super.processMessage(text);
+	}
+
+
+	@Override
+	protected Transport createTransport() {
+		return AndroidWebSocket_.getInstance_(context).setCallback(this);
 	}
 }

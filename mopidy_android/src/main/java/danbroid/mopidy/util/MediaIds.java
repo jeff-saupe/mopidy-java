@@ -21,17 +21,13 @@ public class MediaIds {
 		return prefix + ":" + Uri.encode(uri);
 	}
 
-	public static String[] decode(String mediaID) {
-		int i = mediaID.indexOf(':');
-		if (i > 0) {
-			return new String[]{mediaID.substring(0, i), Uri.decode(mediaID.substring(i + 1))};
-		} else {
-			return new String[]{mediaID};
-		}
-	}
 
 	public static String profileID(String mopidyURL) {
 		return encode(PROFILES, mopidyURL);
+	}
+
+	public static String decode(String mediaID) {
+		return Uri.decode(mediaID.substring(mediaID.lastIndexOf(':') + 1));
 	}
 
 	public static String trackListID(int tlid) {

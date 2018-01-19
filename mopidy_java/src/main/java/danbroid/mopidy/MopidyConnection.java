@@ -40,7 +40,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 	private AtomicInteger requestID = new AtomicInteger(0);
 	private HashMap<Integer, Call> calls = new HashMap<>();
-	private WebSocketTransport transport;
+	private Transport transport;
 
 	public void setEventListener(EventListener eventListener) {
 		this.eventListener = eventListener;
@@ -74,11 +74,15 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 		stop();
 
-		transport = new WebSocketTransport(this);
+		//transport = new WebSocketTransport(this);
+		transport = createTransport();
 		transport.connect(url);
 
-
 		return getVersion();
+	}
+
+	protected Transport createTransport() {
+		return new WebSocketTransport().setCallback(this);
 	}
 
 	public Call<String> getVersion() {
@@ -148,7 +152,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	public synchronized void onError(Throwable t) {
 		log.error(t.getMessage(), t);
 		String message = t.getLocalizedMessage();
-		if (t.getCause()!= null) message = t.getCause().getLocalizedMessage();
+		if (t.getCause() != null) message = t.getCause().getLocalizedMessage();
 		for (Call call : calls.values()) {
 			call.onError(ERROR_TRANSPORT, message, null);
 		}

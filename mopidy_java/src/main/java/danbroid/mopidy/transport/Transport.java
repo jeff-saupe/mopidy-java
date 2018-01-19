@@ -5,19 +5,23 @@ package danbroid.mopidy.transport;
  */
 public abstract class Transport {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Transport.class);
+	public static final int ERROR_CLOSE_CALLED = 1001;
 
 	protected String url;
-	protected final Callback callback;
+	protected Callback callback;
 
 	public abstract void send(String request);
 
 	public interface Callback {
 		void onMessage(String message);
+
 		void onError(Throwable t);
 	}
 
-	protected Transport(Callback callback) {
+
+	public Transport setCallback(Callback callback) {
 		this.callback = callback;
+		return this;
 	}
 
 	public final void connect(String url) {
@@ -34,8 +38,6 @@ public abstract class Transport {
 
 
 	public abstract void close();
-
-
 
 
 }
