@@ -8,6 +8,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 
 import java.util.List;
 
@@ -24,14 +26,33 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 	protected MopidyBackend backend;
 	private PackageValidator packageValidator;
 	private MopidyContentManager_ contentManager;
+	private MediaSessionCompat session;
+	private Bundle sessionExtras = new Bundle();
+
+	public static String SESSION_TAG = "MopidyService";
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		log.info("onCreate()");
+
 		backend = createBackend();
 		packageValidator = new PackageValidator(this);
 		contentManager = MopidyContentManager_.getInstance_(this);
+
+		session = new MediaSessionCompat(this, SESSION_TAG);
+
+		setSessionToken(session.getSessionToken());
+
+		session.setFlags(
+				MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+						MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
+		);
+
+		session.setExtras(sessionExtras);
+
+		session.setCallback(backend.createSessionCallback());
+
 		backend.init(this);
 	}
 
@@ -44,7 +65,7 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 		Intent intent = new Intent(this, activityClass);
 		PendingIntent pi = PendingIntent.getActivity(this, 99 /*request code*/,
 				intent, PendingIntent.FLAG_UPDATE_CURRENT);
-		backend.getSession().setSessionActivity(pi);
+		session.setSessionActivity(pi);
 	}
 
 
@@ -75,5 +96,29 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 		log.info("onDestroy()");
 		super.onDestroy();
 		backend.onDestroy();
+	}
+
+
+	public void onPlaybackStarted() {
+		log.warn("onPlaybackStarted()");
+		session.setActive(true);
+
+		startService(new Intent(getApplicationContext(), getClass()));
+	}
+
+
+	public void onPlaybackStopped() {
+		log.warn("onPlaybackStopped()");
+		session.setActive(false);
+
+		stopForeground(true);
+	}
+
+	public MediaSessionCompat getSession() {
+		return session;
+	}
+
+	public void onMetadataChanged(MediaMetadataCompat md) {
+		session.setMetadata(md);
 	}
 }

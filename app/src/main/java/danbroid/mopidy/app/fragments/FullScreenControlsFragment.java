@@ -2,7 +2,9 @@ package danbroid.mopidy.app.fragments;
 
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
@@ -57,7 +59,13 @@ public class FullScreenControlsFragment extends MediaControlsFragment {
 
 	@Click(R.id.chevron_down)
 	public void close() {
-		((MainView) getMainView()).hideFullControls();
+		MediaControllerCompat controller = getController();
+		log.debug("controller: " + controller);
+		log.debug("metadata: " + controller.getMetadata());
+		log.debug("sessionREady: " + controller.isSessionReady());
+
+
+		//TODO ((MainView) getMainView()).hideFullControls();
 	}
 
 

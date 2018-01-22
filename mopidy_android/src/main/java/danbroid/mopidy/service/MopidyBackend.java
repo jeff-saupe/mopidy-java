@@ -1,10 +1,12 @@
 package danbroid.mopidy.service;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ResultReceiver;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -54,13 +56,11 @@ public class MopidyBackend {
 
 	public static final int RESULT_CODE_SUCCESS = 0;
 
+	public static final String INTENT_MOPIDY_CONNECTED = MopidyBackend.class.getName() + ".INTENT_MOPIDY_CONNECTED";
 
-	public static String SESSION_TAG = "MopidyService";
 
-	protected MediaBrowserServiceCompat service;
+	protected AbstractMopidyService service;
 
-	protected MediaSessionCompat session;
-	protected Bundle sessionExtras = new Bundle();
 
 	@Bean
 	protected MopidyContentManager contentManager;
@@ -75,36 +75,24 @@ public class MopidyBackend {
 	protected MopidyServerFinder discoveryHelper;
 
 
-	public void init(MediaBrowserServiceCompat service) {
+	public void init(AbstractMopidyService service) {
 		log.trace("init()");
 		this.service = service;
-
-		initSession();
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 			discoveryHelper.start();
 		}
 
-		new MopidyEventManager(session, conn, service);
+		new MopidyEventManager(conn, service);
 
 
 	}
 
-
-	protected void initSession() {
-		session = new MediaSessionCompat(service, SESSION_TAG);
-
-		service.setSessionToken(session.getSessionToken());
-
-		session.setFlags(
-				MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-						MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
-		);
-
-		session.setExtras(sessionExtras);
-
-		session.setCallback(createSessionCallback());
+	public void onMopidyConnected() {
+		LocalBroadcastManager.getInstance(service).sendBroadcast(new Intent(INTENT_MOPIDY_CONNECTED));
+		service.getSession().sendSessionEvent(MopidyBackend.SESSION_EVENT_CONNECTED,null);
 	}
+
 
 	protected class SessionCallback extends MediaSessionCompat.Callback {
 
@@ -261,16 +249,8 @@ public class MopidyBackend {
 
 	}
 
-	protected MediaSessionCompat.Callback createSessionCallback() {
+	public MediaSessionCompat.Callback createSessionCallback() {
 		return new SessionCallback();
-	}
-
-	public MediaSessionCompat getSession() {
-		if (session == null) {
-			log.error("SESSION IS NULL!");
-			return null;
-		}
-		return session;
 	}
 
 

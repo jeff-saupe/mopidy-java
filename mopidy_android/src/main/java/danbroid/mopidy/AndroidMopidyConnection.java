@@ -22,7 +22,6 @@ import danbroid.mopidy.transport.Transport;
 @EBean(scope = EBean.Scope.Singleton)
 public class AndroidMopidyConnection extends danbroid.mopidy.MopidyConnection {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AndroidMopidyConnection.class);
-	public static final String INTENT_SERVER_CONNECTED = AndroidMopidyConnection.class.getName() + ".INTENT_SERVER_CONNECTED";
 
 	@Pref
 	MopidyPrefs_ prefs;
@@ -49,9 +48,9 @@ public class AndroidMopidyConnection extends danbroid.mopidy.MopidyConnection {
 
 	@Override
 	protected void onConnect() {
-		log.info("onConnect()");
-		LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(INTENT_SERVER_CONNECTED));
-		backend.getSession().sendSessionEvent(MopidyBackend.SESSION_EVENT_CONNECTED,null);
+
+		backend.onMopidyConnected();
+
 	}
 
 	/**

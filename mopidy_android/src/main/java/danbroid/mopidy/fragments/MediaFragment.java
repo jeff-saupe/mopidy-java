@@ -131,7 +131,7 @@ public class MediaFragment extends Fragment {
 
 
 	protected void onConnected() {
-		log.trace("onConnected()");
+		log.trace("onConnected(): {}",getClass().getSimpleName());
 		MediaControllerCompat controller = getController();
 		controller.registerCallback(callback);
 

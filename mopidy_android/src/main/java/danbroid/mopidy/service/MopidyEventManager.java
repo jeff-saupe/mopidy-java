@@ -1,9 +1,7 @@
 package danbroid.mopidy.service;
 
 import android.os.SystemClock;
-import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.google.gson.JsonObject;
@@ -22,17 +20,16 @@ import danbroid.mopidy.util.MediaIds;
 public class MopidyEventManager implements EventListener {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyEventManager.class);
 
-	private final MediaSessionCompat session;
 	private final AndroidMopidyConnection connection;
-	private final MediaBrowserServiceCompat service;
+	private final AbstractMopidyService service;
 
 	private int state;
 	private float playBackSpeed = 1;
 	private long position = 0;
 	private MediaMetadataCompat metadata;
 
-	public MopidyEventManager(MediaSessionCompat session, AndroidMopidyConnection connection, MediaBrowserServiceCompat service) {
-		this.session = session;
+	public MopidyEventManager(AndroidMopidyConnection connection, AbstractMopidyService service) {
+
 		this.connection = connection;
 		this.service = service;
 		connection.setEventListener(this);
@@ -42,6 +39,7 @@ public class MopidyEventManager implements EventListener {
 	public void onTrackPlaybackEnded(JsonObject tl_track, long time_position) {
 		log.trace("onPLaybackEnded(): pos:{}", time_position);
 		this.position = time_position;
+		service.onPlaybackStopped();
 		updateState();
 	}
 
@@ -49,6 +47,8 @@ public class MopidyEventManager implements EventListener {
 	public void onTrackPlaybackResumed(JsonObject tl_track, long time_position) {
 		log.trace("onTrackPlaybackResumed(): pos:{}", time_position);
 		this.position = time_position;
+		service.onPlaybackStarted();
+
 		updateState();
 	}
 
@@ -56,6 +56,7 @@ public class MopidyEventManager implements EventListener {
 	public void onTrackPlaybackStarted(JsonObject tl_track) {
 		log.trace("onTrackPlaybackStarted(): pos:{}", 0);
 		this.position = 0;
+		service.onPlaybackStarted();
 		updateMetadata(tl_track);
 		updateState();
 	}
@@ -64,6 +65,7 @@ public class MopidyEventManager implements EventListener {
 	public void onTrackPlaybackPaused(JsonObject tl_track, long time_position) {
 		log.warn("onTrackPlaybackPaused(): {} pos: {}", tl_track, time_position);
 		this.position = time_position;
+		service.onPlaybackStopped();
 		updateState();
 	}
 
@@ -125,13 +127,12 @@ public class MopidyEventManager implements EventListener {
 		}
 
 
-		session.setMetadata(metadata = md.build());
+		service.getSession().setMetadata(metadata = md.build());
 	}
 
 
 	@Override
 	public void onPlaybackStateChanged(PlaybackState oldState, PlaybackState newState) {
-
 
 		log.trace("onPlaybackStateChanged(): {} -> {}  pos: " + position, oldState, newState);
 		switch (newState) {
@@ -154,7 +155,7 @@ public class MopidyEventManager implements EventListener {
 		//log.trace("updateState()");
 		PlaybackStateCompat.Builder builder = new PlaybackStateCompat.Builder();
 		builder.setState(state, position, playBackSpeed, SystemClock.elapsedRealtime());
-		session.setPlaybackState(builder.build());
+
 	}
 
 
@@ -181,8 +182,9 @@ public class MopidyEventManager implements EventListener {
 
 		MediaMetadataCompat.Builder md = metadata == null ? new MediaMetadataCompat.Builder() : new MediaMetadataCompat.Builder(metadata);
 		md.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, title);
-		session.setMetadata(md.build());
 
+
+		service.onMetadataChanged(md.build());
 	}
 
 

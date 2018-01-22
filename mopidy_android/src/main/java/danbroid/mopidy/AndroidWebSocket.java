@@ -58,6 +58,7 @@ public class AndroidWebSocket extends Transport {
 
 				@Override
 				public void onBinaryFrame(WebSocket websocket, WebSocketFrame frame) throws Exception {
+					log.trace("onBinaryFrame(): length: " + frame.getPayload().length);
 					super.onBinaryFrame(websocket, frame);
 				}
 			});
