@@ -48,7 +48,6 @@ public class MopidyEventManager implements EventListener {
 		log.trace("onTrackPlaybackResumed(): pos:{}", time_position);
 		this.position = time_position;
 		service.onPlaybackStarted();
-
 		updateState();
 	}
 
@@ -63,7 +62,7 @@ public class MopidyEventManager implements EventListener {
 
 	@Override
 	public void onTrackPlaybackPaused(JsonObject tl_track, long time_position) {
-		log.warn("onTrackPlaybackPaused(): {} pos: {}", tl_track, time_position);
+		log.trace("onTrackPlaybackPaused(): {} pos: {}", tl_track, time_position);
 		this.position = time_position;
 		service.onPlaybackStopped();
 		updateState();
@@ -155,7 +154,7 @@ public class MopidyEventManager implements EventListener {
 		//log.trace("updateState()");
 		PlaybackStateCompat.Builder builder = new PlaybackStateCompat.Builder();
 		builder.setState(state, position, playBackSpeed, SystemClock.elapsedRealtime());
-
+service.onPlaybackStateChanged(builder.build());
 	}
 
 

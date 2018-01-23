@@ -10,6 +10,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 
 import java.util.List;
 
@@ -120,5 +121,9 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 
 	public void onMetadataChanged(MediaMetadataCompat md) {
 		session.setMetadata(md);
+	}
+
+	public void onPlaybackStateChanged(PlaybackStateCompat state) {
+		session.setPlaybackState(state);
 	}
 }

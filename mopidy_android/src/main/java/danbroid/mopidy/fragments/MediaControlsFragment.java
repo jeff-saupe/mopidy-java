@@ -211,6 +211,8 @@ public class MediaControlsFragment extends MediaFragment {
 
 		switch (state.getState()) {
 			case PlaybackStateCompat.STATE_PLAYING:
+				if (playPauseImage != null)
+					playPauseImage.setImageDrawable(getResources().getDrawable(pauseImage));
 				scheduleSeekbarUpdate();
 				break;
 			case PlaybackStateCompat.STATE_PAUSED:
@@ -226,6 +228,7 @@ public class MediaControlsFragment extends MediaFragment {
 				stopSeekbarUpdate();
 				break;
 		}
+
 	}
 
 
