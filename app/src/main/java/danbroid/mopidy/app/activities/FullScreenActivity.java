@@ -87,11 +87,8 @@ public class FullScreenActivity extends MopidyActivity {
 		getMediaBrowser().subscribe(MediaIds.TRACKLIST, new MediaBrowserCompat.SubscriptionCallback() {
 			@Override
 			public void onChildrenLoaded(@NonNull String parentId, @NonNull List<MediaBrowserCompat.MediaItem> children) {
-				log.error("onChildrenLoaded(): {}",children.size());
-				if (children.size() > 0){
-					log.debug("loading: {}",children.get(0).getDescription().getMediaId());
+				log.trace("onChildrenLoaded(): {}",children.size());
 
-				}
 			}
 		});
 	}

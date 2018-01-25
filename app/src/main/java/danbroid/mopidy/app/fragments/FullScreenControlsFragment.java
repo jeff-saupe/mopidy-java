@@ -2,7 +2,6 @@ package danbroid.mopidy.app.fragments;
 
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.view.MotionEvent;
@@ -19,12 +18,12 @@ import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
+import danbroid.mopidy.app.BuildConfig;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.interfaces.MainView;
 import danbroid.mopidy.app.util.FlingDetector;
 import danbroid.mopidy.app.util.NavBarColours;
 import danbroid.mopidy.fragments.MediaControlsFragment;
-import danbroid.mopidy.fragments.MediaFragment;
 import danbroid.mopidy.glide.GlideApp;
 import danbroid.mopidy.lastfm.Album;
 import danbroid.mopidy.lastfm.AlbumSearch;
@@ -60,12 +59,14 @@ public class FullScreenControlsFragment extends MediaControlsFragment {
 	@Click(R.id.chevron_down)
 	public void close() {
 		MediaControllerCompat controller = getController();
-		log.debug("controller: " + controller);
-		log.debug("metadata: " + controller.getMetadata());
-		log.debug("sessionREady: " + controller.isSessionReady());
+		if (BuildConfig.DEBUG) {
+			log.debug("controller: " + controller);
+			log.debug("metadata: " + controller.getMetadata());
+			log.debug("sessionREady: " + controller.isSessionReady());
+		}
 
 
-		//TODO ((MainView) getMainView()).hideFullControls();
+		((MainView) getMainView()).hideFullControls();
 	}
 
 

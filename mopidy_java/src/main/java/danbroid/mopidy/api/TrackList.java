@@ -192,5 +192,23 @@ public class TrackList extends Api {
 	public Call<Void> clear() {
 		return createCall("clear", Void.class);
 	}
+
+	        /*
+	Shuffles the entire tracklist. If ``start`` and ``end`` is given only
+	shuffles the slice ``[start:end]``.
+
+	Triggers the :meth:`mopidy.core.CoreListener.tracklist_changed` event.
+
+        :param start: position of first track to shuffle
+        :type start: int or :class:`None`
+			:param end: position after last track to shuffle
+        :type end: int or :class:`None`
+			*/
+
+	public Call<Void> shuffle(Long start, Long end) {
+		return createCall("shuffle", Void.class)
+				.addParam("start",start)
+				.addParam("end",end);
+	}
 }
 

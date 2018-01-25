@@ -50,6 +50,11 @@ public class MopidyClient {
 			return this;
 		}
 
+		public Call setArg(String name, Long value) {
+			getArgs().putLong(name, value);
+			return this;
+		}
+
 		public Bundle getArgs() {
 			return args == null ? args = new Bundle() : args;
 		}
@@ -120,6 +125,23 @@ public class MopidyClient {
 
 		public ClearTracklist(Activity activity) {
 			super(activity, MopidyBackend.COMMAND_TRACKLIST_CLEAR);
+		}
+	}
+
+	public static class ShuffleTracklist extends Call {
+
+		public ShuffleTracklist(Activity activity) {
+			super(activity, MopidyBackend.COMMAND_SHUFFLE_PLAYLIST);
+		}
+
+		public ShuffleTracklist start(Long start) {
+			setArg("start", start);
+			return this;
+		}
+
+		public ShuffleTracklist end(Long end) {
+			setArg("end", end);
+			return this;
 		}
 	}
 }

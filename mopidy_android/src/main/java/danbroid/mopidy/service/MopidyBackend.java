@@ -36,6 +36,7 @@ public class MopidyBackend {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyBackend.class);
 	public static final String COMMAND_CONNECT = "MopidyBackend.COMMAND_CONNECT";
 	public static final String COMMAND_ADD_TO_TRACKLIST = "MopidyBackend.COMMAND_ADD_TO_TRACKLIST";
+	public static final String COMMAND_SHUFFLE_PLAYLIST = "MopidyBackend.COMMAND_SHUFFLE_PLAYLIST";
 
 	public static final String COMMAND_TRACKLIST_CLEAR = "MopidyBackend.COMMAND_TRACKLIST_CLEAR";
 
@@ -90,7 +91,7 @@ public class MopidyBackend {
 
 	public void onMopidyConnected() {
 		LocalBroadcastManager.getInstance(service).sendBroadcast(new Intent(INTENT_MOPIDY_CONNECTED));
-		service.getSession().sendSessionEvent(MopidyBackend.SESSION_EVENT_CONNECTED,null);
+		service.getSession().sendSessionEvent(MopidyBackend.SESSION_EVENT_CONNECTED, null);
 	}
 
 
@@ -165,6 +166,18 @@ public class MopidyBackend {
 						@Override
 						public void onResponse(CallContext context, String version) {
 							cb.send(RESULT_CODE_SUCCESS, bundle(ARG_VERSION, version));
+						}
+					});
+					break;
+
+				case COMMAND_SHUFFLE_PLAYLIST:
+					Long start = (Long) extras.get("start");
+					Long end = (Long) extras.get("end");
+					conn.getTrackList().shuffle(start, end).call(new ResponseHandler<Void>() {
+						@Override
+						public void onResponse(CallContext context, Void result) {
+							service.notifyChildrenChanged(MediaIds.TRACKLIST);
+							cb.send(RESULT_CODE_SUCCESS, null);
 						}
 					});
 					break;
