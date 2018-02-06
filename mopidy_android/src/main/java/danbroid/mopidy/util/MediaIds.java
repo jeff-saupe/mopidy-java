@@ -34,6 +34,10 @@ public class MediaIds {
 		return TRACKLIST + ":" + tlid;
 	}
 
+	public static int extractTracklistID(String mediaID) {
+		return Integer.parseInt(mediaID.substring(mediaID.lastIndexOf(':') + 1));
+	}
+
 
 	public static String prependParentID(String parentID, String mediaID) {
 		return parentID + "->" + mediaID;

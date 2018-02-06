@@ -1,7 +1,5 @@
 package danbroid.mopidy.service;
 
-import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,14 +19,14 @@ import danbroid.mopidy.util.PackageValidator;
  * Created by dan on 23/12/17.
  */
 
-public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractMopidyService.class);
+public class MopidyService extends MediaBrowserServiceCompat {
+	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyService.class);
+
 
 	protected MopidyBackend backend;
 	private PackageValidator packageValidator;
 	private MopidyContentManager_ contentManager;
 	private MediaSessionCompat session;
-	private Bundle sessionExtras = new Bundle();
 
 	public static String SESSION_TAG = "MopidyService";
 
@@ -37,7 +35,7 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 		super.onCreate();
 		log.info("onCreate()");
 
-		backend = createBackend();
+
 		packageValidator = new PackageValidator(this);
 		contentManager = MopidyContentManager_.getInstance_(this);
 
@@ -50,24 +48,33 @@ public abstract class AbstractMopidyService extends MediaBrowserServiceCompat {
 						MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
 		);
 
-		session.setExtras(sessionExtras);
+		//session.setExtras(sessionExtras);
 
+		backend = createBackend();
 		session.setCallback(backend.createSessionCallback());
 
 		backend.init(this);
 	}
 
+
 	protected MopidyBackend createBackend() {
 		return MopidyBackend_.getInstance_(this);
 	}
 
-
-	public void setSessionActivity(Class<? extends Activity> activityClass) {
+/*		ComponentName myService = new ComponentName(this, this.getClass());
+			try {
+				Bundle data = getPackageManager().getServiceInfo(myService, PackageManager.GET_META_DATA).metaData;
+				log.debug("message: {}", data.getString("message"));
+			} catch (PackageManager.NameNotFoundException e) {
+				log.error(e.getMessage(), e);
+			}*/
+/*	public void setSessionActivity(Class<? extends Activity> activityClass) {
 		Intent intent = new Intent(this, activityClass);
-		PendingIntent pi = PendingIntent.getActivity(this, 99 /*request code*/,
+		PendingIntent pi = PendingIntent.getActivity(this, 99 *//*request code*//*,
 				intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		session.setSessionActivity(pi);
-	}
+	}*/
+
 
 
 	@Nullable

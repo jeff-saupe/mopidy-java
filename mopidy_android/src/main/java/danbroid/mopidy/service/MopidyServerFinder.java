@@ -1,4 +1,4 @@
-package danbroid.mopidy.util;
+package danbroid.mopidy.service;
 
 import android.content.Context;
 import android.net.nsd.NsdManager;
@@ -14,7 +14,8 @@ import org.androidannotations.annotations.UiThread;
 
 import java.util.HashMap;
 
-import danbroid.mopidy.service.MopidyBackend;
+import danbroid.mopidy.AndroidMopidyConnection;
+import danbroid.mopidy.util.MediaIds;
 
 /**
  * Created by dan on 26/12/17.
@@ -33,6 +34,9 @@ public class MopidyServerFinder implements NsdManager.DiscoveryListener {
 
 	@Bean
 	MopidyBackend backend;
+
+	@Bean
+	AndroidMopidyConnection connection;
 
 	private HashMap<String, NsdServiceInfo> services = new HashMap<>();
 
@@ -85,11 +89,13 @@ public class MopidyServerFinder implements NsdManager.DiscoveryListener {
 	}
 
 	protected void onServiceAdded(NsdServiceInfo serviceInfo) {
-		log.trace("onServiceAdded(): {}",serviceInfo);
+		log.trace("onServiceAdded(): {}", serviceInfo);
 		if (!services.containsKey(serviceInfo.getServiceName())) {
 			services.put(serviceInfo.getServiceName(), serviceInfo);
 		}
+
 		backend.getService().notifyChildrenChanged(MediaIds.ROOT);
+		connection.getTransport().reconnect();
 	}
 
 

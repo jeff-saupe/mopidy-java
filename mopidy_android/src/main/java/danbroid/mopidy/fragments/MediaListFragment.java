@@ -1,18 +1,9 @@
 package danbroid.mopidy.fragments;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.database.ContentObserver;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
@@ -48,12 +39,6 @@ import danbroid.mopidy.util.MediaIds;
 public class MediaListFragment extends MediaFragment implements MediaContentView {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MediaListFragment.class);
 
-	@ViewById(resName = "busy_indicator")
-	protected View busyIndicator;
-
-	protected void onContentChanged() {
-		log.debug("onContentChanged()");
-	}
 
 	private static MediaBrowserCompat.MediaItem PARENT_MEDIA_ITEM = new MediaBrowserCompat.MediaItem(
 			new MediaDescriptionCompat.Builder()
@@ -66,8 +51,22 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		return MediaListFragment_.builder().arg(ARG_MEDIA_ID, mediaID).build();
 	}
 
+	@ViewById(resName = "busy_indicator")
+	protected View busyIndicator;
+
 	@ViewById(resName = "spinner")
 	protected View spinner;
+
+	@ViewById(resName = "spinner_container")
+	protected View spinnerContainer;
+
+
+	@ViewById(resName = "spinner_text")
+	protected TextView spinnerText;
+
+
+	@ViewById(resName = "empty_text_container")
+	protected View emptyTextContainer;
 
 	@ViewById(resName = "empty_text")
 	protected TextView emptyText;
@@ -81,46 +80,6 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 	protected RecyclerView.Adapter<MediaItemViewHolder> adapter;
 
-
-	private final BroadcastReceiver connectivityChangeListener = new BroadcastReceiver() {
-		private boolean oldOnline = false;
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			log.debug("onReceive(): {}", intent);
-//			boolean isOnline = NetworkHelper.isOnline(context);
-			//Toast.makeText(context,"Online: " + isOnline,Toast.LENGTH_SHORT).show();
-			//		log.warn("isOnline: {}", isOnline);
-
-			// We don't care about network changes while this fragment is not associated
-			// with a media ID (for example, while it is being initialized)
-	 /*   if (mediaId != null) {
-	      boolean isOnline = NetworkHelper.isOnline(context);
-        if (isOnline != oldOnline) {
-          oldOnline = isOnline;
-          checkForUserVisibleErrors(false);
-          if (isOnline) {
-            adapter.notifyDataSetChanged();
-          }
-        }
-      }*/
-		}
-	};
-
-
-	@Override
-	protected void onPlaybackStateChanged(PlaybackStateCompat state) {
-		super.onPlaybackStateChanged(state);
-
-	}
-
-	@Override
-	protected void onMetadataChanged(MediaMetadataCompat metadata) {
-		super.onMetadataChanged(metadata);
-
-
-		//adapter.notifyDataSetChanged();
-	}
 
 	private List<MediaBrowserCompat.MediaItem> data = new LinkedList<>();
 
@@ -225,7 +184,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		menu.add(R.string.tracklist_add).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
-				getMainView().addToTracklist(item);
+				getMainView().getMopidyClient().addToTracklist(item);
 				return true;
 			}
 		});
@@ -233,7 +192,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		menu.add(R.string.tracklist_replace).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
-				getMainView().replaceTracklist(item);
+				getMainView().getMopidyClient().replaceTracklist(item);
 				return true;
 			}
 		});
@@ -247,8 +206,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 
 
 		log.trace("init() :{}", getMediaID());
-		setEmptyText(R.string.msg_loading);
-
+		showEmptyText(getString(R.string.msg_loading));
 
 		swipeRefreshLayout.setEnabled(false);
 
@@ -280,14 +238,33 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		recyclerView.setAdapter(adapter);
 	}
 
-	public void setEmptyText(@StringRes int msg_id) {
-		setEmptyText(getString(msg_id));
+
+	public void showSpinner(CharSequence text) {
+
+		spinnerContainer.setVisibility(View.VISIBLE);
+		emptyTextContainer.setVisibility(View.GONE);
+		recyclerView.setVisibility(View.GONE);
+
+		if (text == null) {
+			spinnerText.setVisibility(View.GONE);
+		} else {
+			spinnerText.setText(text);
+			spinnerText.setVisibility(View.VISIBLE);
+		}
+
 	}
 
-	public void setEmptyText(CharSequence msg) {
-		emptyText.setText(msg);
-		spinner.setVisibility(View.VISIBLE);
-		recyclerView.setVisibility(View.INVISIBLE);
+	public void showEmptyText(CharSequence text) {
+		spinnerContainer.setVisibility(View.GONE);
+		recyclerView.setVisibility(View.GONE);
+		emptyText.setText(text);
+		emptyTextContainer.setVisibility(View.VISIBLE);
+	}
+
+	public void showRecyclerView() {
+		emptyTextContainer.setVisibility(View.GONE);
+		spinnerContainer.setVisibility(View.GONE);
+		recyclerView.setVisibility(View.VISIBLE);
 	}
 
 	public String getMediaID() {
@@ -298,36 +275,11 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		getArguments().putString(ARG_MEDIA_ID, mediaID);
 	}
 
-	@Override
-	public void onConnected() {
-		super.onConnected();
-
-		if (isDetached()) {
-			log.trace("isDetached");
-			return;
-		}
-
-		if (getActivity() == null) {
-			log.trace("activity is null");
-			return;
-		}
-
-		String mediaID = getMediaID();
-
-		log.trace("onConnected() mediaID:{}", mediaID);
-
-		loadContent(mediaID);
-
-	}
-
 
 	@Override
 	public void onStart() {
 		super.onStart();
-		// Registers BroadcastReceiver to track network connection changes.
-		this.getActivity().registerReceiver(connectivityChangeListener,
-				new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-
+		loadContent(getMediaID());
 	}
 
 	@Override
@@ -339,7 +291,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 			mediaBrowser.unsubscribe(mediaID);
 		}
 
-		getActivity().unregisterReceiver(connectivityChangeListener);
+
 	}
 
 	private final MediaBrowserCompat.SubscriptionCallback subscriptionCallback =
@@ -348,33 +300,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 				public void onChildrenLoaded(@NonNull String parentId,
 				                             @NonNull List<MediaBrowserCompat.MediaItem> children) {
 
-					if (!isResumed() || getActivity() == null) return;
-
-					try {
-						log.warn("onChildrenLoaded(), parentId: {} size: {}", parentId,
-								children.size());
-						MediaListFragment.this.data = children;
-						//TODO  checkForUserVisibleErrors(children.isEmpty());
-
-						if (adapter == null) {
-							log.warn("ADAPTER IS NULL!");
-							return;
-						}
-
-						String parentID = MediaIds.extractParentID(parentId);
-
-						if (parentID != null) {
-							data.add(0, PARENT_MEDIA_ITEM);
-						}
-
-						if (!data.isEmpty()) {
-							adapter.notifyDataSetChanged();
-							spinner.setVisibility(View.INVISIBLE);
-							recyclerView.setVisibility(View.VISIBLE);
-						}
-					} catch (Throwable t) {
-						log.error("Error on childrenloaded", t);
-					}
+					MediaListFragment.this.onChildrenLoaded(parentId, children);
 				}
 
 				@Override
@@ -384,9 +310,42 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 				}
 			};
 
-	@Override
-	protected void onMopidyConnected() {
-		log.info("onMopidyConnected(): {}", getMediaID());
+	protected void onChildrenLoaded(String parentId, List<MediaBrowserCompat.MediaItem> children) {
+		if (!isResumed() || getActivity() == null) return;
+
+		try {
+			log.trace("onChildrenLoaded(), parentId: {} size: {}", parentId,
+					children.size());
+			MediaListFragment.this.data = children;
+			//TODO  checkForUserVisibleErrors(children.isEmpty());
+
+			if (adapter == null) {
+				log.warn("ADAPTER IS NULL!");
+				return;
+			}
+
+			String parentID = MediaIds.extractParentID(parentId);
+
+			if (parentID != null) {
+				log.trace("adding \"..\" entry");
+				data.add(0, PARENT_MEDIA_ITEM);
+			}
+
+			if (!data.isEmpty()) {
+				log.trace("displaying recycler view");
+				showRecyclerView();
+				adapter.notifyDataSetChanged();
+
+			} else {
+				log.trace("showing empty text.. for {}", parentID);
+				showEmptyText(getString(R.string.msg_tracklist_empty));
+			}
+
+		} catch (Throwable t) {
+			log.error("Error on childrenloaded", t);
+		}
 	}
+
+
 }
 

@@ -16,10 +16,9 @@ import java.util.List;
 import danbroid.mopidy.activities.MopidyActivity;
 import danbroid.mopidy.app.R;
 import danbroid.mopidy.app.fragments.FullScreenControlsFragment;
-import danbroid.mopidy.app.service.MopidyService_;
 import danbroid.mopidy.fragments.MediaFragment;
 import danbroid.mopidy.interfaces.MopidyPrefs_;
-import danbroid.mopidy.service.AbstractMopidyService;
+import danbroid.mopidy.service.MopidyService;
 import danbroid.mopidy.service.MopidyBackend;
 import danbroid.mopidy.util.MediaIds;
 
@@ -40,8 +39,8 @@ public class FullScreenActivity extends MopidyActivity {
 	}
 
 	@Override
-	protected Class<? extends AbstractMopidyService> getServiceClass() {
-		return MopidyService_.class;
+	protected Class<? extends MopidyService> getServiceClass() {
+		return MopidyService.class;
 	}
 
 	@Override
@@ -53,18 +52,6 @@ public class FullScreenActivity extends MopidyActivity {
 	@Pref
 	protected MopidyPrefs_ prefs;
 
-
-	@Override
-	protected void onConnected() {
-		log.info("onConnected()");
-
-		String lastURL = prefs.lastConnectionURL().getOr(null);
-
-		if (lastURL != null) {
-			connectTo(lastURL);
-		}
-
-	}
 
 
 	public void connectTo(String lastURL) {

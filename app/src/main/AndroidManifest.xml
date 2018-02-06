@@ -42,12 +42,12 @@
     </receiver>
 
     <service
-        android:name=".service.MopidyService_"
-        android:exported="true"
-        >
+        android:name="danbroid.mopidy.service.MopidyService"
+        android:exported="true">
+
       <meta-data
-          android:name="message"
-          android:value="Hello World"/>
+          android:name="notification_activity"
+          android:value="danbroid.mopidy.app.MainActivity_"/>
 
       <intent-filter>
         <action android:name="android.media.browse.MediaBrowserService"/>

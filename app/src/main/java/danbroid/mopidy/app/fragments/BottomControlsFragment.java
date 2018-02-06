@@ -42,7 +42,7 @@ public class BottomControlsFragment extends MediaControlsFragment {
 
 
 	@Override
-	protected void onMetadataChanged(MediaMetadataCompat metadata) {
+	public void onMetadataChanged(MediaMetadataCompat metadata) {
 		super.onMetadataChanged(metadata);
 		subTitleText.setSelected(true);
 		chevronUp.setVisibility(View.VISIBLE);

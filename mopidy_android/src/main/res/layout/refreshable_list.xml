@@ -15,9 +15,8 @@
       >
 
 
-
     <LinearLayout
-        android:id="@+id/spinner"
+        android:id="@+id/spinner_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -26,9 +25,8 @@
         android:orientation="vertical"
         android:visibility="visible">
 
-
-
       <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+          android:id="@+id/spinner"
           style="@style/Widget.MaterialProgressBar.ProgressBar"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
@@ -37,12 +35,30 @@
           />
 
       <TextView
-          android:id="@+id/empty_text"
+          android:id="@+id/spinner_text"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:text="@string/msg_loading"
           />
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/empty_text_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:visibility="gone"
+        android:gravity="center_horizontal|center_vertical"
+        android:orientation="vertical">
+
+      <TextView
+          android:id="@+id/empty_text"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="@string/msg_loading"
+          />
     </LinearLayout>
 
 

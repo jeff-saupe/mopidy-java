@@ -8,6 +8,8 @@
 /captures
 .externalNativeBuild
 /mopidy_src
+/mopidy-somafm
+/mopidy_rnz
 .idea/fileTemplates/
 /docs
 /app/release

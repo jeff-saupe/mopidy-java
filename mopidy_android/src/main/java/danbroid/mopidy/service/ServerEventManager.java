@@ -17,19 +17,18 @@ import danbroid.mopidy.util.MediaIds;
 /**
  * Created by dan on 28/12/17.
  */
-public class MopidyEventManager implements EventListener {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MopidyEventManager.class);
+public class ServerEventManager implements EventListener {
+	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ServerEventManager.class);
 
 	private final AndroidMopidyConnection connection;
-	private final AbstractMopidyService service;
+	private final MopidyService service;
 
 	private int state;
 	private float playBackSpeed = 1;
 	private long position = 0;
 	private MediaMetadataCompat metadata;
 
-	public MopidyEventManager(AndroidMopidyConnection connection, AbstractMopidyService service) {
-
+	public ServerEventManager(AndroidMopidyConnection connection, MopidyService service) {
 		this.connection = connection;
 		this.service = service;
 		connection.setEventListener(this);

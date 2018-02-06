@@ -10,12 +10,29 @@ public abstract class Transport {
 	protected String url;
 	protected Callback callback;
 
+	private boolean connected = false;
+
+	protected Transport(Callback callback) {
+		this.callback = callback;
+	}
+
 	public abstract void send(String request);
+
+	/**
+	 * Notifies the transport that if it supports reconnects then now is a good time.
+	 */
+	public void reconnect() {
+
+	}
 
 	public interface Callback {
 		void onMessage(String message);
 
 		void onError(Throwable t);
+
+		void onConnected();
+
+		void onDisconnected();
 	}
 
 
@@ -39,5 +56,16 @@ public abstract class Transport {
 
 	public abstract void close();
 
+	protected void setConnected(boolean connected) {
+		if (this.connected == connected) return;
+		this.connected = connected;
+		if (connected)
+			callback.onConnected();
+		else
+			callback.onDisconnected();
+	}
 
+	public boolean isConnected() {
+		return connected;
+	}
 }

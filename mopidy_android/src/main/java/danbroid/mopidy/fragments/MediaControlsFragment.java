@@ -5,6 +5,7 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.DrawableRes;
 import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.format.DateUtils;
 import android.view.View;
@@ -155,7 +156,7 @@ public class MediaControlsFragment extends MediaFragment {
 
 
 	protected void onConnected() {
-		super.onConnected();
+//TODO
 
 		updateProgress();
 
@@ -165,7 +166,7 @@ public class MediaControlsFragment extends MediaFragment {
 		}
 	}
 
-	protected void onPlaybackStateChanged(PlaybackStateCompat state) {
+	public void onPlaybackStateChanged(PlaybackStateCompat state) {
 		super.onPlaybackStateChanged(state);
 
 		if (state == null) {
@@ -232,7 +233,7 @@ public class MediaControlsFragment extends MediaFragment {
 	}
 
 
-	protected void onMetadataChanged(MediaMetadataCompat metadata) {
+	public void onMetadataChanged(MediaMetadataCompat metadata) {
 		super.onMetadataChanged(metadata);
 
 		if (metadata == null) {
@@ -266,7 +267,18 @@ public class MediaControlsFragment extends MediaFragment {
 	@Click(resName = "play_pause")
 	public void onPlayPause() {
 		log.trace("onPlayPause()");
+
+		MediaControllerCompat controller = getController();
+		if (controller == null) {
+			log.trace("controller is null");
+			return;
+		}
 		state = getController().getPlaybackState();
+
+		if (state == null) {
+			log.trace("state == null");
+			return;
+		}
 
 
 		switch (state.getState()) {

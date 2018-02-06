@@ -1,12 +1,8 @@
 package danbroid.mopidy.app.fragments;
 
-import android.support.v4.media.MediaBrowserCompat;
-import android.view.View;
-
 import org.androidannotations.annotations.EFragment;
 
 import danbroid.mopidy.fragments.MediaListFragment;
-import danbroid.mopidy.service.MopidyClient;
 import danbroid.mopidy.util.MediaIds;
 
 /**

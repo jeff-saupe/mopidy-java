@@ -4,6 +4,7 @@ buildscript {
 
   repositories {
     google()
+    jcenter()
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:3.0.1'
@@ -28,7 +29,7 @@ buildscript {
         googlePlay : "11.8.0",
         slf4j      : "1.7.25",
         gson       : "2.8.2",
-        glide      : "4.4.0",
+        glide      : "4.6.1",
         exoplayer  : "2.6.1",
         okhttp     : '3.9.1'
     ]

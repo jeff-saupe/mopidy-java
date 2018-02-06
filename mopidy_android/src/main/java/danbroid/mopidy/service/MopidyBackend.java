@@ -1,12 +1,10 @@
 package danbroid.mopidy.service;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ResultReceiver;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -25,7 +23,6 @@ import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.MopidyPrefs_;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.util.MediaIds;
-import danbroid.mopidy.util.MopidyServerFinder;
 
 /**
  * Created by dan on 26/12/17.
@@ -39,10 +36,12 @@ public class MopidyBackend {
 	public static final String COMMAND_SHUFFLE_PLAYLIST = "MopidyBackend.COMMAND_SHUFFLE_PLAYLIST";
 
 	public static final String COMMAND_TRACKLIST_CLEAR = "MopidyBackend.COMMAND_TRACKLIST_CLEAR";
+	public static final String COMMAND_REMOVE_FROM_TRACKLIST = "MopidyBackend.COMMAND_REMOVE_FROM_TRACKLIST";
 
 	public static final String SESSION_EVENT_BUSY = "MopidyBackend.EVENT_BUSY";
 	public static final String SESSION_EVENT_NOT_BUSY = "MopidyBackend.EVENT_NOT_BUSY";
 	public static final String SESSION_EVENT_CONNECTED = "MopidyBackend.EVENT_CONNECTED";
+	public static final String SESSION_EVENT_DISCONNECTED = "MopidyBackend.EVENT_DISCONNECTED";
 
 	public static final String ARG_MESSAGE = "message";
 
@@ -51,16 +50,19 @@ public class MopidyBackend {
 	public static final String ARG_URI = "uri";
 	public static final String ARG_URIS = "uris";
 	public static final String ARG_MEDIAID = "mediaid";
+	public static final String ARG_MEDIA_IDS = "mediaids";
 	public static final String ARG_REPLACE = "replace";
 	public static final String ARG_POSITION = "position";
 	public static final String ARG_PLAYABLE = "playable";
 
 	public static final int RESULT_CODE_SUCCESS = 0;
 
-	public static final String INTENT_MOPIDY_CONNECTED = MopidyBackend.class.getName() + ".INTENT_MOPIDY_CONNECTED";
 
+/*	public static final String INTENT_MOPIDY_CONNECTED = MopidyBackend.class.getName() + ".INTENT_MOPIDY_CONNECTED";
 
-	protected AbstractMopidyService service;
+	public static final String INTENT_MOPIDY_DISCONNECTED = MopidyBackend.class.getName() + ".INTENT_MOPIDY_DISCONNECTED";*/
+
+	protected MopidyService service;
 
 
 	@Bean
@@ -76,7 +78,7 @@ public class MopidyBackend {
 	protected MopidyServerFinder discoveryHelper;
 
 
-	public void init(AbstractMopidyService service) {
+	public void init(MopidyService service) {
 		log.trace("init()");
 		this.service = service;
 
@@ -84,19 +86,29 @@ public class MopidyBackend {
 			discoveryHelper.start();
 		}
 
-		new MopidyEventManager(conn, service);
+		new ServerEventManager(conn, service);
 
+		conn.start();
 
 	}
 
 	public void onMopidyConnected() {
-		LocalBroadcastManager.getInstance(service).sendBroadcast(new Intent(INTENT_MOPIDY_CONNECTED));
-		service.getSession().sendSessionEvent(MopidyBackend.SESSION_EVENT_CONNECTED, null);
+		log.info("onMopidyConnected");
+
+		Bundle extras = new Bundle();
+		extras.putString(MopidyBackend.ARG_URL, conn.getURL());
+		service.getSession().sendSessionEvent(SESSION_EVENT_CONNECTED, extras);
+	}
+
+	public void onMopidyDisconnected() {
+		log.info("onMopidyDisconnected()");
+		Bundle extras = new Bundle();
+		extras.putString(MopidyBackend.ARG_URL, conn.getURL());
+		service.getSession().sendSessionEvent(SESSION_EVENT_DISCONNECTED, extras);
 	}
 
 
 	protected class SessionCallback extends MediaSessionCompat.Callback {
-
 
 		@Override
 		public void onPause() {
@@ -138,6 +150,7 @@ public class MopidyBackend {
 		public void onCommand(String command, Bundle extras, final ResultReceiver cb) {
 
 			switch (command) {
+
 				case COMMAND_TRACKLIST_CLEAR:
 					conn.getTrackList().clear().call(new ResponseHandler<Void>() {
 						@Override
@@ -181,6 +194,24 @@ public class MopidyBackend {
 						}
 					});
 					break;
+
+
+				case COMMAND_REMOVE_FROM_TRACKLIST:
+					String ids[] = extras.getStringArray(MopidyBackend.ARG_MEDIA_IDS);
+					int tlids[] = new int[ids.length];
+					for (int i = 0; i < tlids.length; i++)
+						tlids[i] = MediaIds.extractTracklistID(ids[i]);
+					conn.getTrackList().remove(tlids).call(new ResponseHandler<TlTrack[]>() {
+						@Override
+						public void onResponse(CallContext context, TlTrack[] result) {
+							log.error("got response: " + result);
+							service.notifyChildrenChanged(MediaIds.TRACKLIST);
+							cb.send(RESULT_CODE_SUCCESS, null);
+						}
+					});
+
+					break;
+
 			}
 
 		}

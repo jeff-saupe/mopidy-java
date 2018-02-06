@@ -1,13 +1,15 @@
 package danbroid.mopidy.interfaces;
 
 import android.support.v4.media.MediaBrowserCompat;
-import android.view.MenuItem;
+
+import danbroid.mopidy.activities.ClientEventManager;
+import danbroid.mopidy.activities.MopidyClient;
 
 /**
  * Created by dan on 24/12/17.
  */
 public interface MainView {
-	String ACTION_CONTROLLER_CONNECTED = MainView.class.getName() + ".ACTION_CONNECTED";
+	//String ACTION_CONTROLLER_CONNECTED = MainView.class.getName() + ".ACTION_CONNECTED";
 
 	MediaBrowserCompat getMediaBrowser();
 
@@ -15,8 +17,7 @@ public interface MainView {
 
 	void showContent(String mopidyURL);
 
+	MopidyClient getMopidyClient();
 
-	void addToTracklist(MediaBrowserCompat.MediaItem item);
-
-	void replaceTracklist(MediaBrowserCompat.MediaItem item);
+	ClientEventManager getEventManager();
 }

@@ -1,5 +1,8 @@
 package danbroid.mopidy.api;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.model.TlTrack;
 
@@ -7,6 +10,7 @@ import danbroid.mopidy.model.TlTrack;
  * Created by dan on 13/12/17.
  */
 public class TrackList extends Api {
+
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TrackList.class);
 
 	public TrackList(Api parent) {
@@ -207,8 +211,18 @@ public class TrackList extends Api {
 
 	public Call<Void> shuffle(Long start, Long end) {
 		return createCall("shuffle", Void.class)
-				.addParam("start",start)
-				.addParam("end",end);
+				.addParam("start", start)
+				.addParam("end", end);
+	}
+
+	public Call<TlTrack[]> remove(int tlids[]) {
+		JsonArray a = new JsonArray(tlids.length);
+		for (int tlid : tlids)
+			a.add(tlid);
+		JsonObject criteria = new JsonObject();
+		criteria.add("tlid", a);
+		return createCall("remove", TlTrack[].class)
+				.addParam("criteria", criteria);
 	}
 }
 

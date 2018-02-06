@@ -7,4 +7,10 @@
       android:title="@string/lbl_shuffle"
 
       app:showAsAction="always"/>
+
+  <item
+      android:id="@+id/action_clear"
+      android:title="@string/lbl_clear_tracklist"
+
+      />
 </menu>

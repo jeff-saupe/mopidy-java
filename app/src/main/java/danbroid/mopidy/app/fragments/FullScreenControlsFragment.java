@@ -103,7 +103,7 @@ public class FullScreenControlsFragment extends MediaControlsFragment {
 	}
 
 	@Override
-	protected void onMetadataChanged(MediaMetadataCompat metadata) {
+	public void onMetadataChanged(MediaMetadataCompat metadata) {
 		super.onMetadataChanged(metadata);
 
 		if (metadata == null) return;

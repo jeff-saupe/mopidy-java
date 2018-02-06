@@ -4,12 +4,14 @@ package danbroid.mopidy;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.internal.Streams;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import danbroid.mopidy.api.Call;
 import danbroid.mopidy.api.Core;
+import danbroid.mopidy.api.TrackList;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.Constants;
 import danbroid.mopidy.interfaces.EventListener;
@@ -74,7 +76,6 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 		stop();
 
-		//transport = new WebSocketTransport(this);
 		transport = createTransport();
 		transport.connect(url);
 
@@ -82,33 +83,28 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	}
 
 	protected Transport createTransport() {
-		return new WebSocketTransport().setCallback(this);
+		return new WebSocketTransport(this);
 	}
 
 	public Call<String> getVersion() {
 		return createCall("get_version", String.class);
 	}
 
-	protected void onConnect() {
-		log.info("onConnect()");
+	@Override
+	public void onConnected() {
+		log.info("onConnected()");
+	}
+
+	@Override
+	public void onDisconnected() {
+		log.warn("onDisconnected()");
 	}
 
 	/**
 	 * Dispatches call to the web socket
-	 * This trivially calls sendCall so override this method
-	 * to deal with threading
 	 */
 	@Override
-	public void call(Call call) {
-		sendCall(call);
-	}
-
-
-	public Transport getTransport() {
-		return transport;
-	}
-
-	protected void sendCall(Call call) {
+	public synchronized void call(Call call) {
 		if (url == null) return;
 		if (transport == null) start(null);
 
@@ -119,21 +115,23 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		calls.put(id, call);
 
 		String request = call.toString();
-		log.trace("call(): request<{}>", request);
+		log.trace("call(): request:{}", request);
 		transport.send(request);
 	}
 
 
 	/**
-	 * Shutsdown the socket.
+	 * Shutdown the socket and clear call queue
 	 */
-	public void stop() {
+	public synchronized void stop() {
+
 		if (transport != null) {
 			log.debug("stop(): {}", url);
 			transport.close();
 			transport = null;
 			calls.clear();
 		}
+
 	}
 
 	/**
@@ -159,13 +157,14 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	}
 
 	protected void processMessage(String text) {
-		log.trace("processMessage(): {}", text);
+		//log.trace("processMessage(): {}", text);
 		try {
 			JsonElement e = parser.parse(text);
 			if (e.isJsonObject()) {
 				JsonObject o = e.getAsJsonObject();
 
 				if (o.has(Constants.Key.ERROR)) {
+					log.error("got error: {}",text);
 					o = o.getAsJsonObject(Constants.Key.ERROR);
 					int id = o.get(Constants.Key.ID).getAsInt();
 					String message = o.get(Constants.Key.MESSAGE).getAsString();
@@ -207,7 +206,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	}
 
 	protected void processResponse(int id, JsonElement result) {
-		log.trace("processResponse(): id:{} result: {}", id, result);
+		//log.trace("processResponse(): id:{} result: {}", id, result);
 		Call call = popCall(id);
 
 		if (call == null) {
@@ -232,59 +231,75 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	 */
 	protected boolean processEvent(String event, JsonObject o) {
 		switch (event) {
+
 			case "track_playback_paused":
 				eventListener.onTrackPlaybackPaused(
 						o.get(Constants.Key.TL_TRACK).getAsJsonObject(),
 						o.get(Constants.Key.TIME_POSITION).getAsLong());
 				break;
+
 			case "track_playback_resumed":
 				eventListener.onTrackPlaybackResumed(
 						o.get(Constants.Key.TL_TRACK).getAsJsonObject(),
 						o.get(Constants.Key.TIME_POSITION).getAsLong());
 				break;
+
 			case "track_playback_started":
 				eventListener.onTrackPlaybackStarted(o.get(Constants.Key.TL_TRACK).getAsJsonObject());
 				break;
+
 			case "track_playback_ended":
 				eventListener.onTrackPlaybackEnded(
 						o.get(Constants.Key.TL_TRACK).getAsJsonObject(),
 						o.get(Constants.Key.TIME_POSITION).getAsLong());
 				break;
+
 			case "playback_state_changed":
 				eventListener.onPlaybackStateChanged(
 						PlaybackState.fromString(o.get(Constants.Key.OLD_STATE).getAsString()),
 						PlaybackState.fromString(o.get(Constants.Key.NEW_STATE).getAsString()));
 				break;
+
 			case "tracklist_changed":
 				eventListener.onTracklistChanged();
 				break;
+
 			case "playlists_loaded":
 				eventListener.onPlaylistsLoaded();
 				break;
+
 			case "playlist_changed":
 				eventListener.onPlaylistChanged(o.getAsJsonObject(Constants.Key.PLAYLIST));
 				break;
+
 			case "playlist_deleted":
 				eventListener.onPlaylistDeleted(o.get(Constants.Key.URI).getAsString());
 				break;
+
 			case "stream_title_changed":
 				eventListener.onStreamTitleChanged(o.get(Constants.Key.TITLE).getAsString());
 				break;
+
 			case "seeked":
 				eventListener.onSeeked(o.get(Constants.Key.TIME_POSITION).getAsLong());
 				break;
+
 			case "mute_changed":
 				eventListener.onMuteChanged(o.get(Constants.Key.MUTE).getAsBoolean());
 				break;
+
 			case "volume_changed":
 				eventListener.onVolumeChanged(o.get(Constants.Key.VOLUME).getAsInt());
 				break;
+
 			case "options_changed":
 				eventListener.onOptionsChanged();
 				break;
+
 			default:
 				log.error("unknown event: " + o);
 				return false;
+
 		}
 		return true;
 	}
@@ -312,5 +327,9 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 	public void setURL(String host, int port) {
 		setURL("ws://" + host + ":" + port + "/mopidy/ws");
+	}
+
+	public Transport getTransport() {
+		return transport;
 	}
 }

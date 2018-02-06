@@ -29,7 +29,6 @@ import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 import danbroid.mopidy.util.MediaIds;
-import danbroid.mopidy.util.MopidyServerFinder;
 import danbroid.mopidy.util.UIResponseHandler;
 
 /**

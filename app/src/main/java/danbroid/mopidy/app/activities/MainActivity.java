@@ -30,13 +30,10 @@ import danbroid.mopidy.app.fragments.PlaylistsTab;
 import danbroid.mopidy.app.fragments.ProfilesTab;
 import danbroid.mopidy.app.fragments.TracklistTab;
 import danbroid.mopidy.app.interfaces.MainView;
-import danbroid.mopidy.app.service.MopidyService_;
-import danbroid.mopidy.app.ui.AddServerDialog_;
 import danbroid.mopidy.fragments.MediaFragment;
 import danbroid.mopidy.interfaces.MediaContentView;
 import danbroid.mopidy.interfaces.MopidyPrefs_;
-import danbroid.mopidy.service.AbstractMopidyService;
-import danbroid.mopidy.service.MopidyClient;
+import danbroid.mopidy.service.MopidyService;
 
 @OptionsMenu(R.menu.menu_main)
 @EActivity(R.layout.activity_main)
@@ -48,9 +45,6 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 
 	@Pref
 	MopidyPrefs_ prefs;
-
-	@ViewById(R.id.fab)
-	FloatingActionButton fab;
 
 	@ViewById(R.id.bottom_controls)
 	View bottomControls;
@@ -142,19 +136,9 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 
 	}
 
-	@Override
-	protected void onConnected() {
-		String lastConnection = prefs.lastConnectionURL().getOr(null);
-		log.info("onConnected() lastConnection: {}", lastConnection);
-		if (lastConnection != null) {
-			new MopidyClient.Connect(this, lastConnection) {
-				@Override
-				protected void onSuccess(String version) {
-					actionHome();
-				}
-			}.call();
-		}
-	}
+
+
+
 
 /*	public void showBottomControls(boolean animate) {
 		log.trace("showBottomControls(): animate: {}", animate);
@@ -216,10 +200,7 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 	}*/
 
 
-	@Override
-	protected Class<? extends AbstractMopidyService> getServiceClass() {
-		return MopidyService_.class;
-	}
+
 
 
 	@OptionsItem(R.id.action_home)
@@ -230,26 +211,6 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 
 	@Override
 	public void setContent(MediaFragment content) {
-
-	}
-
-
-	public void showFAB(@DrawableRes int icon) {
-		fab.setImageResource(icon);
-		fab.setVisibility(View.VISIBLE);
-	}
-
-	public void hideFAB() {
-		fab.setVisibility(View.GONE);
-	}
-
-	@Click(R.id.fab)
-	void onFabClicked() {
-
-	}
-
-	public void showAddServerDialog() {
-		AddServerDialog_.getInstance_(this).show(this);
 	}
 
 
@@ -286,14 +247,16 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 		Toast.makeText(this, getString(R.string.msg_press_back_to_exit), Toast.LENGTH_SHORT).show();
 	}
 
+	private Animation showFullControlsAnimation;
 
 	public void showFullControls() {
+		if (showFullControlsAnimation != null) return;
 		log.debug("showFullControls()");
 
 		final View view = findViewById(R.id.full_controls);
 		view.setVisibility(View.VISIBLE);
-		Animation anim = AnimationUtils.loadAnimation(this, R.anim.slide_up);
-		anim.setAnimationListener(new Animation.AnimationListener() {
+		showFullControlsAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+		showFullControlsAnimation.setAnimationListener(new Animation.AnimationListener() {
 			@Override
 			public void onAnimationStart(Animation animation) {
 			}
@@ -301,6 +264,7 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 			@Override
 			public void onAnimationEnd(Animation animation) {
 				findViewById(R.id.coordinator_layout).setVisibility(View.GONE);
+				showFullControlsAnimation = null;
 			}
 
 			@Override
@@ -311,18 +275,20 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 		FragmentManager fm = getSupportFragmentManager();
 		FragmentTransaction ft = fm.beginTransaction();
 		ft.replace(R.id.full_controls, FullScreenControlsFragment.newInstance()).commit();
-		view.setAnimation(anim);
+		view.setAnimation(showFullControlsAnimation);
 		view.animate();
-
-
 	}
 
 
+	private Animation hideFullControlsAnimation;
+
 	public void hideFullControls() {
+		if (hideFullControlsAnimation != null) return;
 		log.trace("hideFullControls()");
 
-		Animation anim = AnimationUtils.loadAnimation(this, R.anim.slide_down);
-		anim.setAnimationListener(new Animation.AnimationListener() {
+
+		hideFullControlsAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_down);
+		hideFullControlsAnimation.setAnimationListener(new Animation.AnimationListener() {
 			@Override
 			public void onAnimationStart(Animation animation) {
 			}
@@ -336,6 +302,7 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 					ft.remove(fullControls);
 				}
 				ft.commit();
+				hideFullControlsAnimation = null;
 			}
 
 			@Override
@@ -345,7 +312,7 @@ public class MainActivity extends MopidyActivity implements MainView, FragmentMa
 
 		findViewById(R.id.coordinator_layout).setVisibility(View.VISIBLE);
 		View fullControls = findViewById(R.id.full_controls);
-		fullControls.setAnimation(anim);
+		fullControls.setAnimation(hideFullControlsAnimation);
 		fullControls.animate();
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
