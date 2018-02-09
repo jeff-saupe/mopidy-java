@@ -184,7 +184,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		menu.add(R.string.tracklist_add).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
-				getMainView().getMopidyClient().addToTracklist(item);
+				getMainView().getMopidyClient().addToTracklist(item).call();
 				return true;
 			}
 		});
@@ -192,7 +192,7 @@ public class MediaListFragment extends MediaFragment implements MediaContentView
 		menu.add(R.string.tracklist_replace).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
-				getMainView().getMopidyClient().replaceTracklist(item);
+				getMainView().getMopidyClient().replaceTracklist(item).call();
 				return true;
 			}
 		});

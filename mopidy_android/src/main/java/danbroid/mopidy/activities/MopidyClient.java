@@ -228,6 +228,7 @@ public class MopidyClient {
 		return new ClearTracklist() {
 			@Override
 			protected void onSuccess(Object result) {
+				log.error("tracklist cleared .. adding item: {}",item);
 				addToTracklist.call();
 			}
 		};
