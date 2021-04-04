@@ -1,11 +1,10 @@
 package danbroid.mopidy.api;
 
-import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.Map;
 
-import danbroid.mopidy.interfaces.Constants;
+import danbroid.mopidy.interfaces.JSONConstants;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.Track;
@@ -21,13 +20,13 @@ public class Library extends Api {
 	}
 
 	public Call<Ref[]> browse(final String uri) {
-		return createCall("browse", Ref[].class).addParam(Constants.Key.URI, uri);
+		return createCall("browse", Ref[].class).addParam(JSONConstants.URI, uri);
 	}
 
 
 	public Call<Track[]> lookup(String uris[]) {
 		return createCall("lookup", Track[].class)
-				.addParam(Constants.Key.URIS,getGson().toJsonTree(uris));
+				.addParam(JSONConstants.URIS,getGson().toJsonTree(uris));
 	}
 
 	public Call<Map<String, Image[]>> getImages(final String uris[]) {
@@ -36,7 +35,7 @@ public class Library extends Api {
 		call.setResultType(new TypeToken<Map<String, Image[]>>() {
 		});
 
-		return call.addParam(Constants.Key.URIS, getGson().toJsonTree(uris));
+		return call.addParam(JSONConstants.URIS, getGson().toJsonTree(uris));
 	}
 
 

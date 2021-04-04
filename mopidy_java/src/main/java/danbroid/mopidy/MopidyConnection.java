@@ -4,16 +4,14 @@ package danbroid.mopidy;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.internal.Streams;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import danbroid.mopidy.api.Call;
 import danbroid.mopidy.api.Core;
-import danbroid.mopidy.api.TrackList;
 import danbroid.mopidy.interfaces.CallContext;
-import danbroid.mopidy.interfaces.Constants;
+import danbroid.mopidy.interfaces.JSONConstants;
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.transport.Transport;
@@ -163,26 +161,26 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 			if (e.isJsonObject()) {
 				JsonObject o = e.getAsJsonObject();
 
-				if (o.has(Constants.Key.ERROR)) {
+				if (o.has(JSONConstants.ERROR)) {
 					log.error("got error: {}",text);
-					o = o.getAsJsonObject(Constants.Key.ERROR);
-					int id = o.get(Constants.Key.ID).getAsInt();
-					String message = o.get(Constants.Key.MESSAGE).getAsString();
+					o = o.getAsJsonObject(JSONConstants.ERROR);
+					int id = o.get(JSONConstants.ID).getAsInt();
+					String message = o.get(JSONConstants.MESSAGE).getAsString();
 					int code = 0;
-					if (o.has(Constants.Key.CODE)) code = o.get(Constants.Key.CODE).getAsInt();
+					if (o.has(JSONConstants.CODE)) code = o.get(JSONConstants.CODE).getAsInt();
 
-					JsonElement data = o.get(Constants.Key.DATA);
+					JsonElement data = o.get(JSONConstants.DATA);
 					processError(id, message, code, data);
 					return;
 				}
 
-				if (o.has(Constants.Key.EVENT)) {
-					processEvent(o.get(Constants.Key.EVENT).getAsString(), o);
+				if (o.has(JSONConstants.EVENT)) {
+					processEvent(o.get(JSONConstants.EVENT).getAsString(), o);
 					return;
 				}
 
-				if (o.has(Constants.Key.JSONRPC)) {
-					processResponse(o.get(Constants.Key.ID).getAsInt(), o.get(Constants.Key.RESULT));
+				if (o.has(JSONConstants.JSONRPC)) {
+					processResponse(o.get(JSONConstants.ID).getAsInt(), o.get(JSONConstants.RESULT));
 					return;
 				}
 				log.error("unhandled data: {}", text);
@@ -234,30 +232,30 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 			case "track_playback_paused":
 				eventListener.onTrackPlaybackPaused(
-						o.get(Constants.Key.TL_TRACK).getAsJsonObject(),
-						o.get(Constants.Key.TIME_POSITION).getAsLong());
+						o.get(JSONConstants.TL_TRACK).getAsJsonObject(),
+						o.get(JSONConstants.TIME_POSITION).getAsLong());
 				break;
 
 			case "track_playback_resumed":
 				eventListener.onTrackPlaybackResumed(
-						o.get(Constants.Key.TL_TRACK).getAsJsonObject(),
-						o.get(Constants.Key.TIME_POSITION).getAsLong());
+						o.get(JSONConstants.TL_TRACK).getAsJsonObject(),
+						o.get(JSONConstants.TIME_POSITION).getAsLong());
 				break;
 
 			case "track_playback_started":
-				eventListener.onTrackPlaybackStarted(o.get(Constants.Key.TL_TRACK).getAsJsonObject());
+				eventListener.onTrackPlaybackStarted(o.get(JSONConstants.TL_TRACK).getAsJsonObject());
 				break;
 
 			case "track_playback_ended":
 				eventListener.onTrackPlaybackEnded(
-						o.get(Constants.Key.TL_TRACK).getAsJsonObject(),
-						o.get(Constants.Key.TIME_POSITION).getAsLong());
+						o.get(JSONConstants.TL_TRACK).getAsJsonObject(),
+						o.get(JSONConstants.TIME_POSITION).getAsLong());
 				break;
 
 			case "playback_state_changed":
 				eventListener.onPlaybackStateChanged(
-						PlaybackState.fromString(o.get(Constants.Key.OLD_STATE).getAsString()),
-						PlaybackState.fromString(o.get(Constants.Key.NEW_STATE).getAsString()));
+						PlaybackState.fromString(o.get(JSONConstants.OLD_STATE).getAsString()),
+						PlaybackState.fromString(o.get(JSONConstants.NEW_STATE).getAsString()));
 				break;
 
 			case "tracklist_changed":
@@ -269,27 +267,27 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 				break;
 
 			case "playlist_changed":
-				eventListener.onPlaylistChanged(o.getAsJsonObject(Constants.Key.PLAYLIST));
+				eventListener.onPlaylistChanged(o.getAsJsonObject(JSONConstants.PLAYLIST));
 				break;
 
 			case "playlist_deleted":
-				eventListener.onPlaylistDeleted(o.get(Constants.Key.URI).getAsString());
+				eventListener.onPlaylistDeleted(o.get(JSONConstants.URI).getAsString());
 				break;
 
 			case "stream_title_changed":
-				eventListener.onStreamTitleChanged(o.get(Constants.Key.TITLE).getAsString());
+				eventListener.onStreamTitleChanged(o.get(JSONConstants.TITLE).getAsString());
 				break;
 
 			case "seeked":
-				eventListener.onSeeked(o.get(Constants.Key.TIME_POSITION).getAsLong());
+				eventListener.onSeeked(o.get(JSONConstants.TIME_POSITION).getAsLong());
 				break;
 
 			case "mute_changed":
-				eventListener.onMuteChanged(o.get(Constants.Key.MUTE).getAsBoolean());
+				eventListener.onMuteChanged(o.get(JSONConstants.MUTE).getAsBoolean());
 				break;
 
 			case "volume_changed":
-				eventListener.onVolumeChanged(o.get(Constants.Key.VOLUME).getAsInt());
+				eventListener.onVolumeChanged(o.get(JSONConstants.VOLUME).getAsInt());
 				break;
 
 			case "options_changed":

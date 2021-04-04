@@ -7,7 +7,9 @@ import com.google.gson.reflect.TypeToken;
 import danbroid.mopidy.MopidyConnection;
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.interfaces.CallContext;
-import danbroid.mopidy.interfaces.Constants;
+import danbroid.mopidy.interfaces.JSONConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by dan on 8/12/17.
@@ -15,8 +17,7 @@ import danbroid.mopidy.interfaces.Constants;
 public class Call<T> {
 	public static final String JSONRPC_VERSION = "2.0";
 
-	private static final org.slf4j.Logger
-			log = org.slf4j.LoggerFactory.getLogger(Call.class);
+	private static final Logger log = LoggerFactory.getLogger(Call.class);
 	private final MopidyConnection connection;
 
 	/**
@@ -48,10 +49,10 @@ public class Call<T> {
 		this.connection = connection;
 
 		request = new JsonObject();
-		request.addProperty(Constants.Key.METHOD, method);
-		request.addProperty(Constants.Key.JSONRPC, JSONRPC_VERSION);
+		request.addProperty(JSONConstants.METHOD, method);
+		request.addProperty(JSONConstants.JSONRPC, JSONRPC_VERSION);
 		params = new JsonObject();
-		request.add(Constants.Key.PARAMS, params);
+		request.add(JSONConstants.PARAMS, params);
 	}
 
 	public Call<T> setResultType(TypeToken<T> resultType) {
@@ -135,7 +136,7 @@ public class Call<T> {
 	}
 
 	public void setID(int id) {
-		getRequest().addProperty(Constants.Key.ID, id);
+		getRequest().addProperty(JSONConstants.ID, id);
 		this.id = id;
 	}
 
