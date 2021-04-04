@@ -1,13 +1,16 @@
 package danbroid.mopidy.api;
 
 import danbroid.mopidy.ResponseHandler;
+import danbroid.mopidy.transport.WebSocketTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by dan on 13/12/17.
  * Implementation complete
  */
 public class Mixer extends Api {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Mixer.class);
+	private static final Logger log = LoggerFactory.getLogger(Mixer.class);
 
 	protected Mixer(Api parent) {
 		super(parent, "mixer.");

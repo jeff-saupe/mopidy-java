@@ -6,17 +6,20 @@ import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.util.ResourceBundle;
 
+import danbroid.mopidy.transport.WebSocketTransport;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by dan on 21/12/17.
  */
 public class LastFMCall implements Callback {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LastFMCall.class);
+	private static final Logger log = LoggerFactory.getLogger(LastFMCall.class);
 
 	private static final String URL_BASE = "http://ws.audioscrobbler.com/2.0/";
 

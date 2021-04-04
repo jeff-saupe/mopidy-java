@@ -1,10 +1,13 @@
 package danbroid.mopidy.transport;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created by dan on 21/12/17.
  */
 public abstract class Transport {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Transport.class);
+	private static final Logger log = LoggerFactory.getLogger(Transport.class);
 	public static final int ERROR_CLOSE_CALLED = 1001;
 
 	protected String url;

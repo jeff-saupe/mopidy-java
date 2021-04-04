@@ -9,12 +9,14 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by dan on 21/12/17.
  */
 public class WebSocketTransport extends Transport {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WebSocketTransport.class);
+	private static final Logger log = LoggerFactory.getLogger(WebSocketTransport.class);
 
 	private WebSocket socket;
 

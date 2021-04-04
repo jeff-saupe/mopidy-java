@@ -2,13 +2,16 @@ package danbroid.mopidy.api;
 
 import danbroid.mopidy.model.Playlist;
 import danbroid.mopidy.model.Ref;
+import danbroid.mopidy.transport.WebSocketTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by dan on 18/12/17.
  * Unfinished
  */
 public class Playlists extends Api {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Playlists.class);
+	private static final Logger log = LoggerFactory.getLogger(Playlists.class);
 
 	protected Playlists(Api parent) {
 		super(parent, "playlists.");

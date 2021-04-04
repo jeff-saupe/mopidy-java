@@ -7,12 +7,16 @@ import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
+import danbroid.mopidy.transport.WebSocketTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by dan on 13/12/17.
  * Finished implementation from playback.py
  */
 public class Playback extends Api {
+	private static final Logger log = LoggerFactory.getLogger(Playback.class);
 
 	protected Playback(Api parent) {
 		super(parent, "playback.");

@@ -5,13 +5,14 @@ import com.google.gson.JsonObject;
 
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.model.TlTrack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by dan on 13/12/17.
  */
 public class TrackList extends Api {
-
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TrackList.class);
+	private static final Logger log = LoggerFactory.getLogger(TrackList.class);
 
 	public TrackList(Api parent) {
 		super(parent, "tracklist.");

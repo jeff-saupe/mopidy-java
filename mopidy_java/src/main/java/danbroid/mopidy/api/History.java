@@ -7,13 +7,16 @@ import java.util.LinkedList;
 
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
+import danbroid.mopidy.transport.WebSocketTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  * Created by dan on 13/12/17.
  */
 public class History extends Api {
-	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(History.class);
+	private static final Logger log = LoggerFactory.getLogger(History.class);
 
 	protected History(Api parent) {
 		super(parent, "history.");
