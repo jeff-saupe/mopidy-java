@@ -3,3 +3,10 @@
 
 A pure Java library for accessing a Mopidy music server.
 
+## To-Do's
+- Investigate scripts
+- Add Lombok
+- Remove LastFM
+- Add Spotify support
+- Refactoring
+- Update tests
