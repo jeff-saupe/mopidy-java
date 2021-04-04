@@ -1,1 +1,0 @@
-include ':app', ':mopidy_android', ':mopidy_java', ':glide'
