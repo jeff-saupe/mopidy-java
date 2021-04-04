@@ -1,15 +1,39 @@
-*.iml
-.gradle
-/local.properties
-/.idea
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-/mopidy_src
-/mopidy-somafm
-/mopidy_rnz
-.idea/fileTemplates/
-/docs
-/app/release
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+
+### VS Code ###
+**/vscode/
+#.frontend/vscode/
+
+### Java ###
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+### React ###
+.DS_*
+logs
+**/*.backup.*
+**/*.back.*
+.eslintcache
