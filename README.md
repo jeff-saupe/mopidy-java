@@ -1,4 +1,5 @@
-# mopidy-java
-A java library for accessing a Mopidy music server and an android library with demo app.
+# Mopidy-Java
+<sup>Forked from [danbrough/mopidy-java](https://github.com/danbrough/mopidy-java) </sup>
 
-Big work in progress at the moment
+A pure Java library for accessing a Mopidy music server.
+
