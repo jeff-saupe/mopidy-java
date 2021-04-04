@@ -43,10 +43,19 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	private HashMap<Integer, Call> calls = new HashMap<>();
 	private Transport transport;
 
+	/**
+	 * Event listener
+	 */
 	public void setEventListener(EventListener eventListener) {
 		this.eventListener = eventListener;
 	}
 
+	/**
+	 * Server URL
+	 */
+	public void setURL(String host, int port) {
+		setURL("ws://" + host + ":" + port + "/mopidy/ws");
+	}
 
 	public void setURL(String url) {
 		log.trace("setURL(): {}", url);
@@ -57,6 +66,9 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		return url;
 	}
 
+	/**
+	 * Establish connection to the server
+	 */
 	public Call<String> start(String url) {
 		log.info("start(): {}", url);
 		setURL(url);
@@ -68,11 +80,11 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		return start();
 	}
 
-
 	public Call<String> start() {
 		log.info("start() url: {}", url);
 		if (url == null) return null;
 
+		// Stop connection if running
 		stop();
 
 		transport = createTransport();
@@ -104,9 +116,8 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	 */
 	@Override
 	public synchronized void call(Call call) {
-		if (url == null) return;
-		if (transport == null) start(null);
-
+		if (url == null) return; // TODO: Return error message
+		if (transport == null) start(null); // TODO: Return error message
 
 		int id = requestID.incrementAndGet();
 		call.setID(id);
@@ -118,19 +129,16 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		transport.send(request);
 	}
 
-
 	/**
 	 * Shutdown the socket and clear call queue
 	 */
 	public synchronized void stop() {
-
 		if (transport != null) {
 			log.debug("stop(): {}", url);
 			transport.close();
 			transport = null;
 			calls.clear();
 		}
-
 	}
 
 	/**
@@ -148,11 +156,10 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	@Override
 	public synchronized void onError(Throwable t) {
 		log.error(t.getMessage(), t);
-		String message = t.getLocalizedMessage();
-		if (t.getCause() != null) message = t.getCause().getLocalizedMessage();
-		for (Call call : calls.values()) {
-			call.onError(ERROR_TRANSPORT, message, null);
-		}
+
+		String message = t.getCause() != null ? t.getCause().getLocalizedMessage() : t.getLocalizedMessage();
+
+		calls.values().forEach(call -> call.onError(ERROR_TRANSPORT, message, null));
 	}
 
 	protected void processMessage(String text) {
@@ -193,7 +200,6 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	}
 
 	protected void processError(int id, String message, int code, JsonElement data) {
-
 		Call call = popCall(id);
 
 		if (call == null) {
@@ -322,10 +328,6 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 
 	public int getCallQueueSize() {
 		return calls.size();
-	}
-
-	public void setURL(String host, int port) {
-		setURL("ws://" + host + ":" + port + "/mopidy/ws");
 	}
 
 	public Transport getTransport() {

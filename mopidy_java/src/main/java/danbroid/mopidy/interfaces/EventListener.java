@@ -32,7 +32,6 @@ public interface EventListener {
 	// Called when playlists are loaded or refreshed.
 	void onPlaylistsLoaded();
 
-
 	//    Called whenever a playlist is changed.
 	void onPlaylistChanged(JsonObject playlist);
 

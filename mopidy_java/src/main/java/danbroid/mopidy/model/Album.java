@@ -1,12 +1,9 @@
 package danbroid.mopidy.model;
 
-/**
- * Created by dan on 8/12/17.
- */
 public class Album extends Base {
-	private String images[];
+	private String[] images;
 	private String name;
-	private Artist artists[];
+	private Artist[] artists;
 	private String date;
 	private String uri;
 	private Integer num_tracks;
