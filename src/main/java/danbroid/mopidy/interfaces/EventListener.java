@@ -2,9 +2,6 @@ package danbroid.mopidy.interfaces;
 
 import com.google.gson.JsonObject;
 
-/**
- * Created by dan on 6/12/17.
- */
 public interface EventListener {
 
 	void onOptionsChanged();
@@ -32,7 +29,7 @@ public interface EventListener {
 	// Called when playlists are loaded or refreshed.
 	void onPlaylistsLoaded();
 
-	//    Called whenever a playlist is changed.
+	// Called whenever a playlist is changed.
 	void onPlaylistChanged(JsonObject playlist);
 
 	//Called whenever a playlist is deleted.

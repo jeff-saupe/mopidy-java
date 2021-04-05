@@ -1,5 +1,8 @@
 package danbroid.mopidy.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Created by dan on 8/12/17.
  */
@@ -41,154 +44,26 @@ package danbroid.mopidy.model;
     #: equivalent timestamp or simply a version counter.
     last_modified = fields.Integer(min=0)
  */
+@Getter
+@Setter
 public class Track extends Base {
 	private String name;
-
-	// The track URI.
 	private String uri;
-	private Integer track_no;
-	private Integer disc_no;
-
-	//The track release date (YYYY or YYYY-MM-DD)
-	private String date;
-	private Artist artists[] = {};
+	private Integer trackNo;
+	private Integer discNo;
+	private String date;			// release date (YYYY or YYYY-MM-DD)
+	private Artist[] artists = {};
 	private Album album;
-	private Artist composers[];
+	private Artist[] composers;
 	private String genre;
-
-	// track length in milliseconds
-	private Long length;
-
-	//bitrate in kbit/s
-	private Integer bitrate;
-
-	//track comment
+	private Long length;			// in milliseconds
+	private Integer bitrate; 		// in kbit/s
 	private String comment;
-
-	private String musicbrainz_id;
-
-	private Long last_modified;
-
+	private String musicbrainzId;
+	private Long lastModified;
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Track[");
-		sb.append("name=" + name);
-		sb.append(" uri=" + uri);
-		sb.append("]");
-		return sb.toString();
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getUri() {
-		return uri;
-	}
-
-	public void setUri(String uri) {
-		this.uri = uri;
-	}
-
-	public Integer getTrackNo() {
-		return track_no;
-	}
-
-	public void setTrackNo(Integer track_no) {
-		this.track_no = track_no;
-	}
-
-	public Integer getDiscNo() {
-		return disc_no;
-	}
-
-	public void setDiscNo(Integer disc_no) {
-		this.disc_no = disc_no;
-	}
-
-	public String getDate() {
-		return date;
-	}
-
-	public void setDate(String date) {
-		this.date = date;
-	}
-
-	public Artist[] getArtists() {
-		return artists;
-	}
-
-	public void setArtists(Artist[] artists) {
-		this.artists = artists;
-	}
-
-	public Album getAlbum() {
-		return album;
-	}
-
-	public void setAlbum(Album album) {
-		this.album = album;
-	}
-
-	public Artist[] getComposers() {
-		return composers;
-	}
-
-	public void setComposers(Artist[] composers) {
-		this.composers = composers;
-	}
-
-	public String getGenre() {
-		return genre;
-	}
-
-	public void setGenre(String genre) {
-		this.genre = genre;
-	}
-
-	public Long getLength() {
-		return length;
-	}
-
-	public void setLength(Long length) {
-		this.length = length;
-	}
-
-	public Integer getBitrate() {
-		return bitrate;
-	}
-
-	public void setBitrate(Integer bitrate) {
-		this.bitrate = bitrate;
-	}
-
-	public String getComment() {
-		return comment;
-	}
-
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
-
-	public String getMusicbrainz_id() {
-		return musicbrainz_id;
-	}
-
-	public void setMusicbrainz_id(String musicbrainz_id) {
-		this.musicbrainz_id = musicbrainz_id;
-	}
-
-	public Long getLast_modified() {
-		return last_modified;
-	}
-
-	public void setLast_modified(Long last_modified) {
-		this.last_modified = last_modified;
+		return "Track[" + "name=" + name + " uri=" + uri + "]";
 	}
 }

@@ -1,10 +1,7 @@
 package danbroid.mopidy.interfaces;
 
-/**
- * Created by dan on 13/12/17.
- */
 public enum PlaybackState {
-	PAUSED, PLAYING, STOPPED;
+	PLAYING, PAUSED, STOPPED;
 
 	@Override
 	public String toString() {
@@ -14,5 +11,4 @@ public enum PlaybackState {
 	public static PlaybackState fromString(String name) {
 		return PlaybackState.valueOf(name.toUpperCase());
 	}
-
 }

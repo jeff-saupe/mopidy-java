@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
-import danbroid.mopidy.transport.WebSocketTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

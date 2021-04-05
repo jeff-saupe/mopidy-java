@@ -7,14 +7,11 @@ import java.util.LinkedList;
 
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
-import danbroid.mopidy.transport.WebSocketTransport;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-/**
- * Created by dan on 13/12/17.
- */
 public class History extends Api {
 	private static final Logger log = LoggerFactory.getLogger(History.class);
 
@@ -25,30 +22,6 @@ public class History extends Api {
 	//Get the number of tracks in the history.
 	public Call<Integer> getLength() {
 		return createCall("get_length", Integer.class);
-	}
-
-
-	public static class HistoryItem {
-		final long timestamp;
-		final Ref track;
-
-		public HistoryItem(long timestamp, Ref track) {
-			this.timestamp = timestamp;
-			this.track = track;
-		}
-
-		public long getTimestamp() {
-			return timestamp;
-		}
-
-		public Ref getTrack() {
-			return track;
-		}
-
-		@Override
-		public String toString() {
-			return "[" + timestamp + "," + track + "]";
-		}
 	}
 
 	//Get the history
@@ -68,5 +41,17 @@ public class History extends Api {
 				return result.toArray(new HistoryItem[]{});
 			}
 		}.setResultType(HistoryItem[].class);
+	}
+
+	@AllArgsConstructor
+	@Getter
+	public static class HistoryItem {
+		private final long timestamp;
+		private final Ref track;
+
+		@Override
+		public String toString() {
+			return "[" + timestamp + "," + track + "]";
+		}
 	}
 }

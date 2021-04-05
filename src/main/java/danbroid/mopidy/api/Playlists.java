@@ -2,36 +2,31 @@ package danbroid.mopidy.api;
 
 import danbroid.mopidy.model.Playlist;
 import danbroid.mopidy.model.Ref;
-import danbroid.mopidy.transport.WebSocketTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by dan on 18/12/17.
- * Unfinished
- */
 public class Playlists extends Api {
-	private static final Logger log = LoggerFactory.getLogger(Playlists.class);
+    private static final Logger log = LoggerFactory.getLogger(Playlists.class);
 
-	protected Playlists(Api parent) {
-		super(parent, "playlists.");
-	}
+    protected Playlists(Api parent) {
+        super(parent, "playlists.");
+    }
 
-	/*
-	Get the items in a playlist specified by ``uri``.
+    /**
+     * Get the items in a playlist specified by ``uri``.
+     * <p>
+     * Returns a list of :class:`~mopidy.models.Ref` objects referring to the
+     * playlist's items.
+     * <p>
+     * If a playlist with the given ``uri`` doesn't exist, it returns
+     * :class:`None`.
+     */
+    public Call<Ref[]> asList() {
+        return createCall("as_list", Ref[].class);
+    }
 
-  Returns a list of :class:`~mopidy.models.Ref` objects referring to the
-  playlist's items.
-
-  If a playlist with the given ``uri`` doesn't exist, it returns
-  :class:`None`.
-	 */
-	public Call<Ref[]> asList() {
-		return createCall("as_list", Ref[].class);
-	}
-
-	/*
-	        Get the items in a playlist specified by ``uri``.
+    /*
+            Get the items in a playlist specified by ``uri``.
 
         Returns a list of :class:`~mopidy.models.Ref` objects referring to the
         playlist's items.
@@ -40,25 +35,25 @@ public class Playlists extends Api {
         :class:`None`.
 
         :rtype: list of :class:`mopidy.models.Ref`, or :class:`None`
-	 *
+     *
 
-	public void getItems(String uri, ResponseHandler<Ref[]> handler) {
-		call(new Call<Ref[]>(methodPrefix + "get_items")
-				.addParam("uri", uri)
-				.setResultType(Ref[].class)
-				.setHandler(handler));
-	}
+    public void getItems(String uri, ResponseHandler<Ref[]> handler) {
+        call(new Call<Ref[]>(methodPrefix + "get_items")
+                .addParam("uri", uri)
+                .setResultType(Ref[].class)
+                .setHandler(handler));
+    }
 
-	//Get the list of URI schemes that support playlists.
-	public void get_uri_schemes(ResponseHandler<String[]> handler) {
-		call(new Call<String[]>(methodPrefix + "get_uri_schemes")
-				.setResultType(String[].class)
-				.setHandler(handler));
-	}
+    //Get the list of URI schemes that support playlists.
+    public void get_uri_schemes(ResponseHandler<String[]> handler) {
+        call(new Call<String[]>(methodPrefix + "get_uri_schemes")
+                .setResultType(String[].class)
+                .setHandler(handler));
+    }
 
 
-	/*
-	Get the available playlists.
+    /*
+    Get the available playlists.
 
         :rtype: list of :class:`mopidy.models.Playlist`
 
@@ -66,14 +61,14 @@ public class Playlists extends Api {
             If you call the method with ``include_tracks=False``, the
             :attr:`~mopidy.models.Playlist.last_modified` field of the returned
             playlists is no longer set.
-	 */
-	public Call<Playlist[]> getPlaylists(boolean include_tracks) {
-		return createCall("get_playlists", Playlist[].class)
-				.addParam("include_tracks", include_tracks);
-	}
+     */
+    public Call<Playlist[]> getPlaylists(boolean include_tracks) {
+        return createCall("get_playlists", Playlist[].class)
+                .addParam("include_tracks", include_tracks);
+    }
 
-	/*
-	        Get the items in a playlist specified by ``uri``.
+    /*
+            Get the items in a playlist specified by ``uri``.
 
         Returns a list of :class:`~mopidy.models.Ref` objects referring to the
         playlist's items.
@@ -82,14 +77,14 @@ public class Playlists extends Api {
         :class:`None`.
 
         :rtype: list of :class:`mopidy.models.Ref`, or :class:`None`
-	 */
-	public Call<Ref[]> getItems(String uri) {
-		return createCall("get_items", Ref[].class)
-				.addParam("uri", uri);
-	}
+     */
+    public Call<Ref[]> getItems(String uri) {
+        return createCall("get_items", Ref[].class)
+                .addParam("uri", uri);
+    }
 
-	/*
-	     Create a new playlist.
+    /*
+         Create a new playlist.
 
         If ``uri_scheme`` matches an URI scheme handled by a current backend,
         that backend is asked to create the playlist. If ``uri_scheme`` is
@@ -104,26 +99,26 @@ public class Playlists extends Api {
         :param uri_scheme: use the backend matching the URI scheme
         :type uri_scheme: string
         :rtype: :class:`mopidy.models.Playlist` or :class:`None`
-	 */
-	public Call<Playlist> create(String name, String uri_scheme) {
-		return createCall("create", Playlist.class)
-				.addParam("name", name)
-				.addParam("uri_scheme", uri_scheme);
-	}
+     */
+    public Call<Playlist> create(String name, String uri_scheme) {
+        return createCall("create", Playlist.class)
+                .addParam("name", name)
+                .addParam("uri_scheme", uri_scheme);
+    }
 
-	/*
-	 Delete playlist identified by the URI.
+    /*
+     Delete playlist identified by the URI.
 
         If the URI doesn't match the URI schemes handled by the current
         backends, nothing happens.
 
         :param uri: URI of the playlist to delete
         :type uri: string
-	 */
-	public Call<Void> delete(String uri) {
-		return createCall("delete", Void.class)
-				.addParam("uri", uri);
-	}
+     */
+    public Call<Void> delete(String uri) {
+        return createCall("delete", Void.class)
+                .addParam("uri", uri);
+    }
 }
 /*
 

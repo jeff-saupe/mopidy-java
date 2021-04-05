@@ -16,6 +16,8 @@ import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.transport.Transport;
 import danbroid.mopidy.transport.WebSocketTransport;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,48 +31,54 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	public static final int ERROR_TIMEOUT = -2;
 	public static final int ERROR_TRANSPORT = -1;
 
+	@Getter
 	private String url;
 
+	private final JsonParser parser = new JsonParser();
 
-	private JsonParser parser = new JsonParser();
+	@Setter
 	private EventListener eventListener = new EventListenerImpl();
 
 	public static final long DEFAULT_CALL_TIMEOUT = 3000;
+
+	@Getter @Setter
 	private long timeout = DEFAULT_CALL_TIMEOUT;
 
 
-	private AtomicInteger requestID = new AtomicInteger(0);
-	private HashMap<Integer, Call> calls = new HashMap<>();
+	private final AtomicInteger requestID = new AtomicInteger(0);
+	private final HashMap<Integer, Call> calls = new HashMap<>();
+	@Getter
 	private Transport transport;
-
-	/**
-	 * Event listener
-	 */
-	public void setEventListener(EventListener eventListener) {
-		this.eventListener = eventListener;
-	}
 
 	/**
 	 * Server URL
 	 */
-	public void setURL(String host, int port) {
-		setURL("ws://" + host + ":" + port + "/mopidy/ws");
-	}
-
 	public void setURL(String url) {
 		log.trace("setURL(): {}", url);
 		this.url = url;
 	}
 
-	public String getURL() {
-		return url;
+	public void setURL(String host, int port) {
+		setURL("ws://" + host + ":" + port + "/mopidy/ws");
 	}
 
 	/**
 	 * Establish connection to the server
 	 */
+	public Call<String> start() {
+		log.info("start() url: {}", url);
+		if (url == null) return null;
+
+		// Stop connection, if any running
+		stop();
+
+		transport = new WebSocketTransport(this);
+		transport.connect(url);
+
+		return getVersion();
+	}
+
 	public Call<String> start(String url) {
-		log.info("start(): {}", url);
 		setURL(url);
 		return start();
 	}
@@ -78,23 +86,6 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	public Call<String> start(String host, int port) {
 		setURL(host, port);
 		return start();
-	}
-
-	public Call<String> start() {
-		log.info("start() url: {}", url);
-		if (url == null) return null;
-
-		// Stop connection if running
-		stop();
-
-		transport = createTransport();
-		transport.connect(url);
-
-		return getVersion();
-	}
-
-	protected Transport createTransport() {
-		return new WebSocketTransport(this);
 	}
 
 	public Call<String> getVersion() {
@@ -223,8 +214,7 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 	}
 
 	protected Call popCall(int id) {
-		Call call = calls.remove(id);
-		return call;
+		return calls.remove(id);
 	}
 
 	/**
@@ -318,19 +308,8 @@ public class MopidyConnection extends Core implements CallContext, Transport.Cal
 		return transport != null;
 	}
 
-	public long getTimeout() {
-		return timeout;
-	}
-
-	public void setTimeout(long timeout) {
-		this.timeout = timeout;
-	}
-
 	public int getCallQueueSize() {
 		return calls.size();
 	}
 
-	public Transport getTransport() {
-		return transport;
-	}
 }

@@ -8,18 +8,15 @@ import danbroid.mopidy.model.TlTrack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by dan on 13/12/17.
- */
-public class TrackList extends Api {
-	private static final Logger log = LoggerFactory.getLogger(TrackList.class);
+public class Tracklist extends Api {
+	private static final Logger log = LoggerFactory.getLogger(Tracklist.class);
 
-	public TrackList(Api parent) {
+	public Tracklist(Api parent) {
 		super(parent, "tracklist.");
 	}
 
 	//"""Get tracklist as list of :class:`mopidy.models.TlTrack`."""
-	public Call<TlTrack[]> getTlTrackList() {
+	public Call<TlTrack[]> getTlTracklist() {
 		return createCall("get_tl_tracks", TlTrack[].class);
 	}
 
@@ -226,4 +223,3 @@ public class TrackList extends Api {
 				.addParam("criteria", criteria);
 	}
 }
-

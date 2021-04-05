@@ -12,9 +12,6 @@ import okhttp3.WebSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by dan on 21/12/17.
- */
 public class WebSocketTransport extends Transport {
 	private static final Logger log = LoggerFactory.getLogger(WebSocketTransport.class);
 
@@ -28,7 +25,6 @@ public class WebSocketTransport extends Transport {
 	public void send(String request) {
 		socket.send(request);
 	}
-
 
 	class LoggingInterceptor implements Interceptor {
 		@Override
@@ -66,7 +62,6 @@ public class WebSocketTransport extends Transport {
 				.build();
 
 		this.socket = client.newWebSocket(request, new WebSocketListener() {
-
 			@Override
 			public void onFailure(WebSocket webSocket, Throwable t, Response response) {
 				callback.onError(t);
@@ -87,6 +82,5 @@ public class WebSocketTransport extends Transport {
 		socket.close(ERROR_CLOSE_CALLED, "close() called");
 		socket = null;
 	}
-
 
 }

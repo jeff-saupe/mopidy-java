@@ -8,13 +8,9 @@ import danbroid.mopidy.interfaces.JSONConstants;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.Track;
-import danbroid.mopidy.transport.WebSocketTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by dan on 10/12/17.
- */
 public class Library extends Api {
 	private static final Logger log = LoggerFactory.getLogger(Library.class);
 
@@ -25,7 +21,6 @@ public class Library extends Api {
 	public Call<Ref[]> browse(final String uri) {
 		return createCall("browse", Ref[].class).addParam(JSONConstants.URI, uri);
 	}
-
 
 	public Call<Track[]> lookup(String uris[]) {
 		return createCall("lookup", Track[].class)
@@ -40,6 +35,4 @@ public class Library extends Api {
 
 		return call.addParam(JSONConstants.URIS, getGson().toJsonTree(uris));
 	}
-
-
 }

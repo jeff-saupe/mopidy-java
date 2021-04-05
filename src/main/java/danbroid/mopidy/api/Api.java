@@ -14,11 +14,7 @@ import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 
-/**
- * Created by dan on 11/12/17.
- */
 public class Api {
-
 	private final Api parent;
 	protected final String methodPrefix;
 	private Gson gson;
@@ -69,5 +65,4 @@ public class Api {
 		return new GsonBuilder()
 				.registerTypeAdapterFactory(runtimeTypeAdapterFactory);
 	}
-
 }

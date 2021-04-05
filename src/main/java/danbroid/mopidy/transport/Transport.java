@@ -1,18 +1,19 @@
 package danbroid.mopidy.transport;
 
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by dan on 21/12/17.
- */
 public abstract class Transport {
 	private static final Logger log = LoggerFactory.getLogger(Transport.class);
+
 	public static final int ERROR_CLOSE_CALLED = 1001;
 
+	@Getter
 	protected String url;
 	protected Callback callback;
 
+	@Getter
 	private boolean connected = false;
 
 	protected Transport(Callback callback) {
@@ -50,25 +51,18 @@ public abstract class Transport {
 		open();
 	}
 
-	public String getUrl() {
-		return url;
-	}
-
 	protected abstract void open();
-
 
 	public abstract void close();
 
 	protected void setConnected(boolean connected) {
 		if (this.connected == connected) return;
 		this.connected = connected;
+
 		if (connected)
 			callback.onConnected();
 		else
 			callback.onDisconnected();
 	}
 
-	public boolean isConnected() {
-		return connected;
-	}
 }

@@ -8,16 +8,16 @@ import danbroid.mopidy.MopidyConnection;
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.JSONConstants;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by dan on 8/12/17.
- */
 public class Call<T> {
+	private static final Logger log = LoggerFactory.getLogger(Call.class);
+	
 	public static final String JSONRPC_VERSION = "2.0";
 
-	private static final Logger log = LoggerFactory.getLogger(Call.class);
 	private final MopidyConnection connection;
 
 	/**
@@ -25,10 +25,10 @@ public class Call<T> {
 	 */
 	private TypeToken<T> resultType;
 
-
 	/**
 	 * The request data
 	 */
+	@Getter
 	private JsonObject request;
 
 	/**
@@ -40,18 +40,22 @@ public class Call<T> {
 	/**
 	 * When this call was dispatched
 	 */
+	@Getter
+	@Setter
 	private long timestamp;
 
 	protected ResponseHandler<T> handler;
+	@Getter
 	private int id;
 
 	public Call(String method, MopidyConnection connection) {
 		this.connection = connection;
 
+		params = new JsonObject();
+
 		request = new JsonObject();
 		request.addProperty(JSONConstants.METHOD, method);
 		request.addProperty(JSONConstants.JSONRPC, JSONRPC_VERSION);
-		params = new JsonObject();
 		request.add(JSONConstants.PARAMS, params);
 	}
 
@@ -63,7 +67,6 @@ public class Call<T> {
 	public Call<T> setResultType(Class<T> resultType) {
 		return setResultType(TypeToken.get(resultType));
 	}
-
 
 	public final void processResult(CallContext callContext, JsonElement response) {
 		try {
@@ -77,16 +80,11 @@ public class Call<T> {
 		}
 	}
 
-
 	public void onError(int code, String message, JsonElement data) {
 		if (handler != null)
 			handler.onError(code, message, data);
 		else
 			log.error("code: " + code + " message: " + message + " data: " + data);
-	}
-
-	public JsonObject getRequest() {
-		return request;
 	}
 
 	@Override
@@ -99,7 +97,6 @@ public class Call<T> {
 			return null;
 		return callContext.getGson().fromJson(response, resultType.getType());
 	}
-
 
 	public Call<T> setResponseHandler(ResponseHandler<T> handler) {
 		this.handler = handler;
@@ -126,22 +123,9 @@ public class Call<T> {
 		return this;
 	}
 
-
-	public void setTimestamp(long timestamp) {
-		this.timestamp = timestamp;
-	}
-
-	public long getTimestamp() {
-		return timestamp;
-	}
-
 	public void setID(int id) {
 		getRequest().addProperty(JSONConstants.ID, id);
 		this.id = id;
-	}
-
-	public int getID() {
-		return id;
 	}
 
 	public void call(ResponseHandler<T> handler) {

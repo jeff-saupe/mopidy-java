@@ -1,5 +1,8 @@
 package danbroid.mopidy.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Created by dan on 18/12/17.
  * <p>
@@ -30,44 +33,11 @@ package danbroid.mopidy.model;
  * #: Integer, or :class:`None` if unknown.
  * last_modified = fields.Integer(min=0)
  */
+@Getter
+@Setter
 public class Playlist extends Base {
 	private String uri;
-
 	private String name;
-
-	private Track tracks[];
-
-	private long last_modified;
-
-	public String getUri() {
-		return uri;
-	}
-
-	public void setUri(String uri) {
-		this.uri = uri;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Track[] getTracks() {
-		return tracks;
-	}
-
-	public void setTracks(Track[] tracks) {
-		this.tracks = tracks;
-	}
-
-	public long getLastModified() {
-		return last_modified;
-	}
-
-	public void setLastModified(long last_modified) {
-		this.last_modified = last_modified;
-	}
+	private Track[] tracks;
+	private long lastModified;
 }
