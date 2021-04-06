@@ -67,7 +67,7 @@ public class WebSocketTransport extends Transport {
 		socket = null;
 	}
 
-	static class LoggingInterceptor implements Interceptor {
+	class LoggingInterceptor implements Interceptor {
 		@Override
 		public Response intercept(Interceptor.Chain chain) throws IOException {
 			Request request = chain.request();
