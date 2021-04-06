@@ -12,7 +12,7 @@ public class Core extends Api {
 	private final History 	history 	= new History(this);
 	private final Mixer 	mixer 		= new Mixer(this);
 	private final Playback 	playback 	= new Playback(this);
-	private final Tracklist trackList 	= new Tracklist(this);
+	private final Tracklist tracklist 	= new Tracklist(this);
 	private final Playlists	playlists	= new Playlists(this);
 
 	public Core() {
