@@ -58,7 +58,7 @@ public class WebSocketTransport extends Transport {
 		Request request = new Request.Builder()
 				.url(url)
 				.addHeader("Accept-Encoding", "gzip")
-				.addHeader("Sec-WebSocket-Extensions", "permessage-deflate")
+				//.addHeader("Sec-WebSocket-Extensions", "permessage-deflate")
 				.build();
 
 		this.socket = client.newWebSocket(request, new WebSocketListener() {
