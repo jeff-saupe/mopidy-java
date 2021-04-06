@@ -9,6 +9,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,28 +27,10 @@ public class WebSocketTransport extends Transport {
 		socket.send(request);
 	}
 
-	class LoggingInterceptor implements Interceptor {
-		@Override
-		public Response intercept(Interceptor.Chain chain) throws IOException {
-			Request request = chain.request();
-
-			long t1 = System.nanoTime();
-			log.info(String.format("Sending request %s on %s%n%s",
-					request.url(), chain.connection(), request.headers()));
-
-			Response response = chain.proceed(request);
-
-			long t2 = System.nanoTime();
-			log.info(String.format("Received response for %s in %.1fms%n%s",
-					response.request().url(), (t2 - t1) / 1e6d, response.headers()));
-
-			return response;
-		}
-	}
-
 	@Override
 	protected synchronized void open() {
-		if (socket != null) throw new IllegalArgumentException("socket already exists");
+		if (this.socket != null)
+			throw new IllegalArgumentException("socket already exists");
 
 		OkHttpClient client = new OkHttpClient.Builder()
 				.addInterceptor(new LoggingInterceptor())
@@ -75,12 +58,30 @@ public class WebSocketTransport extends Transport {
 
 	}
 
-
 	@Override
 	public synchronized void close() {
-		if (socket == null) return;
+		if (socket == null)
+			return;
+
 		socket.close(ERROR_CLOSE_CALLED, "close() called");
 		socket = null;
+	}
+
+	static class LoggingInterceptor implements Interceptor {
+		@Override
+		public Response intercept(Interceptor.Chain chain) throws IOException {
+			Request request = chain.request();
+			long t1 = System.nanoTime();
+			log.info(String.format("Sending request %s on %s%n%s",
+					request.url(), chain.connection(), request.headers()));
+
+			Response response = chain.proceed(request);
+			long t2 = System.nanoTime();
+			log.info(String.format("Received response for %s in %.1fms%n%s",
+					response.request().url(), (t2 - t1) / 1e6d, response.headers()));
+
+			return response;
+		}
 	}
 
 }
