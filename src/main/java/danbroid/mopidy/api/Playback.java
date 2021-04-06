@@ -131,6 +131,11 @@ public class Playback extends Api {
                 .addParam("tl_track", jsonTrack);
     }
 
+    public Call<Void> play(Integer tlid) {
+        return createCall("play", Void.class)
+                .addParam("tlid", tlid);
+    }
+
     /**
      * Change to the previous track.
      * <p>
