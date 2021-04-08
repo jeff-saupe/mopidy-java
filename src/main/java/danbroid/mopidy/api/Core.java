@@ -1,13 +1,13 @@
 package danbroid.mopidy.api;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 @Getter
 public class Core extends Api {
-	private static final Logger log = LoggerFactory.getLogger(Core.class);
-
 	private final Library 	library 	= new Library(this);
 	private final History 	history 	= new History(this);
 	private final Mixer 	mixer 		= new Mixer(this);

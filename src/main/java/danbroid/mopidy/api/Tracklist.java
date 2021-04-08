@@ -5,12 +5,12 @@ import com.google.gson.JsonObject;
 
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.model.TlTrack;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class Tracklist extends Api {
-	private static final Logger log = LoggerFactory.getLogger(Tracklist.class);
-
 	public Tracklist(Api parent) {
 		super(parent, "tracklist.");
 	}

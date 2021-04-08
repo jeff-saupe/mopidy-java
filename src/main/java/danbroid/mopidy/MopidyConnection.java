@@ -18,6 +18,7 @@ import danbroid.mopidy.transport.Transport;
 import danbroid.mopidy.transport.WebSocketTransport;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +26,9 @@ import org.slf4j.LoggerFactory;
  * Wraps the websocket communication with the Mopidy server
  */
 
+@Slf4j
 public class MopidyConnection extends Core implements CallContext, Transport.Callback {
 
-	private static final Logger log = LoggerFactory.getLogger(MopidyConnection.class);
 	public static final int ERROR_TIMEOUT = -2;
 	public static final int ERROR_TRANSPORT = -1;
 

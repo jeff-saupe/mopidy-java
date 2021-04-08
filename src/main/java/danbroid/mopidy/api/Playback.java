@@ -7,12 +7,12 @@ import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class Playback extends Api {
-    private static final Logger log = LoggerFactory.getLogger(Playback.class);
-
     protected Playback(Api parent) {
         super(parent, "playback.");
     }

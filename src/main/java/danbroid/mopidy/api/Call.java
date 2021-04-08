@@ -10,12 +10,12 @@ import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.JSONConstants;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class Call<T> {
-	private static final Logger log = LoggerFactory.getLogger(Call.class);
-	
 	public static final String JSONRPC_VERSION = "2.0";
 
 	private final MopidyConnection connection;

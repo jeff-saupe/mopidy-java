@@ -3,6 +3,7 @@ package danbroid.mopidy.transport;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -13,9 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class WebSocketTransport extends Transport {
-	private static final Logger log = LoggerFactory.getLogger(WebSocketTransport.class);
-
 	private WebSocket socket;
 
 	public WebSocketTransport(Callback callback) {

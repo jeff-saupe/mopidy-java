@@ -4,15 +4,14 @@ import com.google.gson.JsonObject;
 
 import danbroid.mopidy.interfaces.EventListener;
 import danbroid.mopidy.interfaces.PlaybackState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * see: core/listener.py
  */
 
+@Slf4j
 public class EventListenerImpl implements EventListener {
-	private static final Logger log = LoggerFactory.getLogger(EventListenerImpl.class);
 
 	public void onOptionsChanged() {
 		log.trace("onOptionsChanged()");

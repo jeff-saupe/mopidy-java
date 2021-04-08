@@ -9,12 +9,12 @@ import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class History extends Api {
-	private static final Logger log = LoggerFactory.getLogger(History.class);
-
 	protected History(Api parent) {
 		super(parent, "history.");
 	}

@@ -1,12 +1,12 @@
 package danbroid.mopidy.api;
 
 import danbroid.mopidy.ResponseHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class Mixer extends Api {
-	private static final Logger log = LoggerFactory.getLogger(Mixer.class);
-
 	protected Mixer(Api parent) {
 		super(parent, "mixer.");
 	}

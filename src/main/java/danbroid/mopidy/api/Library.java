@@ -8,12 +8,12 @@ import danbroid.mopidy.interfaces.JSONConstants;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.Track;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class Library extends Api {
-	private static final Logger log = LoggerFactory.getLogger(Library.class);
-
 	protected Library(Api parent) {
 		super(parent, "library.");
 	}
