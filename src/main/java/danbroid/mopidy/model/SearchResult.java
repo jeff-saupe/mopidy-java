@@ -9,13 +9,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Image extends Base {
-	private String uri;
-	private int width;
-	private int height;
-
-	@Override
-	public String toString() {
-		return "Image[" + uri + "]";
-	}
+public class SearchResult extends Base {
+    private String uri;
+    private Track[] tracks;
+    private Artist[] artists;
+    private Album[] albums;
 }

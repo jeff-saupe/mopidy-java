@@ -7,5 +7,5 @@ public abstract class Base {
 	private String __model__ = getClass().getSimpleName();
 
 	@Getter @Setter
-	private transient Object extra;	//extra field attaching non-json derived data
+	private transient Object extra;	// Extra field attaching non-JSON derived data
 }

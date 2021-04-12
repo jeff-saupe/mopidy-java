@@ -2,8 +2,14 @@ package danbroid.mopidy.model;
 
 import lombok.Getter;
 
+/**
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/models/__init__.py
+ */
+
 @Getter
 public class Artist extends Base {
-	private String name;
 	private String uri;
+	private String name;
+	private String sortname;
+	private String musicbrainz_id;
 }

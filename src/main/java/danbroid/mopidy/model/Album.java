@@ -3,15 +3,18 @@ package danbroid.mopidy.model;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/models/__init__.py
+ */
+
 @Getter
 @Setter
 public class Album extends Base {
-	private String[] images;
+	private String uri;
 	private String name;
 	private Artist[] artists;
-	private String date;
-	private String uri;
 	private Integer numTracks;
 	private Integer numDiscs;
+	private String date;			// Release date (YYYY or YYYY-MM-DD)
 	private String musicbrainzId;
 }

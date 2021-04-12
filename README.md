@@ -4,6 +4,7 @@
 A pure Java library for accessing a Mopidy music server.
 
 ## To-Do's
-- Refactoring (including code formatting) 
-- Update and create new tests
 - Finish implementations of Mopidy objects (e.g. Playlist, Tracklist)
+- Update and create new tests
+- Create examples
+- Refactoring (including code formatting) 

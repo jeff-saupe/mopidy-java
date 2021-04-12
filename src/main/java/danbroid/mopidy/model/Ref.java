@@ -3,6 +3,14 @@ package danbroid.mopidy.model;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Model to represent URI references with a human friendly name and type attached.
+ * This is intended for use a lightweight object "free" of metadata that can be passed around instead of using full
+ * blown models.
+ *
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/models/__init__.py
+ */
+
 @Getter
 @Setter
 public class Ref extends Base {
@@ -12,36 +20,36 @@ public class Ref extends Base {
 	public static final String TYPE_PLAYLIST 	= "playlist";
 	public static final String TYPE_TRACK 		= "track";
 
-	private String type;
-	private String name;
 	private String uri;
+	private String name;
+	private String type;
 
-	public Ref(String type, String name, String uri) {
+	public Ref(String uri, String name, String type) {
 		super();
 
-		this.type = type;
-		this.name = name;
 		this.uri = uri;
+		this.name = name;
+		this.type = type;
 	}
 
-	public static Ref directory(String name, String uri) {
-		return new Ref(TYPE_DIRECTORY, name, uri);
+	public static Ref directory(String uri, String name) {
+		return new Ref(uri, name, TYPE_DIRECTORY);
 	}
 
 	public static Ref track(String name, String uri) {
-		return new Ref(TYPE_TRACK, name, uri);
+		return new Ref(uri, name, TYPE_TRACK);
 	}
 
-	public static Ref playlist(String name, String uri) {
-		return new Ref(TYPE_PLAYLIST, name, uri);
+	public static Ref playlist(String uri, String name) {
+		return new Ref(uri, name, TYPE_PLAYLIST);
 	}
 
-	public static Ref album(String name, String uri) {
-		return new Ref(TYPE_ALBUM, name, uri);
+	public static Ref album(String uri, String name) {
+		return new Ref(uri, name, TYPE_ALBUM);
 	}
 
-	public static Ref artist(String name, String uri) {
-		return new Ref(TYPE_ARTIST, name, uri);
+	public static Ref artist(String uri, String name) {
+		return new Ref(uri, name, TYPE_ARTIST);
 	}
 
 	@Override
