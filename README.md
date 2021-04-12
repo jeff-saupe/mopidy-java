@@ -4,6 +4,7 @@
 A pure Java library for accessing a Mopidy music server.
 
 ## To-Do's
+- Remove RuntimeTypeAdapterFactory and GsonBuilder in Api.java
 - Finish implementations of Mopidy objects (e.g. Playlist, Tracklist)
 - Update and create new tests
 - Create examples
