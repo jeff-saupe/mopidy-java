@@ -11,6 +11,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+/*
+See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/history.py
+ */
+
 @Slf4j
 public class History extends Api {
 	private static Gson gson = new Gson();
@@ -19,12 +23,21 @@ public class History extends Api {
 		super(parent, "history.");
 	}
 
-	//Get the number of tracks in the history.
+	/**
+	 * Get the number of tracks in the history.
+	 *
+	 * @return Integer The history length
+	 */
 	public Call<Integer> getLength() {
 		return createCall("get_length", Integer.class);
 	}
 
-	//Get the history
+	/**
+	 * Get the track history.
+	 * The timestamps are milliseconds since epoch.
+	 *
+	 * @return Array of {@link HistoryItem} of the track history
+	 */
 	public Call<HistoryItem[]> getHistory() {
 		return new Call<HistoryItem[]>("get_history", client) {
 			@Override
