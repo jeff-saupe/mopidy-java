@@ -1,4 +1,4 @@
-package danbroid.mopidy.interfaces;
+package danbroid.mopidy.model;
 
 public enum PlaybackState {
 	PLAYING, PAUSED, STOPPED;

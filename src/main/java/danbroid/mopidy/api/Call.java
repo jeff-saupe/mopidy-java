@@ -7,7 +7,7 @@ import com.google.gson.reflect.TypeToken;
 
 import danbroid.mopidy.MopidyClient;
 import danbroid.mopidy.ResponseHandler;
-import danbroid.mopidy.interfaces.JsonKeywords;
+import danbroid.mopidy.misc.JSONKeywords;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -53,9 +53,9 @@ public class Call<T> {
 		params = new JsonObject();
 
 		request = new JsonObject();
-		request.addProperty(JsonKeywords.METHOD, method);
-		request.addProperty(JsonKeywords.JSONRPC, JSONRPC_VERSION);
-		request.add(JsonKeywords.PARAMS, params);
+		request.addProperty(JSONKeywords.METHOD, method);
+		request.addProperty(JSONKeywords.JSONRPC, JSONRPC_VERSION);
+		request.add(JSONKeywords.PARAMS, params);
 	}
 
 	public Call<T> setResultType(TypeToken<T> resultType) {
@@ -123,7 +123,7 @@ public class Call<T> {
 	}
 
 	public void setID(int id) {
-		getRequest().addProperty(JsonKeywords.ID, id);
+		getRequest().addProperty(JSONKeywords.ID, id);
 		this.id = id;
 	}
 

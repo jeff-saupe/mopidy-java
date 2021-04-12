@@ -1,6 +1,7 @@
-package danbroid.mopidy.interfaces;
+package danbroid.mopidy.events;
 
 import com.google.gson.JsonObject;
+import danbroid.mopidy.model.PlaybackState;
 
 public interface EventListener {
 

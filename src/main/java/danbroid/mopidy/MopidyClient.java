@@ -1,7 +1,6 @@
 package danbroid.mopidy;
 
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -11,15 +10,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import danbroid.mopidy.api.*;
-import danbroid.mopidy.interfaces.*;
-import lombok.Builder;
+import danbroid.mopidy.events.*;
+import danbroid.mopidy.misc.JSONKeywords;
+import danbroid.mopidy.model.PlaybackState;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
@@ -140,26 +138,26 @@ public class MopidyClient extends WebSocketClient {
             if (element.isJsonObject()) {
                 JsonObject object = element.getAsJsonObject();
 
-                if (object.has(JsonKeywords.ERROR)) {
+                if (object.has(JSONKeywords.ERROR)) {
                     log.error("got error: {}", text);
-                    object = object.getAsJsonObject(JsonKeywords.ERROR);
-                    int id = object.get(JsonKeywords.ID).getAsInt();
-                    String message = object.get(JsonKeywords.MESSAGE).getAsString();
+                    object = object.getAsJsonObject(JSONKeywords.ERROR);
+                    int id = object.get(JSONKeywords.ID).getAsInt();
+                    String message = object.get(JSONKeywords.MESSAGE).getAsString();
                     int code = 0;
-                    if (object.has(JsonKeywords.CODE)) code = object.get(JsonKeywords.CODE).getAsInt();
+                    if (object.has(JSONKeywords.CODE)) code = object.get(JSONKeywords.CODE).getAsInt();
 
-                    JsonElement data = object.get(JsonKeywords.DATA);
+                    JsonElement data = object.get(JSONKeywords.DATA);
                     processError(id, message, code, data);
                     return;
                 }
 
-                if (object.has(JsonKeywords.EVENT)) {
-                    processEvent(object.get(JsonKeywords.EVENT).getAsString(), object);
+                if (object.has(JSONKeywords.EVENT)) {
+                    processEvent(object.get(JSONKeywords.EVENT).getAsString(), object);
                     return;
                 }
 
-                if (object.has(JsonKeywords.JSONRPC)) {
-                    processResponse(object.get(JsonKeywords.ID).getAsInt(), object.get(JsonKeywords.RESULT));
+                if (object.has(JSONKeywords.JSONRPC)) {
+                    processResponse(object.get(JSONKeywords.ID).getAsInt(), object.get(JSONKeywords.RESULT));
                     return;
                 }
                 log.error("unhandled data: {}", text);
@@ -213,30 +211,30 @@ public class MopidyClient extends WebSocketClient {
 
             case "track_playback_paused":
                 eventListeners.forEach(e -> e.onTrackPlaybackPaused(
-                        data.get(JsonKeywords.TL_TRACK).getAsJsonObject(),
-                        data.get(JsonKeywords.TIME_POSITION).getAsLong()));
+                        data.get(JSONKeywords.TL_TRACK).getAsJsonObject(),
+                        data.get(JSONKeywords.TIME_POSITION).getAsLong()));
                 break;
 
             case "track_playback_resumed":
                 eventListeners.forEach(e -> e.onTrackPlaybackResumed(
-                        data.get(JsonKeywords.TL_TRACK).getAsJsonObject(),
-                        data.get(JsonKeywords.TIME_POSITION).getAsLong()));
+                        data.get(JSONKeywords.TL_TRACK).getAsJsonObject(),
+                        data.get(JSONKeywords.TIME_POSITION).getAsLong()));
                 break;
 
             case "track_playback_started":
-                eventListeners.forEach(e -> e.onTrackPlaybackStarted(data.get(JsonKeywords.TL_TRACK).getAsJsonObject()));
+                eventListeners.forEach(e -> e.onTrackPlaybackStarted(data.get(JSONKeywords.TL_TRACK).getAsJsonObject()));
                 break;
 
             case "track_playback_ended":
                 eventListeners.forEach(e -> e.onTrackPlaybackEnded(
-                        data.get(JsonKeywords.TL_TRACK).getAsJsonObject(),
-                        data.get(JsonKeywords.TIME_POSITION).getAsLong()));
+                        data.get(JSONKeywords.TL_TRACK).getAsJsonObject(),
+                        data.get(JSONKeywords.TIME_POSITION).getAsLong()));
                 break;
 
             case "playback_state_changed":
                 eventListeners.forEach(e -> e.onPlaybackStateChanged(
-                        PlaybackState.fromString(data.get(JsonKeywords.OLD_STATE).getAsString()),
-                        PlaybackState.fromString(data.get(JsonKeywords.NEW_STATE).getAsString())));
+                        PlaybackState.fromString(data.get(JSONKeywords.OLD_STATE).getAsString()),
+                        PlaybackState.fromString(data.get(JSONKeywords.NEW_STATE).getAsString())));
                 break;
 
             case "tracklist_changed":
@@ -248,11 +246,11 @@ public class MopidyClient extends WebSocketClient {
                 break;
 
             case "playlist_changed":
-                eventListeners.forEach(e -> e.onPlaylistChanged(data.getAsJsonObject(JsonKeywords.PLAYLIST)));
+                eventListeners.forEach(e -> e.onPlaylistChanged(data.getAsJsonObject(JSONKeywords.PLAYLIST)));
                 break;
 
             case "playlist_deleted":
-                eventListeners.forEach(e -> e.onPlaylistDeleted(data.get(JsonKeywords.URI).getAsString()));
+                eventListeners.forEach(e -> e.onPlaylistDeleted(data.get(JSONKeywords.URI).getAsString()));
                 break;
 
             case "options_changed":
@@ -260,19 +258,19 @@ public class MopidyClient extends WebSocketClient {
                 break;
 
             case "volume_changed":
-                eventListeners.forEach(e -> e.onVolumeChanged(data.get(JsonKeywords.VOLUME).getAsInt()));
+                eventListeners.forEach(e -> e.onVolumeChanged(data.get(JSONKeywords.VOLUME).getAsInt()));
                 break;
 
             case "mute_changed":
-                eventListeners.forEach(e -> e.onMuteChanged(data.get(JsonKeywords.MUTE).getAsBoolean()));
+                eventListeners.forEach(e -> e.onMuteChanged(data.get(JSONKeywords.MUTE).getAsBoolean()));
                 break;
 
             case "seeked":
-                eventListeners.forEach(e -> e.onSeeked(data.get(JsonKeywords.TIME_POSITION).getAsLong()));
+                eventListeners.forEach(e -> e.onSeeked(data.get(JSONKeywords.TIME_POSITION).getAsLong()));
                 break;
 
             case "stream_title_changed":
-                eventListeners.forEach(e -> e.onStreamTitleChanged(data.get(JsonKeywords.TITLE).getAsString()));
+                eventListeners.forEach(e -> e.onStreamTitleChanged(data.get(JSONKeywords.TITLE).getAsString()));
                 break;
 
             default:

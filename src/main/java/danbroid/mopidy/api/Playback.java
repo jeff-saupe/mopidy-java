@@ -2,7 +2,7 @@ package danbroid.mopidy.api;
 
 import com.google.gson.JsonElement;
 
-import danbroid.mopidy.interfaces.PlaybackState;
+import danbroid.mopidy.model.PlaybackState;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;

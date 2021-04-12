@@ -2,8 +2,8 @@ package danbroid.mopidy;
 
 import com.google.gson.JsonObject;
 
-import danbroid.mopidy.interfaces.EventListener;
-import danbroid.mopidy.interfaces.PlaybackState;
+import danbroid.mopidy.events.EventListener;
+import danbroid.mopidy.model.PlaybackState;
 import lombok.extern.slf4j.Slf4j;
 
 /**
