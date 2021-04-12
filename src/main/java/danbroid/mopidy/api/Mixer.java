@@ -1,6 +1,5 @@
 package danbroid.mopidy.api;
 
-import danbroid.mopidy.ResponseHandler;
 import lombok.extern.slf4j.Slf4j;
 
 /*
@@ -46,10 +45,9 @@ public class Mixer extends Api {
      * Set mute state.
      *
      * @param mute           True to mute, False to unmute.
-     * @param successHandler Handler
      * @return True if call is successful, otherwise False.
      */
-    public Call<Boolean> setMute(boolean mute, ResponseHandler<Boolean> successHandler) {
+    public Call<Boolean> setMute(boolean mute) {
         return createCall("set_mute", Boolean.class)
                 .addParam("mute", mute);
     }

@@ -2,7 +2,6 @@ package danbroid.mopidy.api;
 
 import com.google.gson.JsonElement;
 
-import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
@@ -57,10 +56,9 @@ public class Playback extends Api {
     /**
      * Get the playback state.
      *
-     * @param handler ResponseHandler
      * @return {@link PlaybackState}
      */
-    public Call<PlaybackState> getState(ResponseHandler<PlaybackState> handler) {
+    public Call<PlaybackState> getState() {
         return new Call<PlaybackState>(methodPrefix + "get_state", client) {
             @Override
             protected PlaybackState parseResult(JsonElement response) {

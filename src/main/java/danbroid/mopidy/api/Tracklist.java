@@ -3,7 +3,6 @@ package danbroid.mopidy.api;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +40,9 @@ public class Tracklist extends Api {
     /**
      * Get length of the tracklist.
      *
-     * @param handler ResponseHandler
      * @return Integer
      */
-    public Call<Integer> getLength(ResponseHandler<Integer> handler) {
+    public Call<Integer> getLength() {
         return createCall("get_length", Integer.class);
     }
 
@@ -53,10 +51,9 @@ public class Tracklist extends Api {
      * <p>
      * It is increased every time the tracklist is changed and is not reset before Mopidy is restarted.
      *
-     * @param handler ResponseHandler
      * @return Integer
      */
-    public Call<Integer> getVersion(ResponseHandler<Integer> handler) {
+    public Call<Integer> getVersion() {
         return createCall("get_version", Integer.class);
     }
 
