@@ -3,7 +3,7 @@ package danbroid.mopidy.api;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import danbroid.mopidy.MopidyConnection;
+import danbroid.mopidy.MopidyClient;
 import danbroid.mopidy.RuntimeTypeAdapterFactory;
 import danbroid.mopidy.model.Album;
 import danbroid.mopidy.model.Artist;
@@ -16,25 +16,27 @@ import danbroid.mopidy.model.Track;
 
 public class Api {
 	private final Api parent;
+
+	protected final MopidyClient client;
 	protected final String methodPrefix;
 	private Gson gson;
 
-	protected Api(Api parent, String methodPrefix) {
-		this.parent = parent;
-		this.methodPrefix = parent.methodPrefix + methodPrefix;
-	}
-
-	protected Api(String methodPrefix) {
+	// Parent constructor
+	protected Api(MopidyClient client, String methodPrefix) {
 		this.parent = null;
+		this.client = client;
 		this.methodPrefix = methodPrefix;
 	}
 
-	public MopidyConnection getConnection() {
-		return parent.getConnection();
+	// Child constructor
+	protected Api(Api parent, String methodPrefix) {
+		this.parent = parent;
+		this.client = parent.client;
+		this.methodPrefix = parent.methodPrefix + methodPrefix;
 	}
 
 	public <T> Call<T> createCall(String method) {
-		return new Call<T>(methodPrefix + method, getConnection());
+		return new Call<T>(methodPrefix + method, client);
 	}
 
 	public <T> Call<T> createCall(String method, Class<T> resultType) {
@@ -43,14 +45,11 @@ public class Api {
 		return call;
 	}
 
-	protected void call(Call call) {
-		parent.call(call);
-	}
-
 	public Gson getGson() {
 		return gson == null ? gson = getGsonBuilder().create() : gson;
 	}
 
+	// TODO: Get rid of this
 	public GsonBuilder getGsonBuilder() {
 		RuntimeTypeAdapterFactory<Base> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
 				.of(Base.class, "__model__");

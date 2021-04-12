@@ -1,46 +1,122 @@
 package danbroid.mopidy;
 
-import danbroid.mopidy.interfaces.CallContext;
+import com.google.gson.JsonObject;
+import danbroid.mopidy.interfaces.EventListener;
+import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 
+import java.util.Arrays;
+
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         org.apache.log4j.BasicConfigurator.configure();
 
-        MopidyConnection connection = new MopidyConnection();
-        connection.setURL("192.168.178.60", 6680);
-        connection.start();
+        MopidyClient client = new MopidyClient("192.168.0.5", 6680);
+        client.connect();
 
-        connection.getTracklist().clear().call(new ResponseHandler<Void>() {
+        client.getCore().getTracklist().clear().call(new ResponseHandler<Void>() {
             @Override
-            public void onResponse(CallContext context, Void result) {
+            public void onResponse(Void result) {
                 System.out.println("Cleared");
             }
         });
-        connection.getTracklist().add("spotify:track:6RIYfiZrX1ZkbDDOqOOGWM").call(new ResponseHandler<TlTrack[]>() {
+        client.getCore().getTracklist().add("spotify:track:58AShCtZlunqt40w2Guhp5").call(new ResponseHandler<TlTrack[]>() {
             @Override
-            public void onResponse(CallContext context, TlTrack[] result) {
+            public void onResponse(TlTrack[] result) {
                 if (result != null)
-                    System.out.println("added");
+                    System.out.println("Added");
             }
         });
-        connection.getPlayback().play(1).call(new ResponseHandler<Void>() {
+        client.getCore().getPlayback().play(1).call(new ResponseHandler<Void>() {
             @Override
-            public void onResponse(CallContext context, Void result) {
+            public void onResponse(Void result) {
                 System.out.println("Playing");
             }
         });
 
-        connection.getPlayback().getCurrentTrack().call(new ResponseHandler<Track>() {
+        client.getCore().getPlayback().getCurrentTrack().call(new ResponseHandler<Track>() {
             @Override
-            public void onResponse(CallContext context, Track result) {
+            public void onResponse(Track result) {
                 if (result != null)
                     System.out.println(result.getName());
             }
         });
 
-    }
 
+        client.addEventListener(new EventListener() {
+            @Override
+            public void onOptionsChanged() {
+
+            }
+
+            @Override
+            public void onVolumeChanged(int volume) {
+
+            }
+
+            @Override
+            public void onMuteChanged(boolean mute) {
+
+            }
+
+            @Override
+            public void onSeeked(long time_position) {
+
+            }
+
+            @Override
+            public void onStreamTitleChanged(String title) {
+
+            }
+
+            @Override
+            public void onTrackPlaybackPaused(JsonObject tl_track, long time_position) {
+
+            }
+
+            @Override
+            public void onTrackPlaybackResumed(JsonObject tl_track, long time_position) {
+
+            }
+
+            @Override
+            public void onTrackPlaybackStarted(JsonObject tl_track) {
+
+            }
+
+            @Override
+            public void onTrackPlaybackEnded(JsonObject tl_track, long time_position) {
+
+            }
+
+            @Override
+            public void onPlaybackStateChanged(PlaybackState oldState, PlaybackState newState) {
+                System.out.println(String.format("From %S to %S", oldState.toString(), newState.toString()));
+            }
+
+            @Override
+            public void onTracklistChanged() {
+
+            }
+
+            @Override
+            public void onPlaylistsLoaded() {
+
+            }
+
+            @Override
+            public void onPlaylistChanged(JsonObject playlist) {
+
+            }
+
+            @Override
+            public void onPlaylistDeleted(String uri) {
+
+            }
+        });
+
+        client.close();
+    }
 }

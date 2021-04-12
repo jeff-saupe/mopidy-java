@@ -1,5 +1,6 @@
 package danbroid.mopidy.api;
 
+import danbroid.mopidy.MopidyClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -15,11 +16,15 @@ public class Core extends Api {
 	private final Tracklist tracklist 	= new Tracklist(this);
 	private final Playlists	playlists	= new Playlists(this);
 
-	public Core() {
-		super("core.");
+	public Core(MopidyClient client) {
+		super(client, "core.");
 	}
 
 	public Call<String[]> getUriSchemes() {
 		return createCall("get_uri_schemes", String[].class);
+	}
+
+	public Call<String> getVersion() {
+		return createCall("get_version", String.class);
 	}
 }

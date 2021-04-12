@@ -4,13 +4,11 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.Map;
 
-import danbroid.mopidy.interfaces.JSONConstants;
+import danbroid.mopidy.interfaces.JsonKeywords;
 import danbroid.mopidy.model.Image;
 import danbroid.mopidy.model.Ref;
 import danbroid.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Slf4j
 public class Library extends Api {
@@ -19,12 +17,12 @@ public class Library extends Api {
 	}
 
 	public Call<Ref[]> browse(final String uri) {
-		return createCall("browse", Ref[].class).addParam(JSONConstants.URI, uri);
+		return createCall("browse", Ref[].class).addParam(JsonKeywords.URI, uri);
 	}
 
 	public Call<Track[]> lookup(String uris[]) {
 		return createCall("lookup", Track[].class)
-				.addParam(JSONConstants.URIS,getGson().toJsonTree(uris));
+				.addParam(JsonKeywords.URIS,getGson().toJsonTree(uris));
 	}
 
 	public Call<Map<String, Image[]>> getImages(final String uris[]) {
@@ -33,6 +31,6 @@ public class Library extends Api {
 		call.setResultType(new TypeToken<Map<String, Image[]>>() {
 		});
 
-		return call.addParam(JSONConstants.URIS, getGson().toJsonTree(uris));
+		return call.addParam(JsonKeywords.URIS, getGson().toJsonTree(uris));
 	}
 }

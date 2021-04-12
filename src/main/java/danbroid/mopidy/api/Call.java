@@ -1,24 +1,23 @@
 package danbroid.mopidy.api;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import danbroid.mopidy.MopidyConnection;
+import danbroid.mopidy.MopidyClient;
 import danbroid.mopidy.ResponseHandler;
-import danbroid.mopidy.interfaces.CallContext;
-import danbroid.mopidy.interfaces.JSONConstants;
+import danbroid.mopidy.interfaces.JsonKeywords;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Slf4j
 public class Call<T> {
 	public static final String JSONRPC_VERSION = "2.0";
+	private static Gson gson = new Gson();
 
-	private final MopidyConnection connection;
+	private final MopidyClient client;
 
 	/**
 	 * The Java type of the result field of the response
@@ -48,15 +47,15 @@ public class Call<T> {
 	@Getter
 	private int id;
 
-	public Call(String method, MopidyConnection connection) {
-		this.connection = connection;
+	public Call(String method, MopidyClient client) {
+		this.client = client;
 
 		params = new JsonObject();
 
 		request = new JsonObject();
-		request.addProperty(JSONConstants.METHOD, method);
-		request.addProperty(JSONConstants.JSONRPC, JSONRPC_VERSION);
-		request.add(JSONConstants.PARAMS, params);
+		request.addProperty(JsonKeywords.METHOD, method);
+		request.addProperty(JsonKeywords.JSONRPC, JSONRPC_VERSION);
+		request.add(JsonKeywords.PARAMS, params);
 	}
 
 	public Call<T> setResultType(TypeToken<T> resultType) {
@@ -68,11 +67,11 @@ public class Call<T> {
 		return setResultType(TypeToken.get(resultType));
 	}
 
-	public final void processResult(CallContext callContext, JsonElement response) {
+	public final void processResult(JsonElement response) {
 		try {
-			T result = parseResult(callContext, response);
+			T result = parseResult(response);
 			if (handler != null)
-				handler.onResponse(callContext, result);
+				handler.onResponse(result);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			if (handler != null)
@@ -92,10 +91,10 @@ public class Call<T> {
 		return request.toString();
 	}
 
-	protected T parseResult(CallContext callContext, JsonElement response) {
+	protected T parseResult(JsonElement response) {
 		if (resultType == null || resultType.getRawType().isAssignableFrom(Void.class))
 			return null;
-		return callContext.getGson().fromJson(response, resultType.getType());
+		return gson.fromJson(response, resultType.getType());
 	}
 
 	public Call<T> setResponseHandler(ResponseHandler<T> handler) {
@@ -124,7 +123,7 @@ public class Call<T> {
 	}
 
 	public void setID(int id) {
-		getRequest().addProperty(JSONConstants.ID, id);
+		getRequest().addProperty(JsonKeywords.ID, id);
 		this.id = id;
 	}
 
@@ -133,6 +132,6 @@ public class Call<T> {
 	}
 
 	public void call() {
-		connection.call(this);
+		client.call(this);
 	}
 }

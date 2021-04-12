@@ -3,13 +3,10 @@ package danbroid.mopidy.api;
 import com.google.gson.JsonElement;
 
 import danbroid.mopidy.ResponseHandler;
-import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.interfaces.PlaybackState;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Slf4j
 public class Playback extends Api {
@@ -59,9 +56,9 @@ public class Playback extends Api {
      * @return missing
      */
     public Call<PlaybackState> getState(ResponseHandler<PlaybackState> handler) {
-        return new Call<PlaybackState>(methodPrefix + "get_state", getConnection()) {
+        return new Call<PlaybackState>(methodPrefix + "get_state", client) {
             @Override
-            protected PlaybackState parseResult(CallContext callContext, JsonElement response) {
+            protected PlaybackState parseResult(JsonElement response) {
                 return PlaybackState.valueOf(response.getAsString().toUpperCase());
             }
         };

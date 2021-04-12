@@ -1,20 +1,20 @@
 package danbroid.mopidy.api;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
 import java.util.LinkedList;
 
-import danbroid.mopidy.interfaces.CallContext;
 import danbroid.mopidy.model.Ref;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Slf4j
 public class History extends Api {
+	private static Gson gson = new Gson();
+
 	protected History(Api parent) {
 		super(parent, "history.");
 	}
@@ -26,16 +26,16 @@ public class History extends Api {
 
 	//Get the history
 	public Call<HistoryItem[]> getHistory() {
-		return new Call<HistoryItem[]>("get_history", getConnection()) {
+		return new Call<HistoryItem[]>("get_history", client) {
 			@Override
-			protected HistoryItem[] parseResult(CallContext callContext, JsonElement response) {
+			protected HistoryItem[] parseResult(JsonElement response) {
 				LinkedList<HistoryItem> result = new LinkedList<>();
 				JsonArray a = response.getAsJsonArray();
 				for (int i = 0; i < a.size(); i++) {
 					JsonArray tuple = a.get(i).getAsJsonArray();
 					long timestamp = tuple.get(0).getAsLong();
 					JsonElement e = tuple.get(1);
-					Ref ref = callContext.getGson().fromJson(e, Ref.class);
+					Ref ref = gson.fromJson(e, Ref.class);
 					result.add(new HistoryItem(timestamp, ref));
 				}
 				return result.toArray(new HistoryItem[]{});
