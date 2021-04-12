@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import danbroid.mopidy.api.*;
 import danbroid.mopidy.interfaces.*;
-import danbroid.mopidy.transport.Transport;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,8 +47,6 @@ public class MopidyClient extends WebSocketClient {
 
 	private final AtomicInteger requestID = new AtomicInteger(0);
 	private final HashMap<Integer, Call<?>> calls = new HashMap<>();
-	@Getter
-	private Transport transport;
 
 	public MopidyClient(String host, int port) {
 		super(URI.create("ws://" + host + ":" + port + "/mopidy/ws"));

@@ -1,6 +1,5 @@
 package danbroid.mopidy.lastfm;
 
-import danbroid.mopidy.transport.WebSocketTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
