@@ -8,6 +8,5 @@ A pure Java library for accessing a Mopidy music server.
 - Update doc comments, especially the returning types
 - Finish implementations of Mopidy objects (e.g. Playlist, Tracklist)
 - Remove LastFM
-- Add Mopidy-Spotify support
 - Refactoring (code formatting, Java language adaptions) 
 - Update and create new tests
