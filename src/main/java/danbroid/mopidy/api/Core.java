@@ -3,8 +3,10 @@ package danbroid.mopidy.api;
 import danbroid.mopidy.MopidyClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+/*
+See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/actor.py
+ */
 
 @Slf4j
 @Getter
