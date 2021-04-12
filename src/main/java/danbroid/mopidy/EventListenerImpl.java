@@ -13,6 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EventListenerImpl implements EventListener {
 
+	public void onEvent() {
+
+	}
+
 	public void onOptionsChanged() {
 		log.trace("onOptionsChanged()");
 	}

@@ -32,254 +32,259 @@ import org.java_websocket.handshake.ServerHandshake;
 @Slf4j
 public class MopidyClient extends WebSocketClient {
 
-	@Getter
-	private final Core core = new Core(this);
+    @Getter
+    private final Core core = new Core(this);
 
-	public static final int ERROR_TIMEOUT = -2;
-	public static final int ERROR_TRANSPORT = -1;
+    public static final int ERROR_TIMEOUT = -2;
+    public static final int ERROR_TRANSPORT = -1;
 
-	private List<EventListener> eventListeners = new ArrayList<>();
+    private List<EventListener> eventListeners = new ArrayList<>();
 
-	public static final long DEFAULT_CALL_TIMEOUT = 3000;
+    public static final long DEFAULT_CALL_TIMEOUT = 3000;
 
-	@Getter @Setter
-	private long timeout = DEFAULT_CALL_TIMEOUT;
-
-
-	private final AtomicInteger requestID = new AtomicInteger(0);
-	private final HashMap<Integer, Call<?>> calls = new HashMap<>();
-
-	private boolean closeConnection = false;
-
-	public MopidyClient(String host, int port) {
-		super(URI.create("ws://" + host + ":" + port + "/mopidy/ws"));
-	}
-
-	public MopidyClient(String url) {
-		super(URI.create(url));
-
-	}
-	public MopidyClient(URI uri) {
-		super(uri);
-	}
+    @Getter
+    @Setter
+    private long timeout = DEFAULT_CALL_TIMEOUT;
 
 
-	@Override
-	public void close() {
-		if (getReadyState() == ReadyState.NOT_YET_CONNECTED) {
-			// Client will close the connection again after it has been opened.
-			closeConnection = true;
-		} else {
-			super.close();
-		}
-	}
+    private final AtomicInteger requestID = new AtomicInteger(0);
+    private final HashMap<Integer, Call<?>> calls = new HashMap<>();
 
-	/**
-	 * Dispatches call to the web socket
-	 */
-	public synchronized void call(Call<?> call) {
-		int id = requestID.incrementAndGet();
-		call.setID(id);
-		call.setTimestamp(System.currentTimeMillis());
-		calls.put(id, call);
+    private boolean closeConnection = false;
 
-		// Make sure the connection is already open.
-		if (getReadyState() == ReadyState.OPEN) {
-			sendCalls();
-		}
-	}
+    public MopidyClient(String host, int port) {
+        super(URI.create("ws://" + host + ":" + port + "/mopidy/ws"));
+    }
 
-	private void sendCalls() {
-		for (Call<?> call : calls.values()) {
-			String request = call.toString();
-			log.info("call(): request:{}", request);
+    public MopidyClient(String url) {
+        super(URI.create(url));
 
-			send(request);
-		}
-	}
+    }
 
-	@Override
-	public void onOpen(ServerHandshake serverHandshake) {
-		log.info("onOpen()");
+    public MopidyClient(URI uri) {
+        super(uri);
+    }
 
-		// Send calls that have been added before the connection was open.
-		sendCalls();
 
-		// Close connection if it was requested during opening.
-		if (closeConnection) close();
-	}
+    @Override
+    public void close() {
+        if (getReadyState() == ReadyState.NOT_YET_CONNECTED) {
+            // Client will close the connection again after it has been opened.
+            closeConnection = true;
+        } else {
+            super.close();
+        }
+    }
 
-	@Override
-	public void onClose(int code, String reason, boolean remote) {
-		log.info("onClose() Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: "
-				+ reason);
-	}
+    /**
+     * Dispatches call to the web socket
+     */
+    public synchronized void call(Call<?> call) {
+        int id = requestID.incrementAndGet();
+        call.setID(id);
+        call.setTimestamp(System.currentTimeMillis());
+        calls.put(id, call);
 
-	@Override
-	public void onMessage(String text) {
-		processMessage(text);
-	}
+        // Make sure the connection is already open.
+        if (getReadyState() == ReadyState.OPEN) {
+            sendCalls();
+        }
+    }
 
-	@Override
-	public void onError(Exception e) {
-		log.error(e.getMessage(), e);
+    private void sendCalls() {
+        for (Call<?> call : calls.values()) {
+            String request = call.toString();
+            log.info("call(): request:{}", request);
 
-		String message = e.getCause() != null ? e.getCause().getLocalizedMessage() : e.getLocalizedMessage();
+            send(request);
+        }
+    }
 
-		calls.values().forEach(call -> call.onError(ERROR_TRANSPORT, message, null));
-	}
+    @Override
+    public void onOpen(ServerHandshake serverHandshake) {
+        log.info("onOpen()");
 
-	protected void processMessage(String text) {
-		log.trace("processMessage(): {}", text);
+        // Send calls that have been added before the connection was open.
+        sendCalls();
 
-		try {
-			JsonElement element = JsonParser.parseString(text);
+        // Close connection if it was requested during opening.
+        if (closeConnection) close();
+    }
 
-			if (element.isJsonObject()) {
-				JsonObject object = element.getAsJsonObject();
+    @Override
+    public void onClose(int code, String reason, boolean remote) {
+        log.info("onClose() Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: "
+                + reason);
+    }
 
-				if (object.has(JsonKeywords.ERROR)) {
-					log.error("got error: {}",text);
-					object = object.getAsJsonObject(JsonKeywords.ERROR);
-					int id = object.get(JsonKeywords.ID).getAsInt();
-					String message = object.get(JsonKeywords.MESSAGE).getAsString();
-					int code = 0;
-					if (object.has(JsonKeywords.CODE)) code = object.get(JsonKeywords.CODE).getAsInt();
+    @Override
+    public void onMessage(String text) {
+        processMessage(text);
+    }
 
-					JsonElement data = object.get(JsonKeywords.DATA);
-					processError(id, message, code, data);
-					return;
-				}
+    @Override
+    public void onError(Exception e) {
+        log.error(e.getMessage(), e);
 
-				if (object.has(JsonKeywords.EVENT)) {
-					processEvent(object.get(JsonKeywords.EVENT).getAsString(), object);
-					return;
-				}
+        String message = e.getCause() != null ? e.getCause().getLocalizedMessage() : e.getLocalizedMessage();
 
-				if (object.has(JsonKeywords.JSONRPC)) {
-					processResponse(object.get(JsonKeywords.ID).getAsInt(), object.get(JsonKeywords.RESULT));
-					return;
-				}
-				log.error("unhandled data: {}", text);
+        calls.values().forEach(call -> call.onError(ERROR_TRANSPORT, message, null));
+    }
 
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-	}
+    protected void processMessage(String text) {
+        log.trace("processMessage(): {}", text);
 
-	protected void processError(int id, String message, int code, JsonElement data) {
-		Call<?> call = popCall(id);
-		if (call != null) {
-			call.onError(code, message, data);
-		} else {
-			log.error("No call found for request: " + id);
-		}
-	}
+        try {
+            JsonElement element = JsonParser.parseString(text);
 
-	protected void processResponse(int id, JsonElement result) {
-		log.trace("processResponse(): id:{} result: {}", id, result);
+            if (element.isJsonObject()) {
+                JsonObject object = element.getAsJsonObject();
 
-		Call<?> call = popCall(id);
-		if (call != null) {
-			call.processResult(result);
-		} else {
-			log.error("No call found for request: " + id);
-		}
-	}
+                if (object.has(JsonKeywords.ERROR)) {
+                    log.error("got error: {}", text);
+                    object = object.getAsJsonObject(JsonKeywords.ERROR);
+                    int id = object.get(JsonKeywords.ID).getAsInt();
+                    String message = object.get(JsonKeywords.MESSAGE).getAsString();
+                    int code = 0;
+                    if (object.has(JsonKeywords.CODE)) code = object.get(JsonKeywords.CODE).getAsInt();
 
-	protected Call<?> popCall(int id) {
-		return calls.remove(id);
-	}
+                    JsonElement data = object.get(JsonKeywords.DATA);
+                    processError(id, message, code, data);
+                    return;
+                }
 
-	public void addEventListener(EventListener... eventListeners) {
-		this.eventListeners.addAll(Arrays.asList(eventListeners));
-	}
+                if (object.has(JsonKeywords.EVENT)) {
+                    processEvent(object.get(JsonKeywords.EVENT).getAsString(), object);
+                    return;
+                }
 
-	/**
-	 * Parse and dispatch event to the
-	 *
-	 * @param event The name of the event
-	 * @param o     The event data
-	 * @return true if the event was processed else false
-	 */
-	protected boolean processEvent(String event, JsonObject o) {
-		switch (event) {
+                if (object.has(JsonKeywords.JSONRPC)) {
+                    processResponse(object.get(JsonKeywords.ID).getAsInt(), object.get(JsonKeywords.RESULT));
+                    return;
+                }
+                log.error("unhandled data: {}", text);
 
-			case "track_playback_paused":
-				eventListeners.forEach(e -> e.onTrackPlaybackPaused(
-						o.get(JsonKeywords.TL_TRACK).getAsJsonObject(),
-						o.get(JsonKeywords.TIME_POSITION).getAsLong()));
-				break;
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
 
-			case "track_playback_resumed":
-				eventListeners.forEach(e -> e.onTrackPlaybackResumed(
-						o.get(JsonKeywords.TL_TRACK).getAsJsonObject(),
-						o.get(JsonKeywords.TIME_POSITION).getAsLong()));
-				break;
+    protected void processError(int id, String message, int code, JsonElement data) {
+        Call<?> call = popCall(id);
+        if (call != null) {
+            call.onError(code, message, data);
+        } else {
+            log.error("No call found for request: " + id);
+        }
+    }
 
-			case "track_playback_started":
-				eventListeners.forEach(e -> e.onTrackPlaybackStarted(o.get(JsonKeywords.TL_TRACK).getAsJsonObject()));
-				break;
+    protected void processResponse(int id, JsonElement result) {
+        log.trace("processResponse(): id:{} result: {}", id, result);
 
-			case "track_playback_ended":
-				eventListeners.forEach(e -> e.onTrackPlaybackEnded(
-						o.get(JsonKeywords.TL_TRACK).getAsJsonObject(),
-						o.get(JsonKeywords.TIME_POSITION).getAsLong()));
-				break;
+        Call<?> call = popCall(id);
+        if (call != null) {
+            call.processResult(result);
+        } else {
+            log.error("No call found for request: " + id);
+        }
+    }
 
-			case "playback_state_changed":
-				eventListeners.forEach(e -> e.onPlaybackStateChanged(
-						PlaybackState.fromString(o.get(JsonKeywords.OLD_STATE).getAsString()),
-						PlaybackState.fromString(o.get(JsonKeywords.NEW_STATE).getAsString())));
-				break;
+    protected Call<?> popCall(int id) {
+        return calls.remove(id);
+    }
 
-			case "tracklist_changed":
-				eventListeners.forEach(e -> e.onTracklistChanged());
-				break;
+    public void addEventListener(EventListener... eventListeners) {
+        this.eventListeners.addAll(Arrays.asList(eventListeners));
+    }
 
-			case "playlists_loaded":
-				eventListeners.forEach(e -> e.onPlaylistsLoaded());
-				break;
+    /**
+     * Parse and dispatch the event to the registered EventListeners.
+     *
+     * @param event The name of the event
+     * @param data  The event data
+     * @return True if the event was processed, otherwise False
+     */
+    protected boolean processEvent(String event, JsonObject data) {
+        switch (event) {
+            case "on_event":
+                eventListeners.forEach(EventListener::onEvent);
+                break;
 
-			case "playlist_changed":
-				eventListeners.forEach(e -> e.onPlaylistChanged(o.getAsJsonObject(JsonKeywords.PLAYLIST)));
-				break;
+            case "track_playback_paused":
+                eventListeners.forEach(e -> e.onTrackPlaybackPaused(
+                        data.get(JsonKeywords.TL_TRACK).getAsJsonObject(),
+                        data.get(JsonKeywords.TIME_POSITION).getAsLong()));
+                break;
 
-			case "playlist_deleted":
-				eventListeners.forEach(e -> e.onPlaylistDeleted(o.get(JsonKeywords.URI).getAsString()));
-				break;
+            case "track_playback_resumed":
+                eventListeners.forEach(e -> e.onTrackPlaybackResumed(
+                        data.get(JsonKeywords.TL_TRACK).getAsJsonObject(),
+                        data.get(JsonKeywords.TIME_POSITION).getAsLong()));
+                break;
 
-			case "stream_title_changed":
-				eventListeners.forEach(e -> e.onStreamTitleChanged(o.get(JsonKeywords.TITLE).getAsString()));
-				break;
+            case "track_playback_started":
+                eventListeners.forEach(e -> e.onTrackPlaybackStarted(data.get(JsonKeywords.TL_TRACK).getAsJsonObject()));
+                break;
 
-			case "seeked":
-				eventListeners.forEach(e -> e.onSeeked(o.get(JsonKeywords.TIME_POSITION).getAsLong()));
-				break;
+            case "track_playback_ended":
+                eventListeners.forEach(e -> e.onTrackPlaybackEnded(
+                        data.get(JsonKeywords.TL_TRACK).getAsJsonObject(),
+                        data.get(JsonKeywords.TIME_POSITION).getAsLong()));
+                break;
 
-			case "mute_changed":
-				eventListeners.forEach(e -> e.onMuteChanged(o.get(JsonKeywords.MUTE).getAsBoolean()));
-				break;
+            case "playback_state_changed":
+                eventListeners.forEach(e -> e.onPlaybackStateChanged(
+                        PlaybackState.fromString(data.get(JsonKeywords.OLD_STATE).getAsString()),
+                        PlaybackState.fromString(data.get(JsonKeywords.NEW_STATE).getAsString())));
+                break;
 
-			case "volume_changed":
-				eventListeners.forEach(e -> e.onVolumeChanged(o.get(JsonKeywords.VOLUME).getAsInt()));
-				break;
+            case "tracklist_changed":
+                eventListeners.forEach(EventListener::onTracklistChanged);
+                break;
 
-			case "options_changed":
-				eventListeners.forEach(e -> e.onOptionsChanged());
-				break;
+            case "playlists_loaded":
+                eventListeners.forEach(EventListener::onPlaylistsLoaded);
+                break;
 
-			default:
-				log.error("unknown event: " + o);
-				return false;
+            case "playlist_changed":
+                eventListeners.forEach(e -> e.onPlaylistChanged(data.getAsJsonObject(JsonKeywords.PLAYLIST)));
+                break;
 
-		}
-		return true;
-	}
+            case "playlist_deleted":
+                eventListeners.forEach(e -> e.onPlaylistDeleted(data.get(JsonKeywords.URI).getAsString()));
+                break;
 
-	public int getCallQueueSize() {
-		return calls.size();
-	}
+            case "options_changed":
+                eventListeners.forEach(e -> e.onOptionsChanged());
+                break;
+
+            case "volume_changed":
+                eventListeners.forEach(e -> e.onVolumeChanged(data.get(JsonKeywords.VOLUME).getAsInt()));
+                break;
+
+            case "mute_changed":
+                eventListeners.forEach(e -> e.onMuteChanged(data.get(JsonKeywords.MUTE).getAsBoolean()));
+                break;
+
+            case "seeked":
+                eventListeners.forEach(e -> e.onSeeked(data.get(JsonKeywords.TIME_POSITION).getAsLong()));
+                break;
+
+            case "stream_title_changed":
+                eventListeners.forEach(e -> e.onStreamTitleChanged(data.get(JsonKeywords.TITLE).getAsString()));
+                break;
+
+            default:
+                log.error("Unknown event: " + data);
+                return false;
+        }
+
+        return true;
+    }
+
+    public int getCallQueueSize() {
+        return calls.size();
+    }
 
 }
