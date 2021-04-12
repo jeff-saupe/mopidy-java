@@ -3,7 +3,7 @@ package danbroid.mopidy.model;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
+/*
  * Model to represent URI references with a human friendly name and type attached.
  * This is intended for use a lightweight object "free" of metadata that can be passed around instead of using full
  * blown models.

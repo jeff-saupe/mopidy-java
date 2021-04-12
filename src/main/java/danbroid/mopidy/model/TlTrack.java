@@ -3,7 +3,7 @@ package danbroid.mopidy.model;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
+/*
  * A tracklist track. Wraps a regular track and it's tracklist ID. It allows the same track to appear multiple times
  * in the tracklist.
  *

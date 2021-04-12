@@ -2,7 +2,7 @@ package danbroid.mopidy.model;
 
 import lombok.Getter;
 
-/**
+/*
  * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/models/__init__.py
  */
 
