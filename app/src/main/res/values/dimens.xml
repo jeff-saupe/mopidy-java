@@ -1,7 +1,0 @@
-<resources>
-  <dimen name="fab_margin">12dp</dimen>
-  <dimen name="fab_bottom_margin">72dp</dimen>
-  <dimen name="media_item_height">72dp</dimen>
-  <!-- bottom controls bar -->
-  <dimen name="bottom_controls_height">50dp</dimen>
-</resources>
