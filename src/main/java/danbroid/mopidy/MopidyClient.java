@@ -29,26 +29,16 @@ import org.java_websocket.handshake.ServerHandshake;
 
 @Slf4j
 public class MopidyClient extends WebSocketClient {
-
     @Getter
     private final Core core = new Core(this);
 
-    public static final int ERROR_TIMEOUT = -2;
-    public static final int ERROR_TRANSPORT = -1;
-
-    private List<EventListener> eventListeners = new ArrayList<>();
-
-    public static final long DEFAULT_CALL_TIMEOUT = 3000;
-
-    @Getter
-    @Setter
-    private long timeout = DEFAULT_CALL_TIMEOUT;
-
-
-    private final AtomicInteger requestID = new AtomicInteger(0);
+    // Calls
+    private final AtomicInteger requestId = new AtomicInteger(0);
     private final HashMap<Integer, Call<?>> calls = new HashMap<>();
 
+    private final int ERROR_TRANSPORT = -1;
     private boolean closeConnection = false;
+    private List<EventListener> eventListeners = new ArrayList<>();
 
     public MopidyClient(String host, int port) {
         super(URI.create("ws://" + host + ":" + port + "/mopidy/ws"));
@@ -56,29 +46,19 @@ public class MopidyClient extends WebSocketClient {
 
     public MopidyClient(String url) {
         super(URI.create(url));
-
     }
 
     public MopidyClient(URI uri) {
         super(uri);
     }
 
-
-    @Override
-    public void close() {
-        if (getReadyState() == ReadyState.NOT_YET_CONNECTED) {
-            // Client will close the connection again after it has been opened.
-            closeConnection = true;
-        } else {
-            super.close();
-        }
-    }
-
     /**
-     * Dispatches call to the web socket
+     * Dispatches call to the web socket.
+     *
+     * @param call Call to be dispatched
      */
     public synchronized void call(Call<?> call) {
-        int id = requestID.incrementAndGet();
+        int id = requestId.incrementAndGet();
         call.setID(id);
         call.setTimestamp(System.currentTimeMillis());
         calls.put(id, call);
@@ -93,31 +73,39 @@ public class MopidyClient extends WebSocketClient {
         for (Call<?> call : calls.values()) {
             String request = call.toString();
             log.info("call(): request:{}", request);
-
             send(request);
         }
+    }
+
+    protected Call<?> popCall(int id) {
+        return calls.remove(id);
     }
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
         log.info("onOpen()");
 
-        // Send calls that have been added before the connection was open.
+        // Send calls now that have been added before the connection was open.
         sendCalls();
 
-        // Close connection if it was requested during opening.
+        // Close connection now if it was requested during connection opening.
         if (closeConnection) close();
+    }
+
+    @Override
+    public void close() {
+        if (getReadyState() == ReadyState.NOT_YET_CONNECTED) {
+            // Connection will be closed after it was opened.
+            closeConnection = true;
+        } else {
+            super.close();
+        }
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
         log.info("onClose() Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: "
                 + reason);
-    }
-
-    @Override
-    public void onMessage(String text) {
-        processMessage(text);
     }
 
     @Override
@@ -129,46 +117,54 @@ public class MopidyClient extends WebSocketClient {
         calls.values().forEach(call -> call.onError(ERROR_TRANSPORT, message, null));
     }
 
+    @Override
+    public void onMessage(String text) {
+        processMessage(text);
+    }
+
     protected void processMessage(String text) {
         log.trace("processMessage(): {}", text);
 
         try {
+            // Check if message contains a JSON object
             JsonElement element = JsonParser.parseString(text);
-
             if (element.isJsonObject()) {
                 JsonObject object = element.getAsJsonObject();
 
+                // Event
+                if (object.has(JSONKeywords.EVENT)) {
+                    processMessageEvent(object.get(JSONKeywords.EVENT).getAsString(), object);
+                    return;
+                }
+
+                // JSON RPC
+                if (object.has(JSONKeywords.JSONRPC)) {
+                    processMessageResponse(object.get(JSONKeywords.ID).getAsInt(), object.get(JSONKeywords.RESULT));
+                    return;
+                }
+
+                // Error
                 if (object.has(JSONKeywords.ERROR)) {
-                    log.error("got error: {}", text);
+                    log.error("Got error: {}", text);
+
                     object = object.getAsJsonObject(JSONKeywords.ERROR);
                     int id = object.get(JSONKeywords.ID).getAsInt();
                     String message = object.get(JSONKeywords.MESSAGE).getAsString();
                     int code = 0;
                     if (object.has(JSONKeywords.CODE)) code = object.get(JSONKeywords.CODE).getAsInt();
 
-                    JsonElement data = object.get(JSONKeywords.DATA);
-                    processError(id, message, code, data);
+                    processMessageError(id, message, code, object.get(JSONKeywords.DATA));
                     return;
                 }
 
-                if (object.has(JSONKeywords.EVENT)) {
-                    processEvent(object.get(JSONKeywords.EVENT).getAsString(), object);
-                    return;
-                }
-
-                if (object.has(JSONKeywords.JSONRPC)) {
-                    processResponse(object.get(JSONKeywords.ID).getAsInt(), object.get(JSONKeywords.RESULT));
-                    return;
-                }
-                log.error("unhandled data: {}", text);
-
+                log.error("Unhandled data: {}", text);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
 
-    protected void processError(int id, String message, int code, JsonElement data) {
+    protected void processMessageError(int id, String message, int code, JsonElement data) {
         Call<?> call = popCall(id);
         if (call != null) {
             call.onError(code, message, data);
@@ -177,7 +173,7 @@ public class MopidyClient extends WebSocketClient {
         }
     }
 
-    protected void processResponse(int id, JsonElement result) {
+    protected void processMessageResponse(int id, JsonElement result) {
         log.trace("processResponse(): id:{} result: {}", id, result);
 
         Call<?> call = popCall(id);
@@ -188,14 +184,6 @@ public class MopidyClient extends WebSocketClient {
         }
     }
 
-    protected Call<?> popCall(int id) {
-        return calls.remove(id);
-    }
-
-    public void addEventListener(EventListener... eventListeners) {
-        this.eventListeners.addAll(Arrays.asList(eventListeners));
-    }
-
     /**
      * Parse and dispatch the event to the registered EventListeners.
      *
@@ -203,7 +191,7 @@ public class MopidyClient extends WebSocketClient {
      * @param data  The event data
      * @return True if the event was processed, otherwise False
      */
-    protected boolean processEvent(String event, JsonObject data) {
+    protected boolean processMessageEvent(String event, JsonObject data) {
         switch (event) {
             case "on_event":
                 eventListeners.forEach(EventListener::onEvent);
@@ -281,6 +269,20 @@ public class MopidyClient extends WebSocketClient {
         return true;
     }
 
+    /**
+     * Register one or more event listeners.
+     *
+     * @param eventListeners Listener(s) to be registered
+     */
+    public void registerListener(EventListener... eventListeners) {
+        this.eventListeners.addAll(Arrays.asList(eventListeners));
+    }
+
+    /**
+     * Amount of calls currently in queue.
+     *
+     * @return Integer
+     */
     public int getCallQueueSize() {
         return calls.size();
     }
