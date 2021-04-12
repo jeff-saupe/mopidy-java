@@ -1,6 +1,5 @@
 package danbroid.mopidy;
 
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -17,15 +16,10 @@ import danbroid.mopidy.events.*;
 import danbroid.mopidy.misc.JSONKeywords;
 import danbroid.mopidy.model.PlaybackState;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
-
-/**
- * Wraps the websocket communication with the Mopidy server
- */
 
 @Slf4j
 public class MopidyClient extends WebSocketClient {

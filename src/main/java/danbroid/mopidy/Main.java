@@ -1,14 +1,18 @@
 package danbroid.mopidy;
 
 import com.google.gson.JsonObject;
-import danbroid.mopidy.interfaces.EventListener;
-import danbroid.mopidy.interfaces.PlaybackState;
+import danbroid.mopidy.api.Playback;
+import danbroid.mopidy.api.Tracklist;
+import danbroid.mopidy.events.EventListener;
+import danbroid.mopidy.model.PlaybackState;
+import danbroid.mopidy.model.Playlist;
 import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 
-import java.util.Arrays;
-
 public class Main {
+
+    private static boolean repeat;
+    private static boolean single;
 
     public static void main(String[] args) throws InterruptedException {
         org.apache.log4j.BasicConfigurator.configure();
@@ -16,27 +20,46 @@ public class Main {
         MopidyClient client = new MopidyClient("192.168.0.5", 6680);
         client.connect();
 
-        client.getCore().getTracklist().clear().call(new ResponseHandler<Void>() {
+        Tracklist tracklist = client.getCore().getTracklist();
+        Playback playback = client.getCore().getPlayback();
+
+        tracklist.getRepeat().call(new ResponseHandler<Boolean>() {
+            @Override
+            public void onResponse(Boolean result) {
+                repeat = result;
+            }
+        });
+
+        tracklist.getSingle().call(new ResponseHandler<Boolean>() {
+            @Override
+            public void onResponse(Boolean result) {
+                single = result;
+            }
+        });
+
+        tracklist.setRepeat(true).call();
+        tracklist.setSingle(true).call();
+
+        tracklist.clear().call(new ResponseHandler<Void>() {
             @Override
             public void onResponse(Void result) {
                 System.out.println("Cleared");
             }
         });
-        client.getCore().getTracklist().add("spotify:track:58AShCtZlunqt40w2Guhp5").call(new ResponseHandler<TlTrack[]>() {
+        tracklist.add("spotify:track:58AShCtZlunqt40w2Guhp5").call(new ResponseHandler<TlTrack[]>() {
             @Override
             public void onResponse(TlTrack[] result) {
                 if (result != null)
                     System.out.println("Added");
             }
         });
-        client.getCore().getPlayback().play(1).call(new ResponseHandler<Void>() {
+        playback.play(1).call(new ResponseHandler<Void>() {
             @Override
             public void onResponse(Void result) {
                 System.out.println("Playing");
             }
         });
-
-        client.getCore().getPlayback().getCurrentTrack().call(new ResponseHandler<Track>() {
+        playback.getCurrentTrack().call(new ResponseHandler<Track>() {
             @Override
             public void onResponse(Track result) {
                 if (result != null)
@@ -45,29 +68,9 @@ public class Main {
         });
 
 
-        client.addEventListener(new EventListener() {
+        client.registerListener(new EventListener() {
             @Override
-            public void onOptionsChanged() {
-
-            }
-
-            @Override
-            public void onVolumeChanged(int volume) {
-
-            }
-
-            @Override
-            public void onMuteChanged(boolean mute) {
-
-            }
-
-            @Override
-            public void onSeeked(long time_position) {
-
-            }
-
-            @Override
-            public void onStreamTitleChanged(String title) {
+            public void onEvent() {
 
             }
 
@@ -115,8 +118,33 @@ public class Main {
             public void onPlaylistDeleted(String uri) {
 
             }
+
+            @Override
+            public void onOptionsChanged() {
+
+            }
+
+            @Override
+            public void onVolumeChanged(int volume) {
+
+            }
+
+            @Override
+            public void onMuteChanged(boolean mute) {
+
+            }
+
+            @Override
+            public void onSeeked(long time_position) {
+
+            }
+
+            @Override
+            public void onStreamTitleChanged(String title) {
+
+            }
         });
 
-        client.close();
+        //client.close();
     }
 }
