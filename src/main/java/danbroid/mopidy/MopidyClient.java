@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import danbroid.mopidy.api.*;
@@ -48,6 +49,8 @@ public class MopidyClient extends WebSocketClient {
 	private final AtomicInteger requestID = new AtomicInteger(0);
 	private final HashMap<Integer, Call<?>> calls = new HashMap<>();
 
+	private boolean closeConnection = false;
+
 	public MopidyClient(String host, int port) {
 		super(URI.create("ws://" + host + ":" + port + "/mopidy/ws"));
 	}
@@ -61,6 +64,16 @@ public class MopidyClient extends WebSocketClient {
 	}
 
 
+	@Override
+	public void close() {
+		if (getReadyState() == ReadyState.NOT_YET_CONNECTED) {
+			// Client will close the connection again after it has been opened.
+			closeConnection = true;
+		} else {
+			super.close();
+		}
+	}
+
 	/**
 	 * Dispatches call to the web socket
 	 */
@@ -70,7 +83,7 @@ public class MopidyClient extends WebSocketClient {
 		call.setTimestamp(System.currentTimeMillis());
 		calls.put(id, call);
 
-		// Making sure the connection is already open.
+		// Make sure the connection is already open.
 		if (getReadyState() == ReadyState.OPEN) {
 			sendCalls();
 		}
@@ -85,13 +98,15 @@ public class MopidyClient extends WebSocketClient {
 		}
 	}
 
-
 	@Override
 	public void onOpen(ServerHandshake serverHandshake) {
 		log.info("onOpen()");
 
 		// Send calls that have been added before the connection was open.
 		sendCalls();
+
+		// Close connection if it was requested during opening.
+		if (closeConnection) close();
 	}
 
 	@Override
