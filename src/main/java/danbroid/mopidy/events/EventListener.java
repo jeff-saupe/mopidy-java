@@ -17,33 +17,33 @@ public interface EventListener {
     /**
      * Called whenever track playback is paused.
      *
-     * @param tl_track      The track that was playing when playback paused
-     * @param time_position The time position in milliseconds
+     * @param tlTrack      The track that was playing when playback paused
+     * @param timePosition The time position in milliseconds
      */
-    void onTrackPlaybackPaused(JsonObject tl_track, long time_position);
+    void onTrackPlaybackPaused(JsonObject tlTrack, long timePosition);
 
     /**
      * Called whenever track playback is resumed.
      *
-     * @param tl_track      The track that was playing when playback resumed
-     * @param time_position The time position in milliseconds
+     * @param tlTrack      The track that was playing when playback resumed
+     * @param timePosition The time position in milliseconds
      */
-    void onTrackPlaybackResumed(JsonObject tl_track, long time_position);
+    void onTrackPlaybackResumed(JsonObject tlTrack, long timePosition);
 
     /**
      * Called whenever a new track starts playing.
      *
-     * @param tl_track The track that just started playing
+     * @param tlTrack The track that just started playing
      */
-    void onTrackPlaybackStarted(JsonObject tl_track);
+    void onTrackPlaybackStarted(JsonObject tlTrack);
 
     /**
      * Called whenever playback of a track ends.
      *
-     * @param tl_track      The track that was played before playback stopped
-     * @param time_position The time position in milliseconds
+     * @param tlTrack      The track that was played before playback stopped
+     * @param timePosition The time position in milliseconds
      */
-    void onTrackPlaybackEnded(JsonObject tl_track, long time_position);
+    void onTrackPlaybackEnded(JsonObject tlTrack, long timePosition);
 
     /**
      * Called whenever playback state is changed.
@@ -99,9 +99,9 @@ public interface EventListener {
     /**
      * Called whenever the time position changes by an unexpected amount, e.g. at seek to a new time position.
      *
-     * @param time_position The position that was seeked to in milliseconds
+     * @param timePosition The position that was seeked to in milliseconds
      */
-    void onSeeked(long time_position);
+    void onSeeked(long timePosition);
 
     /**
      * Called whenever the currently playing stream title changes.
