@@ -5,221 +5,324 @@ import com.google.gson.JsonObject;
 
 import danbroid.mopidy.ResponseHandler;
 import danbroid.mopidy.model.TlTrack;
+import danbroid.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Nullable;
 
 @Slf4j
 public class Tracklist extends Api {
-	public Tracklist(Api parent) {
-		super(parent, "tracklist.");
-	}
+    public Tracklist(Api parent) {
+        super(parent, "tracklist.");
+    }
 
-	//"""Get tracklist as list of :class:`mopidy.models.TlTrack`."""
-	public Call<TlTrack[]> getTlTracklist() {
-		return createCall("get_tl_tracks", TlTrack[].class);
-	}
+    /**
+     * Get tracklist.
+     *
+     * @return Array of {@link TlTrack}
+     */
+    public Call<TlTrack[]> getTlTracks() {
+        return createCall("get_tl_tracks", TlTrack[].class);
+    }
 
-	//"""Get tracklist as list of :class:`mopidy.models.Track`."""
-	public Call<TlTrack[]> getTracks() {
-		return createCall("get_tracks", TlTrack[].class);
-	}
+    /**
+     * Get tracklist.
+     *
+     * @return Array of {@link Track}
+     */
+    public Call<Track[]> getTracks() {
+        return createCall("get_tracks", Track[].class);
+    }
 
-	//Get The length of the tracklist
-	public Call<Integer> getLength(ResponseHandler<Integer> handler) {
-		return createCall("get_length", Integer.class);
-	}
+    /**
+     * Get length of the tracklist.
+     *
+     * @return Integer
+     */
+    public Call<Integer> getLength(ResponseHandler<Integer> handler) {
+        return createCall("get_length", Integer.class);
+    }
 
-	/*
-	  Get the tracklist version.
-	  Integer which is increased every time the tracklist is changed.
-	  Is not reset before Mopidy is restarted.
-	 */
-	public Call<Integer> getVersion(ResponseHandler<Integer> handler) {
-		return createCall("get_version", Integer.class);
-	}
+    /**
+     * Get the tracklist version.
+     * It is increased every time the tracklist is changed and is not reset before Mopidy is restarted.
+     *
+     * @param handler ResponseHandler
+     * @return Integer
+     */
+    public Call<Integer> getVersion(ResponseHandler<Integer> handler) {
+        return createCall("get_version", Integer.class);
+    }
 
-	/*
-	Get consume mode.
-        :class:`True`
-            Tracks are removed from the tracklist when they have been played.
-        :class:`False`
-            Tracks are not removed from the tracklist.
-	 */
-	public Call<Boolean> getConsume() {
-		return createCall("get_consume", Boolean.class);
-	}
+    /**
+     * Get consume mode.
+     * True: Tracks are removed from the tracklist when they have been played.
+     * False: Tracks are not removed from the tracklist.
+     *
+     * @return Boolean
+     */
+    public Call<Boolean> getConsume() {
+        return createCall("get_consume", Boolean.class);
+    }
 
-	/*
-	Set consume mode.
+    /**
+     * Set consume mode.
+     * True: Tracks are removed from the tracklist when they have been played.
+     * False: Tracks are not removed from the tracklist.
+     *
+     * @param consume Boolean
+     * @return Void
+     */
+    public Call<Void> setConsume(boolean consume) {
+        return createCall("set_consume", Void.class)
+                .addParam("value", consume);
+    }
 
-        :class:`True` 
-            Tracks are removed from the tracklist when they have been played.
-        :class:`False`
-            Tracks are not removed from the tracklist.
-	 */
-	public Call<Void> setConsume(boolean consume) {
-		return createCall("set_consume", Void.class)
-				.addParam("value", consume);
-	}
+    /**
+     * Get random mode.
+     * True: Tracks are selected at random from the tracklist.
+     * False: Tracks are played in the order of the tracklist.
+     *
+     * @return Boolean
+     */
+    public Call<Boolean> getRandom() {
+        return createCall("get_random", Boolean.class);
+    }
 
-	/*
-	Get random mode.
-        :class:`True`
-            Tracks are selected at random from the tracklist.
-        :class:`False`
-            Tracks are played in the order of the tracklist.
-	 */
-	public Call<Boolean> getRandom() {
-		return createCall("get_random", Boolean.class);
-	}
+    /**
+     * Set random mode.
+     * True: Tracks are selected at random from the tracklist.
+     * False: Tracks are played in the order of the tracklist.
+     *
+     * @param random Boolean
+     * @return Void
+     */
+    public Call<Void> setRandom(boolean random) {
+        return createCall("set_consume", Void.class)
+                .addParam("value", random);
 
-	/*
-	Set random mode.
+    }
 
-        :class:`True`
-            Tracks are selected at random from the tracklist.
-        :class:`False`
-            Tracks are played in the order of the tracklist.
-	 */
-	public Call<Void> setRandom(boolean random) {
-		return createCall("set_consume", Void.class)
-				.addParam("value", random);
+    /**
+     * Get repeat mode.
+     * True: The tracklist is played repeatedly.
+     * False: The tracklist is played once.
+     *
+     * @return Boolean
+     */
+    public Call<Boolean> getRepeat() {
+        return createCall("get_repeat", Boolean.class);
+    }
 
-	}
+    /**
+     * Set repeat mode.
+     * To repeat a single track, set both {@link #setRepeat(boolean)} and {@link #setSingle(boolean)}.
+     * True: The tracklist is played repeatedly.
+     * False: The tracklist is played once.
+     *
+     * @param repeat Boolean
+     * @return Void
+     */
+    public Call<Void> setRepeat(boolean repeat) {
+        return createCall("set_repeat", Void.class)
+                .addParam("value", repeat);
 
-	/*
-	Get repeat mode.
+    }
 
-        :class:`True`
-            The tracklist is played repeatedly.
-        :class:`False`
-            The tracklist is played once.
-	 */
-	public Call<Boolean> getRepeat() {
-		return createCall("get_repeat", Boolean.class);
-	}
+    /**
+     * Get single mode.
+     * True: Playback is stopped after current song, unless in ``repeat`` mode.
+     * False: Playback continues after current song.
+     *
+     * @return Boolean
+     */
+    public Call<Boolean> getSingle() {
+        return createCall("get_single", Boolean.class);
+    }
 
-	/*
-	Set repeat mode.
+    /**
+     * Set single mode.
+     * True: Playback is stopped after current song, unless in ``repeat`` mode.
+     * False: Playback continues after current song.
+     *
+     * @param single Boolean
+     * @return Void
+     */
+    public Call<Void> setSingle(boolean single) {
+        return createCall("set_single", Void.class)
+                .addParam("value", single);
+    }
 
-        To repeat a single track, set both ``repeat`` and ``single``.
+    /**
+     * The position of the current track in the tracklist.
+     *
+     * @return Integer or Null
+     */
+    public Call<Integer> index() {
+        return createCall("index", Integer.class);
+    }
 
-        :class:`True`
-            The tracklist is played repeatedly.
-        :class:`False`
-            The tracklist is played once.
-	 */
-	public Call<Void> setRepeat(boolean repeat) {
-		return createCall("set_repeat", Void.class)
-				.addParam("value", repeat);
+    /**
+     * The position of the given track in the tracklist.
+     *
+     * @param tlTrack The track to find the index of
+     * @return Integer or Null
+     */
+    public Call<Integer> index(TlTrack tlTrack) {
+        return createCall("index", Integer.class)
+                .addParam("tl_track", tlTrack.toString());
+    }
 
-	}
+    /**
+     * The position of the given track in the tracklist.
+     *
+     * @param tlId TlId of the track to find the index of
+     * @return Integer or Null
+     */
+    public Call<Integer> index(Integer tlId) {
+        return createCall("index", Integer.class)
+                .addParam("tlid", tlId);
+    }
 
-	/*
-	 Get single mode.
+    /**
+     * The TlId of the track that will be played after the current track.
+     * Not necessarily the same TlId as returned by {@link #getNextTlId()}
+     *
+     * @return Integer or Null
+     */
+    public Call<Integer> getEotTlId() {
+        return createCall("get_eot_tlid", Integer.class);
+    }
 
-        :class:`True`
-            Playback is stopped after current song, unless in ``repeat`` mode.
-        :class:`False`
-            Playback continues after current song.
-	 */
-	public Call<Boolean> getSingle() {
-		return createCall("get_single", Boolean.class);
-	}
+    /**
+     * The TlId of the track that will be played if calling {@see danbroid.mopidy.api.Playback#next}
+     * For normal playback, this is the next track in the tracklist.
+     * If repeat is enabled, the next track can loop around the tracklist.
+     * When random is enabled this should be a random track, all tracks should be played once before the tracklist repeats.
+     *
+     * @return Integer or Null
+     */
+    public Call<Integer> getNextTlId() {
+        return createCall("get_next_tlid", Integer.class);
+    }
 
-	/*
-	Set single mode.
+    /**
+     * Returns the TlId of the track that will be played if calling {@see danbroid.mopidy.api.Playback#previous}
+     * For normal playback, this is the previous track in the tracklist.
+     * If random and/or consume is enabled, it should return the current track instead.
+     *
+     * @return Integer or Null
+     */
+    public Call<Integer> getPreviousTlId() {
+        return createCall("get_previous_tlid", Integer.class);
+    }
 
-        :class:`True`
-            Playback is stopped after current song, unless in ``repeat`` mode.
-        :class:`False`
-            Playback continues after current song.
-	 */
-	public Call<Void> setSingle(boolean single) {
-		return createCall("set_single", Void.class)
-				.addParam("value", single);
+    /**
+     * Add tracks to the tracklist.
+     * If {@code at_position} is given, the tracks are inserted at the given position in the tracklist.
+     * If {@code at_position} is not given, the tracks are appended to the end of the tracklist.
+     *
+     * @param atPosition Position in tracklist to add tracks
+     * @param uris       List of URIs for tracks to add
+     * @return Array of {@link TlTrack}
+     */
+    public Call<TlTrack[]> add(@Nullable Integer atPosition, String[] uris) {
+        Call<TlTrack[]> call = createCall("add", TlTrack[].class);
+        call.addParam("uris", getGson().toJsonTree(uris));
+        if (atPosition != null)
+            call.addParam("at_position", atPosition);
+        return call;
+    }
 
-	}
+    public Call<TlTrack[]> add(int atPosition, String uri) {
+        return add(atPosition, new String[]{uri});
+    }
 
+    public Call<TlTrack[]> add(String uri) {
+        return add(-1, uri);
+    }
 
-	/*
-	Add tracks to the tracklist.
+    public Call<TlTrack[]> add(String[] uris) {
+        return add(-1, uris);
+    }
 
-        If ``uri`` is given instead of ``tracks``, the URI is looked up in the
-        library and the resulting tracks are added to the tracklist.
+    /**
+     * Clear the tracklist.
+     * Triggers the {@code tracklist_changed} event.
+     *
+     * @return Void
+     */
+    public Call<Void> clear() {
+        return createCall("clear", Void.class);
+    }
 
-        If ``uris`` is given instead of ``uri`` or ``tracks``, the URIs are
-        looked up in the library and the resulting tracks are added to the
-        tracklist.
+    /**
+     * Filter the tracklist by the given criteria.
+     * TODO: Incomplete. See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/tracklist.py#L427.
+     * TODO: Change access modifier
+     */
+    private Call<TlTrack[]> filter() {
+        JsonObject criteria = new JsonObject();
+        return createCall("filter", TlTrack[].class)
+                .addParam("criteria", criteria);
+    }
 
-        If ``at_position`` is given, the tracks are inserted at the given
-        position in the tracklist. If ``at_position`` is not given, the tracks
-        are appended to the end of the tracklist.
+    /**
+     * Move the tracks in the slice [start:end] to {@code to_position}.
+     * Triggers the {@code tracklist_changed} event.
+     *
+     * @param start      Position of first track to move
+     * @param end        Position after last track to move
+     * @param toPosition New position for the tracks
+     * @return Void
+     */
+    public Call<Void> move(int start, int end, int toPosition) {
+        return createCall("move", Void.class)
+                .addParam("start", start)
+                .addParam("end", end)
+                .addParam("to_position", toPosition);
+    }
 
-        Triggers the :meth:`mopidy.core.CoreListener.tracklist_changed` event.
+    /**
+     * Remove the matching tracks from the tracklist.
+     *
+     * @param tlIds Array of track IDs
+     * @return Array of {@link TlTrack}
+     */
+    public Call<TlTrack[]> remove(int[] tlIds) {
+        JsonArray array = new JsonArray(tlIds.length);
+        for (int tlId : tlIds) array.add(tlId);
 
-        :param tracks: tracks to add
-        :type tracks: list of :class:`mopidy.models.Track` or :class:`None`
-        :param at_position: position in tracklist to add tracks
-        :type at_position: int or :class:`None`
-        :param uri: URI for tracks to add
-        :type uri: string or :class:`None`
-        :param uris: list of URIs for tracks to add
-        :type uris: list of string or :class:`None`
-        :rtype: list of :class:`mopidy.models.TlTrack`
-	 */
+        JsonObject criteria = new JsonObject();
+        criteria.add("tlid", array);
 
-	public Call<TlTrack[]> add(String[] uris, int position) {
-		Call<TlTrack[]> call = createCall("add", TlTrack[].class)
-				.addParam("uris", getGson().toJsonTree(uris));
-		if (position > -1)
-			call.addParam("at_position", position);
-		return call;
-	}
+        return createCall("remove", TlTrack[].class)
+                .addParam("criteria", criteria);
+    }
 
-	public Call<TlTrack[]> add(String uri, int position) {
-		return add(new String[]{uri}, position);
-	}
+    /**
+     * Shuffles the entire tracklist.
+     * Shuffles the slice [start:end].
+     * Only if {@code start} and {@code code} are given
+     * Triggers the {@code tracklist_changed} event.
+     *
+     * @param start Position of first track to shuffle
+     * @param end   Position after last track to shuffle
+     * @return Void
+     */
+    public Call<Void> shuffle(int start, int end) {
+        return createCall("shuffle", Void.class)
+                .addParam("start", start)
+                .addParam("end", end);
+    }
 
-	public Call<TlTrack[]> add(String uri) {
-		return add(uri, -1);
-	}
-
-	public Call<TlTrack[]> add(String uris[]) {
-		return add(uris, -1);
-	}
-
-
-	public Call<Void> clear() {
-		return createCall("clear", Void.class);
-	}
-
-	        /*
-	Shuffles the entire tracklist. If ``start`` and ``end`` is given only
-	shuffles the slice ``[start:end]``.
-
-	Triggers the :meth:`mopidy.core.CoreListener.tracklist_changed` event.
-
-        :param start: position of first track to shuffle
-        :type start: int or :class:`None`
-			:param end: position after last track to shuffle
-        :type end: int or :class:`None`
-			*/
-
-	public Call<Void> shuffle(Long start, Long end) {
-		return createCall("shuffle", Void.class)
-				.addParam("start", start)
-				.addParam("end", end);
-	}
-
-	public Call<TlTrack[]> remove(int tlids[]) {
-		JsonArray a = new JsonArray(tlids.length);
-		for (int tlid : tlids)
-			a.add(tlid);
-		JsonObject criteria = new JsonObject();
-		criteria.add("tlid", a);
-		return createCall("remove", TlTrack[].class)
-				.addParam("criteria", criteria);
-	}
+    /**
+     * Returns a slice of the tracklist, limited by the given start and end positions.
+     *
+     * @param start Position of first track to include in slice
+     * @param end   Position after last track to include in slice
+     * @return TlTrack
+     */
+    public Call<TlTrack> slice(int start, int end) {
+        return createCall("slice", TlTrack.class);
+    }
 }
