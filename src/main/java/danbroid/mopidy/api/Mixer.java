@@ -3,7 +3,7 @@ package danbroid.mopidy.api;
 import lombok.extern.slf4j.Slf4j;
 
 /*
-See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/mixer.py
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/mixer.py
  */
 
 @Slf4j

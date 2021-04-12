@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import danbroid.mopidy.model.PlaybackState;
 
 /*
-See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/listener.py
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/listener.py
  */
 
 public interface EventListener {

@@ -11,8 +11,8 @@ import danbroid.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;
 
 /*
-See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/library.py
-TODO: get_distinct, refresh, search
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/library.py
+ * TODO: get_distinct, refresh, search
  */
 
 @Slf4j

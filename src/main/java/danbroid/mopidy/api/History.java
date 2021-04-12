@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /*
-See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/history.py
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/history.py
  */
 
 @Slf4j

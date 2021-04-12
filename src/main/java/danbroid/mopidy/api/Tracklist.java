@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 
 /*
-See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/tracklist.py
-TODO: filter
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/tracklist.py
+ * TODO: filter
  */
 
 @Slf4j

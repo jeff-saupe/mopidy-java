@@ -8,7 +8,7 @@ import danbroid.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;
 
 /*
-See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/playback.py
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/playback.py
  */
 
 @Slf4j

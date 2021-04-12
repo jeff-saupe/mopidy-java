@@ -5,8 +5,8 @@ import danbroid.mopidy.model.Ref;
 import lombok.extern.slf4j.Slf4j;
 
 /*
-See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/history.py
-TODO: lookup, refresh, save
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/history.py
+ * TODO: lookup, refresh, save
  */
 
 @Slf4j
