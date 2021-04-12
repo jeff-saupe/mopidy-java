@@ -8,6 +8,10 @@ import danbroid.mopidy.model.TlTrack;
 import danbroid.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;
 
+/*
+See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/playback.py
+ */
+
 @Slf4j
 public class Playback extends Api {
     protected Playback(Api parent) {
@@ -17,7 +21,7 @@ public class Playback extends Api {
     /**
      * Get the currently playing or selected track.
      *
-     * @return a :class:`mopidy.models.TlTrack` or :class:`None`.
+     * @return {@link TlTrack} or Null
      */
     public Call<TlTrack> getCurrentTlTrack() {
         return createCall("get_current_tl_track", TlTrack.class);
@@ -26,34 +30,35 @@ public class Playback extends Api {
     /**
      * Get the currently playing or selected track.
      *
-     * @return a :class:`mopidy.models.Track` or :class:`None`.
+     * @return {@link Track} or Null
      */
     public Call<Track> getCurrentTrack() {
         return createCall("get_current_track", Track.class);
     }
 
     /**
-     * Get the currently playing or selected TLID.
+     * Get the currently playing or selected TlId.
      *
-     * @return a :class:`int` or :class:`None`.
+     * @return Integer or Null
      */
-    public Call<Integer> getCurrentTLID() {
+    public Call<Integer> getCurrentTlId() {
         return createCall("get_current_tlid", Integer.class);
     }
 
     /**
-     * Get the current stream title
+     * Get the current stream title.
      *
-     * @return a String or :class:`None`.
+     * @return String or Null
      */
     public Call<String> getStreamTitle() {
         return createCall("get_stream_title", String.class);
     }
 
     /**
-     * Get the current playback state
+     * Get the playback state.
      *
-     * @return missing
+     * @param handler ResponseHandler
+     * @return {@link PlaybackState}
      */
     public Call<PlaybackState> getState(ResponseHandler<PlaybackState> handler) {
         return new Call<PlaybackState>(methodPrefix + "get_state", client) {
@@ -66,17 +71,17 @@ public class Playback extends Api {
 
     /**
      * Set the playback state.
-     * <p>
-     * Must be :attr:`PLAYING`, :attr:`PAUSED`, or :attr:`STOPPED`.
-     * <p>
      * Possible states and transitions:
-     * "STOPPED" -> "PLAYING" [ label="play" ]
-     * "STOPPED" -> "PAUSED" [ label="pause" ]
-     * "PLAYING" -> "STOPPED" [ label="stop" ]
-     * "PLAYING" -> "PAUSED" [ label="pause" ]
-     * "PLAYING" -> "PLAYING" [ label="play" ]
-     * "PAUSED" -> "PLAYING" [ label="resume" ]
-     * "PAUSED" -> "STOPPED" [ label="stop" ]
+     * "STOPPED" -> "PLAYING"    {@link #play(Integer)}
+     * "STOPPED" -> "PAUSED"     {@link #pause()}
+     * "PLAYING" -> "STOPPED"    {@link #stop()}
+     * "PLAYING" -> "PAUSED"     {@link #pause()}
+     * "PLAYING" -> "PLAYING"    {@link #play(Integer)}
+     * "PAUSED"  -> "PLAYING"    {@link #resume()}
+     * "PAUSED"  -> "STOPPED"    {@link #stop()}
+     *
+     * @param state PlaybackState, must be: PLAYING, PAUSED or STOPPED.
+     * @return Void
      */
     public Call<Void> setState(PlaybackState state) {
         return createCall("set_state", Void.class)
@@ -86,7 +91,7 @@ public class Playback extends Api {
     /**
      * Get time position in milliseconds.
      *
-     * @return long
+     * @return Long
      */
     public Call<Long> getTimePosition() {
         return createCall("get_time_position", Long.class);
@@ -94,57 +99,61 @@ public class Playback extends Api {
 
     /**
      * Change to the next track.
-     * <p>
-     * The current playback state will be kept. If it was playing, playing
-     * will continue. If it was paused, it will still be paused, etc.
+     * The current playback state will be kept.
+     * If it was playing, playing it will continue.
+     * If it was paused, it will still be paused, etc.
+     *
+     * @return Void
      */
     public Call<Void> next() {
         return createCall("next", Void.class);
     }
 
     /**
-     * Pause current playback
+     * Pause playback.
+     *
+     * @return Void
      */
     public Call<Void> pause() {
         return createCall("pause", Void.class);
     }
 
     /**
-     * Play the given track, or if the given tl_track and tlid is
-     * :class:`None`, play the currently active track.
-     * <p>
-     * Note that the track **must** already be in the tracklist.
-     * <p>
-     * :param tl_track: track to play
-     * :type tl_track: :class:`mopidy.models.TlTrack` or :class:`None`
-     * :param tlid: TLID of the track to play
-     * :type tlid: :class:`int` or :class:`None`
+     * Play the currently active track.
+     * Note that the track must already be in the tracklist.
+     *
+     * @return Void
      */
-    public Call<Void> play(Integer tlid, TlTrack tlTrack) {
-        JsonElement jsonTrack = tlTrack != null ? getGson().toJsonTree(tlTrack) : null;
-
-        return createCall("play", Void.class)
-                .addParam("tlid", tlid)
-                .addParam("tl_track", jsonTrack);
+    public Call<Void> play() {
+        return createCall("play", Void.class);
     }
 
-    public Call<Void> play(Integer tlid) {
+    /**
+     * Play the given track.
+     * Note that the track must already be in the tracklist.
+     *
+     * @param tlId ID of the track
+     * @return Void
+     */
+    public Call<Void> play(Integer tlId) {
         return createCall("play", Void.class)
-                .addParam("tlid", tlid);
+                .addParam("tlid", tlId);
     }
 
     /**
      * Change to the previous track.
-     * <p>
-     * The current playback state will be kept. If it was playing, playing
-     * will continue. If it was paused, it will still be paused, etc.
+     * The current playback state will be kept.
+     * If it was playing, playing will continue.
+     * If it was paused, it will still be paused, etc.
+     *
+     * @return Void
      */
     public Call<Void> previous() {
         return createCall("previous", Void.class);
     }
 
     /**
-     * If paused, resume playing the current track
+     * If paused, resume playing the current track.
      *
      * @return void
      */
@@ -154,10 +163,9 @@ public class Playback extends Api {
 
     /**
      * Seeks to time position given in milliseconds.
-     * <p>
-     * :param time_position: time position in milliseconds
-     * :type time_position: int
-     * :rtype: :class:`True` if successful, else :class:`False`
+     *
+     * @param timePosition Time position in milliseconds
+     * @return True if successful, else False
      */
     public Call<Boolean> seek(long timePosition) {
         return createCall("seek", Boolean.class)
@@ -165,8 +173,9 @@ public class Playback extends Api {
     }
 
     /**
-     * Stop playing
-     * @return
+     * Stop playing.
+     *
+     * @return Void
      */
     public Call<Void> stop() {
         return createCall("stop", Void.class);
