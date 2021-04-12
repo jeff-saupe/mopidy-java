@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 /*
 See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/tracklist.py
+TODO: filter
  */
 
 @Slf4j
@@ -49,6 +50,7 @@ public class Tracklist extends Api {
 
     /**
      * Get the tracklist version.
+     * <p>
      * It is increased every time the tracklist is changed and is not reset before Mopidy is restarted.
      *
      * @param handler ResponseHandler
@@ -60,6 +62,7 @@ public class Tracklist extends Api {
 
     /**
      * Get consume mode.
+     * <p>
      * True: Tracks are removed from the tracklist when they have been played.
      * False: Tracks are not removed from the tracklist.
      *
@@ -71,6 +74,7 @@ public class Tracklist extends Api {
 
     /**
      * Set consume mode.
+     * <p>
      * True: Tracks are removed from the tracklist when they have been played.
      * False: Tracks are not removed from the tracklist.
      *
@@ -84,6 +88,7 @@ public class Tracklist extends Api {
 
     /**
      * Get random mode.
+     * <p>
      * True: Tracks are selected at random from the tracklist.
      * False: Tracks are played in the order of the tracklist.
      *
@@ -95,6 +100,7 @@ public class Tracklist extends Api {
 
     /**
      * Set random mode.
+     * <p>
      * True: Tracks are selected at random from the tracklist.
      * False: Tracks are played in the order of the tracklist.
      *
@@ -109,6 +115,7 @@ public class Tracklist extends Api {
 
     /**
      * Get repeat mode.
+     * <p>
      * True: The tracklist is played repeatedly.
      * False: The tracklist is played once.
      *
@@ -120,7 +127,9 @@ public class Tracklist extends Api {
 
     /**
      * Set repeat mode.
+     * <p>
      * To repeat a single track, set both {@link #setRepeat(boolean)} and {@link #setSingle(boolean)}.
+     * <p>
      * True: The tracklist is played repeatedly.
      * False: The tracklist is played once.
      *
@@ -135,6 +144,7 @@ public class Tracklist extends Api {
 
     /**
      * Get single mode.
+     * <p>
      * True: Playback is stopped after current song, unless in ``repeat`` mode.
      * False: Playback continues after current song.
      *
@@ -146,6 +156,7 @@ public class Tracklist extends Api {
 
     /**
      * Set single mode.
+     * <p>
      * True: Playback is stopped after current song, unless in ``repeat`` mode.
      * False: Playback continues after current song.
      *
@@ -190,6 +201,7 @@ public class Tracklist extends Api {
 
     /**
      * The TlId of the track that will be played after the current track.
+     * <p>
      * Not necessarily the same TlId as returned by {@link #getNextTlId()}
      *
      * @return Integer or Null
@@ -200,6 +212,7 @@ public class Tracklist extends Api {
 
     /**
      * The TlId of the track that will be played if calling {@see danbroid.mopidy.api.Playback#next}
+     * <p>
      * For normal playback, this is the next track in the tracklist.
      * If repeat is enabled, the next track can loop around the tracklist.
      * When random is enabled this should be a random track, all tracks should be played once before the tracklist repeats.
@@ -212,7 +225,9 @@ public class Tracklist extends Api {
 
     /**
      * Returns the TlId of the track that will be played if calling {@see danbroid.mopidy.api.Playback#previous}
+     * <p>
      * For normal playback, this is the previous track in the tracklist.
+     * <p>
      * If random and/or consume is enabled, it should return the current track instead.
      *
      * @return Integer or Null
@@ -223,6 +238,7 @@ public class Tracklist extends Api {
 
     /**
      * Add tracks to the tracklist.
+     * <p>
      * If {@code at_position} is given, the tracks are inserted at the given position in the tracklist.
      * If {@code at_position} is not given, the tracks are appended to the end of the tracklist.
      *
@@ -252,6 +268,7 @@ public class Tracklist extends Api {
 
     /**
      * Clear the tracklist.
+     * <p>
      * Triggers the {@code tracklist_changed} event.
      *
      * @return Void
@@ -261,18 +278,8 @@ public class Tracklist extends Api {
     }
 
     /**
-     * Filter the tracklist by the given criteria.
-     * TODO: Incomplete. See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/tracklist.py#L427.
-     * TODO: Change access modifier
-     */
-    private Call<TlTrack[]> filter() {
-        JsonObject criteria = new JsonObject();
-        return createCall("filter", TlTrack[].class)
-                .addParam("criteria", criteria);
-    }
-
-    /**
      * Move the tracks in the slice [start:end] to {@code to_position}.
+     * <p>
      * Triggers the {@code tracklist_changed} event.
      *
      * @param start      Position of first track to move
@@ -306,8 +313,18 @@ public class Tracklist extends Api {
 
     /**
      * Shuffles the entire tracklist.
-     * Shuffles the slice [start:end].
-     * Only if {@code start} and {@code code} are given
+     * <p>
+     * Triggers the {@code tracklist_changed} event.
+     *
+     * @return Void
+     */
+    public Call<Void> shuffle() {
+        return createCall("shuffle", Void.class);
+    }
+
+    /**
+     * Shuffles the slice [start:end], only if {@code start} and {@code code} are given.
+     * <p>
      * Triggers the {@code tracklist_changed} event.
      *
      * @param start Position of first track to shuffle

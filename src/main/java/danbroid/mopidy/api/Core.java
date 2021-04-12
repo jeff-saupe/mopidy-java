@@ -20,10 +20,20 @@ public class Core extends Api {
 		super(client, "core.");
 	}
 
+	/**
+	 * Get list of URI schemes that can be handled.
+	 *
+	 * @return Array of String
+	 */
 	public Call<String[]> getUriSchemes() {
 		return createCall("get_uri_schemes", String[].class);
 	}
 
+	/**
+	 * Get version of the Mopidy core API.
+	 *
+	 * @return String
+	 */
 	public Call<String> getVersion() {
 		return createCall("get_version", String.class);
 	}

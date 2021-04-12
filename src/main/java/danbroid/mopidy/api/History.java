@@ -34,6 +34,7 @@ public class History extends Api {
 
 	/**
 	 * Get the track history.
+	 *
 	 * The timestamps are milliseconds since epoch.
 	 *
 	 * @return Array of {@link HistoryItem} of the track history

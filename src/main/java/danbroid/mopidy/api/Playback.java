@@ -71,6 +71,7 @@ public class Playback extends Api {
 
     /**
      * Set the playback state.
+     * <p>
      * Possible states and transitions:
      * "STOPPED" -> "PLAYING"    {@link #play(Integer)}
      * "STOPPED" -> "PAUSED"     {@link #pause()}
@@ -99,6 +100,7 @@ public class Playback extends Api {
 
     /**
      * Change to the next track.
+     * <p>
      * The current playback state will be kept.
      * If it was playing, playing it will continue.
      * If it was paused, it will still be paused, etc.
@@ -130,6 +132,7 @@ public class Playback extends Api {
 
     /**
      * Play the given track.
+     * <p>
      * Note that the track must already be in the tracklist.
      *
      * @param tlId ID of the track
@@ -142,6 +145,7 @@ public class Playback extends Api {
 
     /**
      * Change to the previous track.
+     * <p>
      * The current playback state will be kept.
      * If it was playing, playing will continue.
      * If it was paused, it will still be paused, etc.
