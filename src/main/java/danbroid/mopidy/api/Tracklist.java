@@ -9,6 +9,10 @@ import danbroid.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 
+/*
+See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/tracklist.py
+ */
+
 @Slf4j
 public class Tracklist extends Api {
     public Tracklist(Api parent) {
@@ -36,6 +40,7 @@ public class Tracklist extends Api {
     /**
      * Get length of the tracklist.
      *
+     * @param handler ResponseHandler
      * @return Integer
      */
     public Call<Integer> getLength(ResponseHandler<Integer> handler) {
@@ -169,7 +174,7 @@ public class Tracklist extends Api {
      */
     public Call<Integer> index(TlTrack tlTrack) {
         return createCall("index", Integer.class)
-                .addParam("tl_track", tlTrack.toString());
+                .addParam("tl_track", getGson().toJsonTree(tlTrack));
     }
 
     /**
