@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import danbroid.mopidy.api.*;
-import danbroid.mopidy.events.*;
+import saupe.mopidy.api.*;
+import saupe.mopidy.events.*;
 import saupe.mopidy.events.EventListener;
 import saupe.mopidy.misc.JSONKeywords;
 import saupe.mopidy.model.PlaybackState;
