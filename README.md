@@ -8,3 +8,4 @@ A pure Java library for accessing a Mopidy music server.
 - Update and create new tests
 - Create examples
 - Refactoring (including code formatting) 
+- Delete Main.java
