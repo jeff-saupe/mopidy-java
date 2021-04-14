@@ -12,6 +12,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Slf4j
 public class Call<T> {
 	public static final String JSONRPC_VERSION = "2.0";
@@ -43,7 +46,9 @@ public class Call<T> {
 	@Setter
 	private long timestamp;
 
-	protected ResponseHandler<T> handler;
+	protected List<ResponseHandler<T>> responseHandlers = new ArrayList<>();
+	private boolean responseReceived = false;
+
 	@Getter
 	private int id;
 
@@ -68,22 +73,22 @@ public class Call<T> {
 	}
 
 	public final void processResult(JsonElement response) {
+		responseReceived = true;
+
 		try {
 			T result = parseResult(response);
-			if (handler != null)
-				handler.onResponse(result);
+			responseHandlers.forEach(handler -> handler.onResponse(result));
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			if (handler != null)
-				handler.onError(0, e.getMessage(), response);
+			responseHandlers.forEach(handler -> handler.onError(0, e.getMessage(), response));
 		}
 	}
 
 	public void onError(int code, String message, JsonElement data) {
-		if (handler != null)
-			handler.onError(code, message, data);
-		else
-			log.error("code: " + code + " message: " + message + " data: " + data);
+		responseReceived = true;
+
+		log.error("code: " + code + " message: " + message + " data: " + data);
+		responseHandlers.forEach(handler -> handler.onError(code, message, data));
 	}
 
 	@Override
@@ -97,8 +102,8 @@ public class Call<T> {
 		return gson.fromJson(response, resultType.getType());
 	}
 
-	public Call<T> setResponseHandler(ResponseHandler<T> handler) {
-		this.handler = handler;
+	public Call<T> addResponseHandler(ResponseHandler<T> handler) {
+		responseHandlers.add(handler);
 		return this;
 	}
 
@@ -128,10 +133,14 @@ public class Call<T> {
 	}
 
 	public void call(ResponseHandler<T> handler) {
-		setResponseHandler(handler).call();
+		addResponseHandler(handler).call();
 	}
 
 	public void call() {
 		client.call(this);
+	}
+
+	public boolean isResponseReceived() {
+		return responseReceived;
 	}
 }
