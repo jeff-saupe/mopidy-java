@@ -271,7 +271,7 @@ public class MopidyClient extends WebSocketClient {
      *
      * @param eventListeners Listener(s) to be registered
      */
-    public void registerListener(EventListener... eventListeners) {
+    public void addEventListener(EventListener... eventListeners) {
         this.eventListeners.addAll(Arrays.asList(eventListeners));
     }
 
