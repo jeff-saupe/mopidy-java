@@ -10,3 +10,4 @@ A pure Java library for accessing a Mopidy music server.
 - Create examples
 - Refactoring (including code formatting) 
 - Maven Central upload + GitHub Badge via shields.io
+- GitHub Workflow
