@@ -4,7 +4,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.Map;
 
-import saupe.mopidy.misc.JSONKeywords;
+import saupe.mopidy.misc.JsonKeywords;
 import saupe.mopidy.model.Image;
 import saupe.mopidy.model.Ref;
 import saupe.mopidy.model.Track;
@@ -31,7 +31,7 @@ public class Library extends Api {
      * @return Array of {@link Ref} of objects for the directories and tracks at the given {@code uri}.
      */
     public Call<Ref[]> browse(String uri) {
-        return createCall("browse", Ref[].class).addParam(JSONKeywords.URI, uri);
+        return createCall("browse", Ref[].class).addParam(JsonKeywords.URI, uri);
     }
 
     /**
@@ -49,7 +49,7 @@ public class Library extends Api {
         call.setResultType(new TypeToken<Map<String, Image[]>>() {
         });
 
-        return call.addParam(JSONKeywords.URIS, getGson().toJsonTree(uris));
+        return call.addParam(JsonKeywords.URIS, getGson().toJsonTree(uris));
     }
 
     /**
@@ -62,6 +62,6 @@ public class Library extends Api {
      */
     public Call<Track[]> lookup(String[] uris) {
         return createCall("lookup", Track[].class)
-                .addParam(JSONKeywords.URIS, getGson().toJsonTree(uris));
+                .addParam(JsonKeywords.URIS, getGson().toJsonTree(uris));
     }
 }

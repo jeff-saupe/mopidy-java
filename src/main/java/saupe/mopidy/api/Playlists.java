@@ -5,7 +5,7 @@ import saupe.mopidy.model.Ref;
 import lombok.extern.slf4j.Slf4j;
 
 /*
- * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/history.py
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/playlists.py
  * TODO: lookup, refresh, save
  */
 
@@ -61,6 +61,17 @@ public class Playlists extends Api {
         return createCall("create", Playlist.class)
                 .addParam("name", name)
                 .addParam("uri_scheme", uri_scheme);
+    }
+
+    /**
+     * Create a new playlist.
+     *
+     * @param name Name of the new playlist
+     * @return {@link Playlist} or Null
+     */
+    public Call<Playlist> create(String name) {
+        return createCall("create", Playlist.class)
+                .addParam("name", name);
     }
 
     /**

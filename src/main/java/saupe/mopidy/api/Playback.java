@@ -71,13 +71,15 @@ public class Playback extends Api {
      * Set the playback state.
      * <p>
      * Possible states and transitions:
-     * "STOPPED" -> "PLAYING"    {@link #play(Integer)}
-     * "STOPPED" -> "PAUSED"     {@link #pause()}
-     * "PLAYING" -> "STOPPED"    {@link #stop()}
-     * "PLAYING" -> "PAUSED"     {@link #pause()}
-     * "PLAYING" -> "PLAYING"    {@link #play(Integer)}
-     * "PAUSED"  -> "PLAYING"    {@link #resume()}
-     * "PAUSED"  -> "STOPPED"    {@link #stop()}
+     * <ul>
+     *      <li>STOPPED -> PLAYING : {@link #play(Integer)}</li>
+     *      <li>STOPPED -> PAUSED : {@link #pause()}</li>
+     *      <li>PLAYING -> STOPPED : {@link #stop()}</li>
+     *      <li>PLAYING -> PAUSED : {@link #pause()}</li>
+     *      <li>PLAYING -> PLAYING : {@link #play(Integer)}</li>
+     *      <li>PAUSED  -> PLAYING : {@link #resume()}</li>
+     *      <li>PAUSED  -> STOPPED : {@link #stop()}</li>
+     * </ul>
      *
      * @param state PlaybackState, must be: PLAYING, PAUSED or STOPPED.
      * @return Void

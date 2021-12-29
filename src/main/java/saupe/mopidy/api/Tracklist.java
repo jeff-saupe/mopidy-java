@@ -3,14 +3,18 @@ package saupe.mopidy.api;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import saupe.mopidy.model.Base;
 import saupe.mopidy.model.TlTrack;
 import saupe.mopidy.model.Track;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Dictionary;
+import java.util.List;
+
 /*
  * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/core/tracklist.py
- * TODO: filter
  */
 
 @Slf4j
@@ -59,11 +63,12 @@ public class Tracklist extends Api {
 
     /**
      * Get consume mode.
-     * <p>
-     * True: Tracks are removed from the tracklist when they have been played.
-     * False: Tracks are not removed from the tracklist.
      *
      * @return Boolean
+     * <p>
+     * <b>True:</b> Tracks are removed from the tracklist when they have been played.
+     * <p>
+     * <b>False:</b> Tracks are not removed from the tracklist.
      */
     public Call<Boolean> getConsume() {
         return createCall("get_consume", Boolean.class);
@@ -71,11 +76,12 @@ public class Tracklist extends Api {
 
     /**
      * Set consume mode.
-     * <p>
-     * True: Tracks are removed from the tracklist when they have been played.
-     * False: Tracks are not removed from the tracklist.
      *
      * @param consume Boolean
+     *                <p>
+     *                <b>True:</b> Tracks are removed from the tracklist when they have been played.
+     *                <p>
+     *                <b>False:</b> Tracks are not removed from the tracklist.
      * @return Void
      */
     public Call<Void> setConsume(boolean consume) {
@@ -85,11 +91,12 @@ public class Tracklist extends Api {
 
     /**
      * Get random mode.
-     * <p>
-     * True: Tracks are selected at random from the tracklist.
-     * False: Tracks are played in the order of the tracklist.
      *
      * @return Boolean
+     * <p>
+     * <b>True:</b> Tracks are selected at random from the tracklist.
+     * <p>
+     * <b>False:</b> Tracks are played in the order of the tracklist.
      */
     public Call<Boolean> getRandom() {
         return createCall("get_random", Boolean.class);
@@ -97,26 +104,27 @@ public class Tracklist extends Api {
 
     /**
      * Set random mode.
-     * <p>
-     * True: Tracks are selected at random from the tracklist.
-     * False: Tracks are played in the order of the tracklist.
      *
      * @param random Boolean
+     *               <p>
+     *               <b>True:</b> Tracks are selected at random from the tracklist.
+     *               <p>
+     *               <b>False:</b> Tracks are played in the order of the tracklist.
      * @return Void
      */
     public Call<Void> setRandom(boolean random) {
         return createCall("set_consume", Void.class)
                 .addParam("value", random);
-
     }
 
     /**
      * Get repeat mode.
-     * <p>
-     * True: The tracklist is played repeatedly.
-     * False: The tracklist is played once.
      *
      * @return Boolean
+     * <p>
+     * <b>True:</b> The tracklist is played repeatedly.
+     * <p>
+     * <b>False:</b> The tracklist is played once.
      */
     public Call<Boolean> getRepeat() {
         return createCall("get_repeat", Boolean.class);
@@ -126,26 +134,27 @@ public class Tracklist extends Api {
      * Set repeat mode.
      * <p>
      * To repeat a single track, set both {@link #setRepeat(boolean)} and {@link #setSingle(boolean)}.
-     * <p>
-     * True: The tracklist is played repeatedly.
-     * False: The tracklist is played once.
      *
      * @param repeat Boolean
+     *               <p>
+     *               <b>True:</b> The tracklist is played repeatedly.
+     *               <p>
+     *               <b>False:</b> The tracklist is played once.
      * @return Void
      */
     public Call<Void> setRepeat(boolean repeat) {
         return createCall("set_repeat", Void.class)
                 .addParam("value", repeat);
-
     }
 
     /**
      * Get single mode.
-     * <p>
-     * True: Playback is stopped after current song, unless in ``repeat`` mode.
-     * False: Playback continues after current song.
      *
      * @return Boolean
+     * <p>
+     * <b>True:</b> Playback is stopped after current song, unless in <b>repeat</b> mode.
+     * <p>
+     * <b>False:</b> Playback continues after current song.
      */
     public Call<Boolean> getSingle() {
         return createCall("get_single", Boolean.class);
@@ -153,11 +162,12 @@ public class Tracklist extends Api {
 
     /**
      * Set single mode.
-     * <p>
-     * True: Playback is stopped after current song, unless in ``repeat`` mode.
-     * False: Playback continues after current song.
      *
      * @param single Boolean
+     *               <p>
+     *               <b>True:</b> Playback is stopped after current song, unless in <b>repeat</b> mode.
+     *               <p>
+     *               <b>False:</b> Playback continues after current song.
      * @return Void
      */
     public Call<Void> setSingle(boolean single) {
@@ -208,11 +218,12 @@ public class Tracklist extends Api {
     }
 
     /**
-     * The TlId of the track that will be played if calling {@see danbroid.mopidy.api.Playback#next}
+     * The TlId of the track that will be played if calling {@link saupe.mopidy.api.Playback#next()}
      * <p>
      * For normal playback, this is the next track in the tracklist.
      * If repeat is enabled, the next track can loop around the tracklist.
-     * When random is enabled this should be a random track, all tracks should be played once before the tracklist repeats.
+     * When random is enabled this should be a random track, all tracks should be played once before
+     * the tracklist repeats.
      *
      * @return Integer or Null
      */
@@ -221,7 +232,7 @@ public class Tracklist extends Api {
     }
 
     /**
-     * Returns the TlId of the track that will be played if calling {@see danbroid.mopidy.api.Playback#previous}
+     * Returns the TlId of the track that will be played if calling {@link saupe.mopidy.api.Playback#previous()}
      * <p>
      * For normal playback, this is the previous track in the tracklist.
      * <p>
@@ -275,6 +286,24 @@ public class Tracklist extends Api {
     }
 
     /**
+     * Filter the tracklist by the given criteria.
+     *
+     * @param tlIds Tracks to match by
+     * @return Array of {@link TlTrack}
+     * @apiNote Not tested.
+     */
+    public Call<TlTrack[]> filter(int[] tlIds) {
+        JsonArray array = new JsonArray(tlIds.length);
+        for (int tlId : tlIds) array.add(tlId);
+
+        JsonObject criteria = new JsonObject();
+        criteria.add("tlid", array);
+
+        return createCall("filter", TlTrack[].class)
+                .addParam("criteria", criteria);
+    }
+
+    /**
      * Move the tracks in the slice [start:end] to {@code to_position}.
      * <p>
      * Triggers the {@code tracklist_changed} event.
@@ -295,7 +324,7 @@ public class Tracklist extends Api {
      * Remove the matching tracks from the tracklist.
      *
      * @param tlIds Array of track IDs
-     * @return Array of {@link TlTrack}
+     * @return Array of {@link TlTrack} that were removed
      */
     public Call<TlTrack[]> remove(int[] tlIds) {
         JsonArray array = new JsonArray(tlIds.length);

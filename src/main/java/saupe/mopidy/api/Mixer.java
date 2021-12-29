@@ -44,7 +44,7 @@ public class Mixer extends Api {
     /**
      * Set mute state.
      *
-     * @param mute           True to mute, False to unmute.
+     * @param mute True to mute, False to unmute.
      * @return True if call is successful, otherwise False.
      */
     public Call<Boolean> setMute(boolean mute) {

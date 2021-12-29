@@ -4,18 +4,21 @@ import lombok.Getter;
 import lombok.Setter;
 
 /*
- * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/models/__init__.py
+ * See: https://github.com/mopidy/mopidy/blob/develop/mopidy/models/__init__.py#L93-L108
  */
 
 @Getter
 @Setter
 public class Image extends Base {
-	private String uri;
-	private int width;
-	private int height;
+    // URI of the image
+    private String uri;
+    // Optional width of image or Null
+    private int width;
+    // Optional height of image or Null
+    private int height;
 
-	@Override
-	public String toString() {
-		return "Image[" + uri + "]";
-	}
+    @Override
+    public String toString() {
+        return String.format("Image[%s]", uri);
+    }
 }

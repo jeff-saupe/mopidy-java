@@ -1,6 +1,5 @@
 package saupe.mopidy.api;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
@@ -17,55 +16,53 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class History extends Api {
-	private static Gson gson = new Gson();
+    protected History(Api parent) {
+        super(parent, "history.");
+    }
 
-	protected History(Api parent) {
-		super(parent, "history.");
-	}
+    /**
+     * Get the number of tracks in the history.
+     *
+     * @return Integer The history length
+     */
+    public Call<Integer> getLength() {
+        return createCall("get_length", Integer.class);
+    }
 
-	/**
-	 * Get the number of tracks in the history.
-	 *
-	 * @return Integer The history length
-	 */
-	public Call<Integer> getLength() {
-		return createCall("get_length", Integer.class);
-	}
+    /**
+     * Get the track history.
+     * <p>
+     * The timestamps are milliseconds since epoch.
+     *
+     * @return Array of {@link HistoryItem} of the track history
+     */
+    public Call<HistoryItem[]> getHistory() {
+        return new Call<HistoryItem[]>("get_history", client) {
+            @Override
+            protected HistoryItem[] parseResult(JsonElement response) {
+                LinkedList<HistoryItem> result = new LinkedList<>();
+                JsonArray a = response.getAsJsonArray();
+                for (int i = 0; i < a.size(); i++) {
+                    JsonArray tuple = a.get(i).getAsJsonArray();
+                    long timestamp = tuple.get(0).getAsLong();
+                    JsonElement e = tuple.get(1);
+                    Ref ref = getGson().fromJson(e, Ref.class);
+                    result.add(new HistoryItem(timestamp, ref));
+                }
+                return result.toArray(new HistoryItem[]{});
+            }
+        }.setResultType(HistoryItem[].class);
+    }
 
-	/**
-	 * Get the track history.
-	 *
-	 * The timestamps are milliseconds since epoch.
-	 *
-	 * @return Array of {@link HistoryItem} of the track history
-	 */
-	public Call<HistoryItem[]> getHistory() {
-		return new Call<HistoryItem[]>("get_history", client) {
-			@Override
-			protected HistoryItem[] parseResult(JsonElement response) {
-				LinkedList<HistoryItem> result = new LinkedList<>();
-				JsonArray a = response.getAsJsonArray();
-				for (int i = 0; i < a.size(); i++) {
-					JsonArray tuple = a.get(i).getAsJsonArray();
-					long timestamp = tuple.get(0).getAsLong();
-					JsonElement e = tuple.get(1);
-					Ref ref = gson.fromJson(e, Ref.class);
-					result.add(new HistoryItem(timestamp, ref));
-				}
-				return result.toArray(new HistoryItem[]{});
-			}
-		}.setResultType(HistoryItem[].class);
-	}
+    @AllArgsConstructor
+    @Getter
+    public static class HistoryItem {
+        private final long timestamp;
+        private final Ref track;
 
-	@AllArgsConstructor
-	@Getter
-	public static class HistoryItem {
-		private final long timestamp;
-		private final Ref track;
-
-		@Override
-		public String toString() {
-			return "[" + timestamp + "," + track + "]";
-		}
-	}
+        @Override
+        public String toString() {
+            return "[" + timestamp + "," + track + "]";
+        }
+    }
 }
