@@ -5,35 +5,29 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
+import saupe.mopidy.api.Action;
+import saupe.mopidy.api.Dispatch;
 import saupe.mopidy.events.EventListener;
 import saupe.mopidy.misc.JsonKeywords;
 import saupe.mopidy.model.PlaybackState;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
 import saupe.mopidy.api.Call;
-import saupe.mopidy.api.Core;
 
 @Slf4j
-public class MopidyClient extends WebSocketClient {
-    @Getter
-    private final Core core = new Core(this);
-
-    // Calls
-    private final AtomicInteger requestId = new AtomicInteger(0);
-    private final HashMap<Integer, Call<?>> calls = new HashMap<>();
+public class MopidyClient extends WebSocketClient implements Runnable {
+    private final AtomicInteger ID_GENERATOR = new AtomicInteger(0);
+    private final List<Call<?>> calls = new ArrayList<>();
+    private final List<EventListener> eventListeners = new ArrayList<>();
 
     private final int ERROR_TRANSPORT = -1;
-    private boolean closeConnection = false;
-    private List<EventListener> eventListeners = new ArrayList<>();
+    private Action closeHandler;
 
     public MopidyClient(String host, int port) {
         super(URI.create("ws://" + host + ":" + port + "/mopidy/ws"));
@@ -47,60 +41,65 @@ public class MopidyClient extends WebSocketClient {
         super(uri);
     }
 
+    @Override
+    public void connect() {
+        super.connect();
+        run();
+    }
+
     /**
      * Dispatches call to the web socket.
      *
      * @param call Call to be dispatched
      */
-    public synchronized void call(Call<?> call) {
-        int id = requestId.incrementAndGet();
-        call.setID(id);
-        call.setTimestamp(System.currentTimeMillis());
-        calls.put(id, call);
+    public synchronized <T> Dispatch<T> dispatch(Call<T> call) {
+        int id = ID_GENERATOR.incrementAndGet();
+        call.setId(id);
+        calls.add(id, call);
+        return call.getDispatch();
+    }
 
-        // Make sure the connection is already open.
-        if (getReadyState() == ReadyState.OPEN) {
-            sendCalls();
+    @Override
+    public void run() {
+        while (getReadyState() != ReadyState.CLOSED) {
+            if (getReadyState() == ReadyState.OPEN && calls.size() > 0) {
+                Call<?> call = calls.get(0);
+                if (call != null) {
+                    if (call.getState() == Call.CallState.NOT_CALLED) {
+                        call.setState(Call.CallState.ALREADY_CALLED);
+                        call.setTimestamp(System.currentTimeMillis());
+
+                        String request = call.toString();
+                        log.info("call(): request:{}", request);
+                        send(request);
+                    } else if (call.getState() == Call.CallState.DONE) {
+                        calls.remove(0);
+                    }
+                } else {
+                    calls.remove(0);
+                }
+            }
         }
     }
 
-    private void sendCalls() {
-        for (Call<?> call : calls.values()) {
-            String request = call.toString();
-            log.info("call(): request:{}", request);
-            send(request);
-        }
-    }
-
-    protected Call<?> popCall(int id) {
-        return calls.remove(id);
+    private Optional<Call<?>> findById(int id) {
+        return calls.stream().filter(c -> c.getId() == id).findFirst();
     }
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
         log.info("onOpen()");
-
-        // Send calls now that have been added before the connection was open.
-        sendCalls();
-
-        // Close connection now if it was requested during connection opening.
-        if (closeConnection) close();
     }
 
-    @Override
-    public void close() {
-        if (getReadyState() == ReadyState.NOT_YET_CONNECTED) {
-            // Connection will be closed after it was opened.
-            closeConnection = true;
-        } else {
-            super.close();
-        }
+    public void onClose(Action action) {
+        this.closeHandler = action;
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
         log.info("onClose() Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: "
                 + reason);
+        if (closeHandler != null) closeHandler.execute();
     }
 
     @Override
@@ -109,7 +108,7 @@ public class MopidyClient extends WebSocketClient {
 
         String message = e.getCause() != null ? e.getCause().getLocalizedMessage() : e.getLocalizedMessage();
 
-        calls.values().forEach(call -> call.onError(ERROR_TRANSPORT, message, null));
+        calls.forEach(call -> call.onError(ERROR_TRANSPORT, message, null));
     }
 
     @Override
@@ -160,20 +159,22 @@ public class MopidyClient extends WebSocketClient {
     }
 
     protected void processMessageError(int id, String message, int code, JsonElement data) {
-        Call<?> call = popCall(id);
-        if (call != null) {
-            call.onError(code, message, data);
+        log.trace("processMessageError(): id:{} message: {}", id, message);
+
+        Optional<Call<?>> call = findById(id);
+        if (call.isPresent()) {
+            call.get().onError(code, message, data);
         } else {
             log.error("No call found for request: " + id);
         }
     }
 
     protected void processMessageResponse(int id, JsonElement result) {
-        log.trace("processResponse(): id:{} result: {}", id, result);
+        log.trace("processMessageResponse(): id:{} result: {}", id, result);
 
-        Call<?> call = popCall(id);
-        if (call != null) {
-            call.processResult(result);
+        Optional<Call<?>> call = findById(id);
+        if (call.isPresent()) {
+            call.get().onResult(result);
         } else {
             log.error("No call found for request: " + id);
         }
@@ -260,7 +261,6 @@ public class MopidyClient extends WebSocketClient {
                 log.error("Unknown event: " + data);
                 return false;
         }
-
         return true;
     }
 

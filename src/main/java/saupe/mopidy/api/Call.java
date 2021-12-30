@@ -6,21 +6,45 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import saupe.mopidy.MopidyClient;
-import saupe.mopidy.ResponseHandler;
 import saupe.mopidy.misc.JsonKeywords;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Consumer;
 
 @Slf4j
 public class Call<T> {
-    public static final String JSONRPC_VERSION = "2.0";
-    private static Gson gson = new Gson();
 
-    private final MopidyClient client;
+    public enum CallState {
+        NOT_CALLED, ALREADY_CALLED, DONE
+    }
+
+    private final Gson gson = new Gson();
+
+    @Getter
+    private final Dispatch<T> dispatch = new Dispatch<>();
+
+    @Getter
+    @Setter
+    private CallState state = CallState.NOT_CALLED;
+
+    /**
+     * ID of request
+     */
+    @Getter
+    private int id;
+
+    /**
+     * The request data
+     */
+    @Getter
+    private final JsonObject request;
+
+    /**
+     * The params field of the request
+     */
+    private final JsonObject params;
 
     /**
      * The Java type of the result field of the response
@@ -28,38 +52,18 @@ public class Call<T> {
     private TypeToken<T> resultType;
 
     /**
-     * The request data
-     */
-    @Getter
-    private JsonObject request;
-
-    /**
-     * The params field of the request
-     */
-    private JsonObject params;
-
-
-    /**
-     * When this call was dispatched
+     * Timestamp when this call was dispatched
      */
     @Getter
     @Setter
     private long timestamp;
 
-    protected List<ResponseHandler<T>> responseHandlers = new ArrayList<>();
-    private boolean responseReceived = false;
-
-    @Getter
-    private int id;
-
-    public Call(String method, MopidyClient client) {
-        this.client = client;
-
+    public Call(String method) {
         params = new JsonObject();
 
         request = new JsonObject();
+        request.addProperty(JsonKeywords.JSONRPC, "2.0");
         request.addProperty(JsonKeywords.METHOD, method);
-        request.addProperty(JsonKeywords.JSONRPC, JSONRPC_VERSION);
         request.add(JsonKeywords.PARAMS, params);
     }
 
@@ -72,23 +76,29 @@ public class Call<T> {
         return setResultType(TypeToken.get(resultType));
     }
 
-    public final void processResult(JsonElement response) {
-        responseReceived = true;
+    public final void onResult(JsonElement response) {
+        setState(CallState.DONE);
 
         try {
             T result = parseResult(response);
-            responseHandlers.forEach(handler -> handler.onResponse(result));
+            if (dispatch.getResponseHandler() != null) {
+                dispatch.getResponseHandler().accept(result);
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            responseHandlers.forEach(handler -> handler.onError(0, e.getMessage(), response));
+            if (dispatch.getErrorHandler() != null) {
+                dispatch.getErrorHandler().execute();
+            }
         }
     }
 
     public void onError(int code, String message, JsonElement data) {
-        responseReceived = true;
+        setState(CallState.DONE);
 
         log.error("code: " + code + " message: " + message + " data: " + data);
-        responseHandlers.forEach(handler -> handler.onError(code, message, data));
+        if (dispatch.getErrorHandler() != null) {
+            dispatch.getErrorHandler().execute();
+        }
     }
 
     @Override
@@ -102,45 +112,29 @@ public class Call<T> {
         return gson.fromJson(response, resultType.getType());
     }
 
-    public Call<T> addResponseHandler(ResponseHandler<T> handler) {
-        responseHandlers.add(handler);
-        return this;
-    }
-
-    public Call<T> addParam(String name, String value) {
+    protected Call<T> addParam(String name, String value) {
         params.addProperty(name, value);
         return this;
     }
 
-    public Call<T> addParam(String name, Boolean value) {
+    protected Call<T> addParam(String name, Boolean value) {
         params.addProperty(name, value);
         return this;
     }
 
-    public Call<T> addParam(String name, Number value) {
+    protected Call<T> addParam(String name, Number value) {
         params.addProperty(name, value);
         return this;
     }
 
-    public Call<T> addParam(String name, JsonElement value) {
+    protected Call<T> addParam(String name, JsonElement value) {
         params.add(name, value);
         return this;
     }
 
-    public void setID(int id) {
-        getRequest().addProperty(JsonKeywords.ID, id);
+    public void setId(int id) {
         this.id = id;
+        getRequest().addProperty(JsonKeywords.ID, id);
     }
 
-    public void call(ResponseHandler<T> handler) {
-        addResponseHandler(handler).call();
-    }
-
-    public void call() {
-        client.call(this);
-    }
-
-    public boolean isResponseReceived() {
-        return responseReceived;
-    }
 }

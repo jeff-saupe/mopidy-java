@@ -59,7 +59,7 @@ public class Playback extends Api {
      * @return {@link PlaybackState}
      */
     public Call<PlaybackState> getState() {
-        return new Call<PlaybackState>(methodPrefix + "get_state", client) {
+        return new Call<PlaybackState>(prefix + "get_state") {
             @Override
             protected PlaybackState parseResult(JsonElement response) {
                 return PlaybackState.valueOf(response.getAsString().toUpperCase());

@@ -3,7 +3,7 @@ package saupe.mopidy.api;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import saupe.mopidy.MopidyClient;
+import lombok.Getter;
 import saupe.mopidy.RuntimeTypeAdapterFactory;
 import saupe.mopidy.model.Album;
 import saupe.mopidy.model.Artist;
@@ -14,29 +14,35 @@ import saupe.mopidy.model.Ref;
 import saupe.mopidy.model.TlTrack;
 import saupe.mopidy.model.Track;
 
+import java.util.Arrays;
+
 public class Api {
-    private final Api parent;
+    @Getter
+    protected final Gson gson = getGsonBuilder().create();
+    protected final String prefix;
 
-    protected final MopidyClient client;
-    protected final String methodPrefix;
-    private Gson gson;
+    private final Class<? extends Base>[] subClasses = new Class[]{
+        Album.class,
+        Artist.class,
+        Image.class,
+        Playlist.class,
+        Ref.class,
+        TlTrack.class,
+        Track.class
+    };
 
-    // Parent constructor
-    protected Api(MopidyClient client, String methodPrefix) {
-        this.parent = null;
-        this.client = client;
-        this.methodPrefix = methodPrefix;
+    // ---- Parent constructor ----
+    protected Api(String prefix) {
+        this.prefix = prefix;
     }
 
-    // Child constructor
-    protected Api(Api parent, String methodPrefix) {
-        this.parent = parent;
-        this.client = parent.client;
-        this.methodPrefix = parent.methodPrefix + methodPrefix;
+    // ---- Child constructor ----
+    protected Api(Api parent, String prefix) {
+        this.prefix = parent.prefix + prefix;
     }
 
     public <T> Call<T> createCall(String method) {
-        return new Call<T>(methodPrefix + method, client);
+        return new Call<T>(prefix + method);
     }
 
     public <T> Call<T> createCall(String method, Class<T> resultType) {
@@ -45,23 +51,9 @@ public class Api {
         return call;
     }
 
-    public Gson getGson() {
-        return gson == null ? gson = getGsonBuilder().create() : gson;
-    }
-
-    // TODO: Get rid of this
-    public GsonBuilder getGsonBuilder() {
-        RuntimeTypeAdapterFactory<Base> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
-                .of(Base.class, "__model__");
-
-        for (Class<Base> clz : new Class[]{Album.class, Artist.class, Image.class, Ref.class, Track.class,
-                TlTrack.class, Playlist.class}) {
-            runtimeTypeAdapterFactory.registerSubtype(clz, clz.getSimpleName());
-        }
-			/*	.registerSubtype(Image.class, "Image")
-				.registerSubtype(Ref.class, "Ref");
-*/
-        return new GsonBuilder()
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory);
+    private GsonBuilder getGsonBuilder() {
+        RuntimeTypeAdapterFactory<Base> factory = RuntimeTypeAdapterFactory.of(Base.class, "__model__");
+        Arrays.stream(subClasses).forEach(clz -> factory.registerSubtype(clz, clz.getSimpleName()));
+        return new GsonBuilder().registerTypeAdapterFactory(factory);
     }
 }

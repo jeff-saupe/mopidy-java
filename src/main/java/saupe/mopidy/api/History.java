@@ -37,7 +37,7 @@ public class History extends Api {
      * @return Array of {@link HistoryItem} of the track history
      */
     public Call<HistoryItem[]> getHistory() {
-        return new Call<HistoryItem[]>("get_history", client) {
+        return new Call<HistoryItem[]>("get_history") {
             @Override
             protected HistoryItem[] parseResult(JsonElement response) {
                 LinkedList<HistoryItem> result = new LinkedList<>();

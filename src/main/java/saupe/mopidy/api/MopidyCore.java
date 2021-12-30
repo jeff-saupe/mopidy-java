@@ -1,6 +1,5 @@
 package saupe.mopidy.api;
 
-import saupe.mopidy.MopidyClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
-public class Core extends Api {
+public class MopidyCore extends Api {
     private final Library   library     = new Library(this);
     private final History   history     = new History(this);
     private final Mixer     mixer       = new Mixer(this);
@@ -18,8 +17,8 @@ public class Core extends Api {
     private final Playlists playlists   = new Playlists(this);
     private final Tracklist tracklist   = new Tracklist(this);
 
-    public Core(MopidyClient client) {
-        super(client, "core.");
+    public MopidyCore() {
+        super("core.");
     }
 
     /**
