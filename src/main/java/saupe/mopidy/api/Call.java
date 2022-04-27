@@ -5,19 +5,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import saupe.mopidy.MopidyClient;
 import saupe.mopidy.misc.JsonKeywords;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.function.Consumer;
-
 @Slf4j
 public class Call<T> {
 
     public enum CallState {
-        NOT_CALLED, ALREADY_CALLED, DONE
+        NOT_CALLED, ONGOING, DONE
     }
 
     private final Gson gson = new Gson();

@@ -21,7 +21,7 @@ public class Api {
     protected final Gson gson = getGsonBuilder().create();
     protected final String prefix;
 
-    private final Class<? extends Base>[] subClasses = new Class[]{
+    private static final Class<? extends Base>[] subClasses = new Class[]{
         Album.class,
         Artist.class,
         Image.class,

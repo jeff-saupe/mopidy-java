@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 import saupe.mopidy.api.Action;
 import saupe.mopidy.api.Dispatch;
@@ -16,15 +15,17 @@ import saupe.mopidy.misc.JsonKeywords;
 import saupe.mopidy.model.PlaybackState;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
 import saupe.mopidy.api.Call;
+import saupe.mopidy.api.Call.CallState;
 
 @Slf4j
-public class MopidyClient extends WebSocketClient implements Runnable {
+public class MopidyClient extends WebSocketClient {
     private final AtomicInteger ID_GENERATOR = new AtomicInteger(0);
     private final List<Call<?>> calls = new ArrayList<>();
     private final List<EventListener> eventListeners = new ArrayList<>();
+
+    private Thread callThread;
 
     private final int ERROR_TRANSPORT = -1;
     private Action closeHandler;
@@ -41,12 +42,6 @@ public class MopidyClient extends WebSocketClient implements Runnable {
         super(uri);
     }
 
-    @Override
-    public void connect() {
-        super.connect();
-        run();
-    }
-
     /**
      * Dispatches call to the web socket.
      *
@@ -59,24 +54,45 @@ public class MopidyClient extends WebSocketClient implements Runnable {
         return call.getDispatch();
     }
 
-    @Override
-    public void run() {
-        while (getReadyState() != ReadyState.CLOSED) {
-            if (getReadyState() == ReadyState.OPEN && calls.size() > 0) {
-                Call<?> call = calls.get(0);
-                if (call != null) {
-                    if (call.getState() == Call.CallState.NOT_CALLED) {
-                        call.setState(Call.CallState.ALREADY_CALLED);
-                        call.setTimestamp(System.currentTimeMillis());
+    public void send() {
+        CallQueue queue = new CallQueue();
 
-                        String request = call.toString();
-                        log.info("call(): request:{}", request);
-                        send(request);
-                    } else if (call.getState() == Call.CallState.DONE) {
-                        calls.remove(0);
-                    }
-                } else {
-                    calls.remove(0);
+        Iterator<Call<?>> iterator = calls.iterator();
+        while(iterator.hasNext()) {
+            Call<?> call = iterator.next();
+            queue.enqueue(call);
+            iterator.remove();
+        }
+
+        new Thread(queue).start();
+    }
+
+    class CallQueue implements Runnable {
+        private final Queue<Call<?>> calls = new LinkedList<>();
+
+        public synchronized void enqueue(Call<?> call) {
+            if (call != null) {
+                calls.add(call);
+            }
+        }
+
+        public synchronized void dequeue() {
+            calls.poll();
+        }
+
+        @Override
+        public void run() {
+            while (calls.size() > 0) {
+                Call<?> call = calls.peek();
+                if (call.getState() == CallState.NOT_CALLED) {
+                    call.setState(CallState.ONGOING);
+                    call.setTimestamp(System.currentTimeMillis());
+
+                    String request = call.toString();
+                    log.info("call(): request:{}", request);
+                    send(request);
+                } else if (call.getState() == CallState.DONE) {
+                    dequeue();
                 }
             }
         }
